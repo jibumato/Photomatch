@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ログイン | PhotoMatch</title>
+<link rel="icon" href="assets/photomatch-icon-transparent.png">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<header class="pm-header" id="pm-header"></header>
+
+<main>
+  <section style="max-width:420px;margin:0 auto;padding:56px 32px 100px">
+    <a class="pm-back-link" href="index.html">← トップに戻る</a>
+    <h1 id="form-title" style="font:700 26px var(--pm-font-body);margin:20px 0 6px">ログイン</h1>
+    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 24px">マイページから予約情報を確認できます。</p>
+
+    <div style="background:var(--pm-bg-mint);border-radius:12px;padding:14px 16px;margin-bottom:20px;font:12px/1.8 var(--pm-font-body);color:oklch(0.4 0.05 220)">
+      デモアカウント：guest@example.com / guest（あらかじめSupabase側で作成しておく必要があります）<br>
+      <span id="fill-demo" style="cursor:pointer;color:oklch(0.5 0.14 220);font-weight:700;text-decoration:underline">デモ情報を自動入力</span>
+    </div>
+
+    <div class="pm-card" style="padding:24px;display:flex;flex-direction:column;gap:18px">
+      <div class="pm-field" id="name-field" style="display:none">
+        <label>お名前</label>
+        <input class="pm-input" type="text" id="f-name" placeholder="例）山田 太郎">
+      </div>
+      <div class="pm-field">
+        <label>メールアドレス</label>
+        <input class="pm-input" type="email" id="f-email" placeholder="guest@example.com">
+      </div>
+      <div class="pm-field">
+        <label>パスワード</label>
+        <input class="pm-input" type="password" id="f-password" placeholder="パスワード">
+      </div>
+      <div class="pm-error-text" id="form-error" style="display:none"></div>
+      <button class="pm-btn pm-btn-primary pm-btn-block" id="submit-btn">ログイン</button>
+    </div>
+
+    <p style="text-align:center;margin-top:18px;font:13px var(--pm-font-body);color:var(--pm-text-3)">
+      アカウントをお持ちでない方は <span id="toggle-mode" style="cursor:pointer;color:oklch(0.45 0.14 210);font-weight:700;text-decoration:underline">新規登録</span>
+    </p>
+  </section>
+</main>
+
+<footer class="pm-footer" id="pm-footer"></footer>
+
+<script type="module" src="js/pages/login.js"></script>
+</body>
+</html>

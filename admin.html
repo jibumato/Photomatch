@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>カメラマン管理 | PhotoMatch</title>
+<link rel="icon" href="assets/photomatch-icon-transparent.png">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<header class="pm-header" id="pm-header"></header>
+
+<main>
+  <section style="max-width:1000px;margin:0 auto;padding:40px 32px 100px">
+    <div id="pm-loading" class="pm-loading">読み込み中…</div>
+    <div id="pm-empty-state" class="pm-empty" style="display:none"></div>
+
+    <div id="pm-admin" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:20px">
+        <div>
+          <a class="pm-back-link" href="index.html">← トップに戻る</a>
+          <div style="margin:14px 0 10px">
+            <span style="background:var(--pm-pro-navy);color:#fff;font:700 11px var(--pm-font-body);padding:4px 12px;border-radius:100px;display:inline-block">カメラマン管理</span>
+          </div>
+          <h1 style="font:700 26px var(--pm-font-body);margin:0 0 6px">シフト管理</h1>
+          <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0;max-width:520px">枠をタップして受付のオン（○）／オフ（休）を切り替えます。予約が入っている枠は変更できません。</p>
+        </div>
+        <button class="pm-btn-outline" id="logout-btn">ログアウト</button>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+        <div class="pm-legend" style="margin-bottom:0">
+          <div class="pm-legend-item"><span class="pm-legend-swatch" style="background:var(--pm-accent-grad)"></span>受付中</div>
+          <div class="pm-legend-item"><span class="pm-legend-swatch" style="background:oklch(0.96 0.006 220);border:1px dashed oklch(0.85 0.02 220)"></span>休み</div>
+          <div class="pm-legend-item"><span class="pm-legend-swatch" style="background:oklch(0.9 0.02 260)"></span>予約済み</div>
+        </div>
+        <div id="open-count-line" style="font:700 13px var(--pm-font-body);color:oklch(0.35 0.02 240)">受付中の枠：0</div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+        <button class="pm-btn-outline" id="btn-all-open">全て空きに</button>
+        <button class="pm-btn-outline" id="btn-all-closed">全て休みに</button>
+      </div>
+
+      <div class="pm-cal-scroll">
+        <div class="pm-cal-grid" id="shift-grid"></div>
+      </div>
+
+      <h2 style="font:700 17px var(--pm-font-body);margin:48px 0 8px">予約者とのメッセージ</h2>
+      <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 18px">予約ごとに依頼者と直接やりとりできます。集合場所の詳細や当日の連絡にご利用ください。</p>
+      <div id="pm-bookings" style="display:flex;flex-direction:column;gap:14px"></div>
+    </div>
+  </section>
+</main>
+
+<div id="pm-chat-mount"></div>
+<footer class="pm-footer" id="pm-footer"></footer>
+
+<script type="module" src="js/pages/admin.js"></script>
+</body>
+</html>
