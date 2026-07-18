@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>コラム記事 | PhotoMatch</title>
+<link rel="icon" href="assets/photomatch-icon-transparent.png">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<header class="pm-header" id="pm-header"></header>
+
+<main>
+  <section class="pm-wrap-narrow" style="padding:24px clamp(20px,5vw,32px) 0">
+    <a class="pm-back-link" href="column.html">← コラム一覧に戻る</a>
+  </section>
+
+  <article class="pm-wrap-narrow" style="padding:20px clamp(20px,5vw,32px) 0">
+    <div id="pm-article-meta" style="display:flex;align-items:center;gap:10px;margin-bottom:14px"></div>
+    <h1 id="pm-article-title" style="font:700 clamp(24px,5vw,32px)/1.5 var(--pm-font-body);margin:0 0 20px"></h1>
+    <div id="pm-article-lead" style="font:15px/1.9 var(--pm-font-body);color:oklch(0.32 0.02 235);background:oklch(0.97 0.015 210);border-left:3px solid oklch(0.7 0.12 210);border-radius:0 12px 12px 0;padding:18px 20px;margin-bottom:36px"></div>
+    <div id="pm-article-sections"></div>
+  </article>
+
+  <section style="max-width:800px;margin:48px auto 0;padding:0 clamp(20px,5vw,32px) 80px">
+    <div style="background:linear-gradient(135deg, oklch(0.28 0.04 240), oklch(0.36 0.08 228));color:#fff;border-radius:20px;padding:clamp(32px,7vw,48px) clamp(24px,5vw,40px);text-align:center">
+      <div style="font:700 13px var(--pm-font-body);color:oklch(0.78 0.1 200);letter-spacing:0.06em;margin-bottom:10px">READY?</div>
+      <h2 style="font:700 clamp(20px,4.5vw,26px)/1.6 var(--pm-font-body);margin:0 0 14px">その一枚、プロと45分で。</h2>
+      <p style="font:14px/1.9 var(--pm-font-body);color:oklch(0.85 0.01 220);margin:0 0 28px">名古屋・岐阜・一宮エリアの審査済みカメラマンが、アプリ映えする自然な1枚を撮影します。</p>
+      <a class="pm-btn pm-btn-primary pm-btn-lg" style="background:#fff;color:oklch(0.24 0.05 245)" href="search.html">撮影を予約する</a>
+    </div>
+  </section>
+</main>
+
+<footer class="pm-footer" id="pm-footer"></footer>
+
+<script type="module" src="js/pages/article.js"></script>
+</body>
+</html>

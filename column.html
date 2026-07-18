@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>コラム | PhotoMatch</title>
+<link rel="icon" href="assets/photomatch-icon-transparent.png">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<style>.pm-column-card { transition: border-color .15s; } .pm-column-card:hover { border-color: oklch(0.7 0.12 210); }</style>
+</head>
+<body>
+
+<header class="pm-header" id="pm-header"></header>
+
+<main>
+  <section style="background:linear-gradient(180deg, oklch(0.97 0.02 205), var(--pm-bg));padding:24px clamp(20px,5vw,32px) clamp(40px,8vw,56px)">
+    <div class="pm-wrap-narrow">
+      <a class="pm-back-link" href="index.html">← トップに戻る</a>
+      <div class="pm-eyebrow" style="font-family:var(--pm-font-num);letter-spacing:0.06em;text-align:left;margin-top:20px">COLUMN</div>
+      <h1 style="font:700 clamp(24px,5vw,32px)/1.5 var(--pm-font-body);margin:0 0 14px">写真とマッチングアプリのコラム</h1>
+      <p style="font:14px/1.9 var(--pm-font-body);color:var(--pm-text-3);margin:0">「マッチしない原因」「写真の撮り方」「服装」——アプリで結果を出すためのヒントを、名古屋の撮影現場からお届けします。</p>
+    </div>
+  </section>
+
+  <section class="pm-wrap-narrow" style="padding:clamp(32px,6vw,48px) clamp(20px,5vw,32px) 80px">
+    <div id="pm-column-list" style="display:flex;flex-direction:column;gap:20px"></div>
+  </section>
+</main>
+
+<footer class="pm-footer" id="pm-footer"></footer>
+
+<script type="module" src="js/pages/column.js"></script>
+</body>
+</html>

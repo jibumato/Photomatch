@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>マイページ | PhotoMatch</title>
+<link rel="icon" href="assets/photomatch-icon-transparent.png">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<header class="pm-header" id="pm-header"></header>
+
+<main>
+  <section style="max-width:800px;margin:0 auto;padding:40px 32px 100px">
+    <div id="pm-loading" class="pm-loading">読み込み中…</div>
+    <div id="pm-mypage" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:32px">
+        <div>
+          <h1 style="font:700 26px var(--pm-font-body);margin:0 0 6px">マイページ</h1>
+          <div id="pm-user-line" style="font:13px var(--pm-font-body);color:var(--pm-text-3)"></div>
+        </div>
+        <button class="pm-btn-outline" id="logout-btn">ログアウト</button>
+      </div>
+
+      <h2 style="font:700 17px var(--pm-font-body);margin:0 0 14px">今後の予約</h2>
+      <div id="pm-upcoming" style="display:flex;flex-direction:column;gap:14px;margin-bottom:40px"></div>
+
+      <h2 style="font:700 17px var(--pm-font-body);margin:0 0 14px">過去の撮影履歴</h2>
+      <div id="pm-history" style="display:flex;flex-direction:column;gap:14px"></div>
+    </div>
+  </section>
+</main>
+
+<div id="pm-chat-mount"></div>
+<div id="pm-sheet-mount"></div>
+<footer class="pm-footer" id="pm-footer"></footer>
+
+<script type="module" src="js/pages/mypage.js"></script>
+</body>
+</html>

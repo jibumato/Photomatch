@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>カメラマンプロフィール | PhotoMatch</title>
+<link rel="icon" href="assets/photomatch-icon-transparent.png">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<header class="pm-header" id="pm-header"></header>
+
+<main>
+  <section class="pm-wrap" style="padding:24px 32px 0">
+    <a class="pm-back-link" href="search.html">← 検索結果に戻る</a>
+  </section>
+
+  <section class="pm-wrap" style="padding:24px 32px 80px">
+    <div id="pm-loading" class="pm-loading">読み込み中…</div>
+    <div id="pm-profile" style="display:none;display:flex;gap:48px;flex-wrap:wrap">
+      <div style="flex:2 1 560px;min-width:280px">
+        <div id="pm-header-block" style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;margin-bottom:28px"></div>
+        <p id="pm-bio" style="font:15px/1.9 var(--pm-font-body);color:oklch(0.35 0.02 235);margin:0 0 32px;max-width:600px"></p>
+
+        <div style="font:700 16px var(--pm-font-body);margin-bottom:14px">料金プラン</div>
+        <div id="pm-plans" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:36px"></div>
+
+        <div style="font:700 16px var(--pm-font-body);margin-bottom:14px">レビュー</div>
+        <div id="pm-reviews" style="display:flex;flex-direction:column;gap:14px"></div>
+      </div>
+
+      <div style="flex:1 1 280px;min-width:240px">
+        <div style="position:sticky;top:96px;border:1px solid var(--pm-border);border-radius:18px;padding:24px;background:#fff;box-shadow:0 16px 40px oklch(0.6 0.1 210 / 0.12)">
+          <div id="pm-price-comment" style="font:14px/1.7 var(--pm-font-body);color:oklch(0.4 0.03 220);background:var(--pm-bg-mint);border-radius:10px;padding:12px 14px;margin-bottom:12px"></div>
+          <div id="pm-availability" style="font:13px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:16px"></div>
+          <div id="pm-rating-line" style="display:flex;align-items:center;gap:6px;font:13px var(--pm-font-body);color:oklch(0.4 0.02 235);margin-bottom:20px"></div>
+          <a id="pm-book-btn" class="pm-btn pm-btn-primary pm-btn-block" href="#" style="margin-bottom:10px">空き枠から予約する</a>
+          <div style="font:12px/1.7 var(--pm-font-body);color:var(--pm-text-3)">空き枠を選ぶとその場で予約が確定します。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="pm-footer" id="pm-footer"></footer>
+
+<script type="module" src="js/pages/profile.js"></script>
+</body>
+</html>

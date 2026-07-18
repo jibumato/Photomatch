@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>集合場所 | PhotoMatch</title>
+<link rel="icon" href="assets/photomatch-icon-transparent.png">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<header class="pm-header" id="pm-header"></header>
+
+<main>
+  <section class="pm-wrap-narrow" style="padding:24px clamp(20px,5vw,32px) 0">
+    <a class="pm-back-link" href="index.html">← トップに戻る</a>
+    <h1 style="font:700 26px var(--pm-font-body);margin:16px 0 4px">集合場所</h1>
+    <p style="color:var(--pm-text-3);font:14px/1.9 var(--pm-font-body);margin:0 0 20px">対応エリアごとの集合場所です。予約完了後、詳細はサイト内チャットでもご案内します。</p>
+  </section>
+
+  <section class="pm-wrap-narrow" style="padding:0 clamp(20px,5vw,32px) 80px;display:flex;flex-direction:column;gap:24px">
+    <div class="pm-note-box">
+      集合時間に15分以上遅れた場合、キャンセル扱いとなることがあり、その際の返金はできません。時間に余裕を持ってお越しください。
+    </div>
+
+    <div class="pm-card" style="padding:24px">
+      <h2 style="font:700 18px var(--pm-font-body);margin:0 0 18px">撮影当日について</h2>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div>
+          <div style="font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210);margin-bottom:6px">当日の流れ</div>
+          <p style="font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0">集合場所でご挨拶・撮影イメージの確認 → 撮影(ポーズや表情はカメラマンがリード) → その場で解散。レタッチ済みデータは後日メールでお届けします。</p>
+        </div>
+        <div>
+          <div style="font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210);margin-bottom:6px">持ち物</div>
+          <p style="font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0">特別な持ち物は不要です。着替えたい服があれば他1〜2着、リップやヘアアイテムなど身だしなみを整えるものがあると安心です。</p>
+        </div>
+        <div>
+          <div style="font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210);margin-bottom:6px">服装アドバイス</div>
+          <p style="font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0">清潔感のある普段着がおすすめです。白・ネイビー・ベージュなど明るめの無地は写真映えします。過度な柄物や暗い色は避けると仕上がりが良くなります。</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="pm-meeting-points" style="display:flex;flex-direction:column;gap:24px"></div>
+  </section>
+</main>
+
+<footer class="pm-footer" id="pm-footer"></footer>
+
+<script type="module" src="js/pages/meeting-points.js"></script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+/* PhotoMatch design tokens — derived from design_handoff_photomatch/README.md */
+:root {
+  /* brand gradient (water blue -> navy) */
+  --pm-brand-1: oklch(0.78 0.13 198);
+  --pm-brand-2: oklch(0.66 0.13 236);
+  --pm-brand-grad: linear-gradient(135deg, var(--pm-brand-1), var(--pm-brand-2));
+  --pm-brand-grad-soft: linear-gradient(135deg, oklch(0.72 0.11 205), oklch(0.62 0.13 235));
+
+  --pm-accent-1: oklch(0.8 0.11 200);
+  --pm-accent-2: oklch(0.7 0.12 235);
+  --pm-accent-grad: linear-gradient(135deg, var(--pm-accent-1), var(--pm-accent-2));
+
+  --pm-navy-1: oklch(0.28 0.04 240);
+  --pm-navy-2: oklch(0.35 0.07 230);
+
+  --pm-warn: oklch(0.62 0.2 25);
+  --pm-warn-text: oklch(0.55 0.16 30);
+  --pm-star: oklch(0.55 0.15 75);
+
+  --pm-bg: oklch(0.99 0.006 220);
+  --pm-bg-soft: oklch(0.97 0.015 215);
+  --pm-bg-mint: oklch(0.96 0.03 205);
+  --pm-white: #fff;
+
+  --pm-border: oklch(0.9 0.02 210);
+  --pm-border-soft: oklch(0.92 0.012 220);
+  --pm-border-faint: oklch(0.94 0.008 220);
+
+  --pm-text: oklch(0.24 0.02 240);
+  --pm-text-2: oklch(0.4 0.02 235);
+  --pm-text-3: oklch(0.5 0.02 230);
+  --pm-text-muted: oklch(0.6 0.02 230);
+
+  --pm-badge-bg: oklch(0.94 0.05 200);
+  --pm-badge-text: oklch(0.4 0.14 200);
+
+  --pm-pro-navy: oklch(0.2 0.03 260);
+
+  --pm-radius-pill: 100px;
+  --pm-radius-card: 16px;
+  --pm-radius-card-lg: 20px;
+  --pm-radius-sm: 10px;
+
+  --pm-shadow-card: 0 12px 30px oklch(0.7 0.08 220 / 0.14);
+  --pm-shadow-cta: 0 10px 26px oklch(0.72 0.14 210 / 0.3);
+  --pm-shadow-modal: 0 -12px 40px oklch(0.3 0.04 250 / 0.25);
+
+  --pm-font-body: 'Zen Kaku Gothic New', system-ui, sans-serif;
+  --pm-font-num: 'Manrope', system-ui, sans-serif;
+  --pm-font-hand: 'Klee One', 'Zen Kaku Gothic New', system-ui, sans-serif;
+
+  --pm-max: 1200px;
+}
