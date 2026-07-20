@@ -48,6 +48,7 @@ function footerHtml() {
       <a href="terms.html?key=privacy">プライバシーポリシー</a>
       <a href="terms.html?key=terms">利用規約</a>
       <a href="pro-login.html">カメラマン管理（シフト）</a>
+      <a href="ops-login.html">運営管理（保証審査）</a>
     </div>
   </div>`;
 }

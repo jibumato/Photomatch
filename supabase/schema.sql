@@ -338,6 +338,56 @@ insert into reviews (photographer_id, reviewer_name, stars, comment) values
   ('p6', 'H.S様', 5, '事前の料金説明が丁寧でわかりやすかったです。');
 
 -- ============================================================
+-- ============================================================
+-- guarantee_claims (マッチング数保証・再撮影補償)
+-- ============================================================
+-- Add the 'ops' role for internal staff who review guarantee claims.
+-- Postgres names an unnamed inline check constraint "<table>_<column>_check".
+alter table profiles drop constraint if exists profiles_role_check;
+alter table profiles add constraint profiles_role_check check (role in ('client', 'photographer', 'ops'));
+
+create table if not exists guarantee_claims (
+  id uuid primary key default gen_random_uuid(),
+  booking_id uuid not null unique references bookings(id) on delete cascade,
+  client_id uuid not null references profiles(id) on delete cascade,
+  -- applied: opted in after the shoot. claimed: client reported no improvement
+  -- once eligible_at has passed. approved/rejected: ops has reviewed the claim.
+  status text not null default 'applied' check (status in ('applied', 'claimed', 'approved', 'rejected')),
+  eligible_at date not null, -- booking_date + 30 days; claim can be submitted from this date
+  applied_at timestamptz not null default now(),
+  claim_note text,
+  claim_submitted_at timestamptz,
+  review_note text,
+  reviewed_at timestamptz,
+  reviewed_by uuid references profiles(id)
+);
+
+alter table guarantee_claims enable row level security;
+
+create policy "guarantee_claims: read own or ops" on guarantee_claims
+  for select using (
+    client_id = auth.uid()
+    or exists (select 1 from profiles where id = auth.uid() and role = 'ops')
+  );
+
+create policy "guarantee_claims: client apply" on guarantee_claims
+  for insert with check (
+    client_id = auth.uid()
+    and booking_id in (select id from bookings where client_id = auth.uid() and status <> 'canceled')
+  );
+
+-- Clients may only move applied -> claimed (with check blocks setting
+-- status to approved/rejected directly); ops can update any field.
+create policy "guarantee_claims: client submit claim" on guarantee_claims
+  for update using (client_id = auth.uid())
+  with check (client_id = auth.uid() and status in ('applied', 'claimed'));
+
+create policy "guarantee_claims: ops review" on guarantee_claims
+  for update using (
+    exists (select 1 from profiles where id = auth.uid() and role = 'ops')
+  );
+
+-- ============================================================
 -- demo accounts (manual step)
 -- ============================================================
 -- Supabase Auth users can't be created from plain SQL with a known password.
@@ -349,3 +399,11 @@ insert into reviews (photographer_id, reviewer_name, stars, comment) values
 --   2. Link the photographer demo account to the seeded "Takumi" listing:
 --        update photographers set profile_id = '<camera@photomatch.jp auth uid>' where id = 'p1';
 --        delete from photographers where id = '<camera@photomatch.jp auth uid>'::text; -- remove the auto-stub row created by the trigger
+
+-- ============================================================
+-- ops account (manual step — マッチング数保証・再撮影補償の審査担当)
+-- ============================================================
+-- There is no public sign-up for the 'ops' role (see ops-login.html — sign-in
+-- only). Create the staff account normally as a 'client' via the site or the
+-- dashboard, then promote it:
+--   update profiles set role = 'ops' where email = 'ops@photomatch.example.jp';
