@@ -9,6 +9,9 @@
   max-width: var(--pm-max); margin: 0 auto; padding: 0 clamp(20px,5vw,32px);
   height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
 }
+@media (max-width: 860px) {
+  .pm-header { position: static; }
+}
 .pm-logo { display: flex; align-items: center; gap: 9px; cursor: pointer; flex-shrink: 0; }
 .pm-logo img { width: 30px; height: 30px; object-fit: contain; }
 .pm-logo span { font: 700 21px Georgia, 'Times New Roman', serif; letter-spacing: -0.01em; color: oklch(0.22 0.02 240); }
