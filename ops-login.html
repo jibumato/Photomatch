@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>運営ログイン | PhotoMatch</title>
+<link rel="icon" href="assets/photomatch-icon-transparent.png">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<header class="pm-header" id="pm-header"></header>
+
+<main>
+  <section style="max-width:420px;margin:0 auto;padding:56px 32px 100px">
+    <a class="pm-back-link" href="index.html">← トップに戻る</a>
+    <div style="margin:18px 0 10px">
+      <span style="background:var(--pm-pro-navy);color:#fff;font:700 11px var(--pm-font-body);padding:4px 12px;border-radius:100px;display:inline-block">運営管理</span>
+    </div>
+    <h1 style="font:700 24px var(--pm-font-body);margin:0 0 6px">運営ログイン</h1>
+    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 24px">マッチング数保証・再撮影補償の審査を行うスタッフ専用ページです。アカウントは運営側で発行します。</p>
+
+    <div class="pm-card" style="padding:24px;display:flex;flex-direction:column;gap:18px">
+      <div class="pm-field">
+        <label>メールアドレス</label>
+        <input class="pm-input" type="email" id="f-email">
+      </div>
+      <div class="pm-field">
+        <label>パスワード</label>
+        <input class="pm-input" type="password" id="f-password">
+      </div>
+      <div class="pm-error-text" id="form-error" style="display:none"></div>
+      <button class="pm-btn pm-btn-navy" id="submit-btn">ログイン</button>
+    </div>
+  </section>
+</main>
+
+<footer class="pm-footer" id="pm-footer"></footer>
+
+<script type="module" src="js/pages/ops-login.js"></script>
+</body>
+</html>

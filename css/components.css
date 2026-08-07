@@ -9,6 +9,9 @@
   max-width: var(--pm-max); margin: 0 auto; padding: 0 clamp(20px,5vw,32px);
   height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
 }
+@media (max-width: 860px) {
+  .pm-header { position: static; }
+}
 .pm-logo { display: flex; align-items: center; gap: 9px; cursor: pointer; flex-shrink: 0; }
 .pm-logo img { width: 30px; height: 30px; object-fit: contain; }
 .pm-logo span { font: 700 21px Georgia, 'Times New Roman', serif; letter-spacing: -0.01em; color: oklch(0.22 0.02 240); }
@@ -34,6 +37,7 @@
 .pm-btn {
   position: relative; overflow: hidden; border: none; border-radius: var(--pm-radius-pill);
   cursor: pointer; font: 700 14px var(--pm-font-body); white-space: nowrap;
+  padding: 12px 22px;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
 }
 .pm-btn-primary { background: var(--pm-brand-grad); color: #fff; padding: 12px 22px; box-shadow: var(--pm-shadow-cta); }
@@ -42,8 +46,10 @@
   background: linear-gradient(75deg, transparent, oklch(1 0 0 / 0.75), transparent);
   animation: pm-shine 3s linear infinite; pointer-events: none;
 }
-.pm-btn-primary.pm-btn-lg { padding: 15px 30px; font-size: 15px; }
-.pm-btn-primary.pm-btn-block { display: flex; width: 100%; padding: 15px; font-size: 15px; }
+/* Size modifiers work on any .pm-btn variant, not just .pm-btn-primary.
+   Declared after the variants above so they win at equal specificity. */
+.pm-btn-lg { padding: 15px 30px; font-size: 15px; }
+.pm-btn-block { display: flex; width: 100%; padding: 15px; font-size: 15px; }
 .pm-btn-outline {
   background: #fff; border: 1px solid var(--pm-border); border-radius: var(--pm-radius-pill);
   padding: 10px 20px; font: 600 13px var(--pm-font-body); color: var(--pm-text-2); cursor: pointer;

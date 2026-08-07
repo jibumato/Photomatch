@@ -192,6 +192,54 @@ export async function getMessageCounts(bookingIds) {
   return map;
 }
 
+// ---- guarantee claims (マッチング数保証・再撮影補償) ----
+
+export async function applyGuaranteeClaim(bookingId, eligibleAtIso) {
+  const session = await getSession();
+  if (!session) throw new Error('not signed in');
+  const { error } = await supabase.from('guarantee_claims').insert({
+    booking_id: bookingId, client_id: session.user.id, eligible_at: eligibleAtIso,
+  });
+  if (error) throw error;
+}
+
+export async function submitGuaranteeClaim(claimId, note) {
+  const { error } = await supabase
+    .from('guarantee_claims')
+    .update({ status: 'claimed', claim_note: note, claim_submitted_at: new Date().toISOString() })
+    .eq('id', claimId);
+  if (error) throw error;
+}
+
+export async function getGuaranteeClaimsForBookings(bookingIds) {
+  if (!bookingIds.length) return {};
+  const { data, error } = await supabase.from('guarantee_claims').select('*').in('booking_id', bookingIds);
+  if (error) throw error;
+  const map = {};
+  for (const row of data) map[row.booking_id] = row;
+  return map;
+}
+
+// ops: review queue across all clients
+export async function getGuaranteeClaimsForReview() {
+  const { data, error } = await supabase
+    .from('guarantee_claims')
+    .select('*, bookings(photographer_id, plan_name, booking_date, start_time, customer_name, customer_contact, photographers(name))')
+    .order('applied_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function reviewGuaranteeClaim(claimId, status, reviewNote) {
+  const session = await getSession();
+  if (!session) throw new Error('not signed in');
+  const { error } = await supabase
+    .from('guarantee_claims')
+    .update({ status, review_note: reviewNote, reviewed_at: new Date().toISOString(), reviewed_by: session.user.id })
+    .eq('id', claimId);
+  if (error) throw error;
+}
+
 // ---- counseling sheet ----
 
 export async function getCounselingSheet(bookingId) {

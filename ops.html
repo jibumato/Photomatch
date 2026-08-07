@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>マッチング数保証 審査 | PhotoMatch 運営管理</title>
+<link rel="icon" href="assets/photomatch-icon-transparent.png">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<header class="pm-header" id="pm-header"></header>
+
+<main>
+  <section style="max-width:800px;margin:0 auto;padding:40px 32px 100px">
+    <div id="pm-loading" class="pm-loading">読み込み中…</div>
+
+    <div id="pm-ops" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:20px">
+        <div>
+          <span style="background:var(--pm-pro-navy);color:#fff;font:700 11px var(--pm-font-body);padding:4px 12px;border-radius:100px;display:inline-block;margin-bottom:10px">運営管理</span>
+          <h1 style="font:700 26px var(--pm-font-body);margin:0 0 6px">マッチング数保証・再撮影補償の審査</h1>
+          <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0;max-width:520px">依頼者からの再撮影申請を確認し、承認・却下してください。承認後は依頼者とのチャットで再撮影日程を調整します。</p>
+        </div>
+        <button class="pm-btn-outline" id="logout-btn">ログアウト</button>
+      </div>
+
+      <h2 style="font:700 16px var(--pm-font-body);margin:32px 0 12px">審査待ち</h2>
+      <div id="pm-pending" style="display:flex;flex-direction:column;gap:14px;margin-bottom:40px"></div>
+
+      <h2 style="font:700 16px var(--pm-font-body);margin:0 0 12px">その他（申込み済み・審査済み）</h2>
+      <div id="pm-others" style="display:flex;flex-direction:column;gap:14px"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="pm-footer" id="pm-footer"></footer>
+
+<script type="module" src="js/pages/ops.js"></script>
+</body>
+</html>
