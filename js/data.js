@@ -16,7 +16,6 @@ export const SHOT_TYPES = [
 
 export const STATS = [
   { value: '250+', label: '名古屋エリア撮影実績' },
-  { value: '92%', label: '継続利用・紹介率' },
   { value: '4.8', label: '平均カメラマン評価' },
   { value: '71%', label: '撮影後マッチング数UP' },
 ];
