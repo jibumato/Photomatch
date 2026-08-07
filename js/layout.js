@@ -22,7 +22,7 @@ function headerHtml(loginLabel, loginHref) {
         <a class="pm-btn pm-btn-primary" href="search.html">撮影を予約する</a>
       </div>
     </div>
-    <button class="pm-menu-btn pm-mobile-only" id="pm-menu-toggle" aria-label="メニュー">
+    <button class="pm-menu-btn pm-mobile-only" id="pm-menu-toggle" aria-label="メニュー" aria-controls="pm-mobile-panel" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
   </div>
@@ -69,7 +69,10 @@ export async function mountLayout() {
     const toggle = document.getElementById('pm-menu-toggle');
     const panel = document.getElementById('pm-mobile-panel');
     if (toggle && panel) {
-      toggle.addEventListener('click', () => { panel.hidden = !panel.hidden; });
+      toggle.addEventListener('click', () => {
+        panel.hidden = !panel.hidden;
+        toggle.setAttribute('aria-expanded', String(!panel.hidden));
+      });
     }
   }
   if (footerEl) footerEl.innerHTML = footerHtml();
