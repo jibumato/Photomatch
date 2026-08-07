@@ -29,6 +29,9 @@
   border-top: 1px solid var(--pm-border-soft); padding: 8px clamp(20px,5vw,32px) 20px;
   display: flex; flex-direction: column; background: var(--pm-bg);
 }
+/* The display above outranks the UA stylesheet's [hidden] { display: none },
+   so the closed state needs an explicit rule of its own. */
+.pm-mobile-panel[hidden] { display: none; }
 .pm-mobile-panel .pm-nav-link { padding: 14px 4px; font: 600 15px var(--pm-font-body); color: oklch(0.3 0.02 240); border-bottom: 1px solid var(--pm-border-faint); }
 @media (min-width: 861px) { .pm-mobile-only { display: none !important; } }
 @media (max-width: 860px) { .pm-desktop-only { display: none !important; } }
