@@ -1,5 +1,5 @@
 import { mountLayout } from '../layout.js';
-import { STATS, TARGET_PAINS, SUPPORTED_APPS, SHOT_TYPES, TESTIMONIALS, PRICING_PLANS, SAFETY_POINTS, FAQS } from '../data.js';
+import { STATS, TARGET_PAINS, SUPPORTED_APPS, SHOT_TYPES, TESTIMONIALS, PRICING_PLANS, SAFETY_POINTS, FAQS, HOW_IT_WORKS } from '../data.js';
 
 mountLayout();
 
@@ -28,6 +28,14 @@ document.getElementById('pm-testimonials').innerHTML = TESTIMONIALS.map((t) => `
     <div style="font:13px var(--pm-font-body);color:var(--pm-star);margin-bottom:10px">${t.starsLabel}</div>
     <div style="font:14px/1.8 var(--pm-font-body);color:oklch(0.35 0.02 235);margin-bottom:16px">${t.comment}</div>
     <div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3)">${t.name}</div>
+  </div>`).join('');
+
+document.getElementById('pm-steps').innerHTML = HOW_IT_WORKS.map((s) => `
+  <div class="pm-card" style="padding:26px 24px;position:relative">
+    <div style="display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:38px;border-radius:50%;background:var(--pm-brand-grad);color:#fff;font:800 15px var(--pm-font-num);margin-bottom:14px">${s.step}</div>
+    <div style="font:700 16px var(--pm-font-body);margin-bottom:8px">${s.title}</div>
+    <div style="font:14px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:14px">${s.desc}</div>
+    <div style="font:12px/1.7 var(--pm-font-body);color:oklch(0.42 0.1 215);background:var(--pm-bg-mint);border-radius:10px;padding:10px 12px">${s.note}</div>
   </div>`).join('');
 
 document.getElementById('pm-pricing').innerHTML = PRICING_PLANS.map((pl) => `

@@ -20,7 +20,11 @@
 <section id="step-plan" class="pm-wrap-narrow" style="display:none;padding:24px 32px 80px">
   <a class="pm-back-link" href="#" id="plan-back-link">← プロフィールに戻る</a>
   <h1 style="font:700 24px var(--pm-font-body);margin:16px 0 6px">撮影プランを選ぶ</h1>
-  <p id="plan-intro" style="font:14px var(--pm-font-body);color:var(--pm-text-3);margin:0 0 28px"></p>
+  <p id="plan-intro" style="font:14px var(--pm-font-body);color:var(--pm-text-3);margin:0 0 20px"></p>
+  <div class="pm-note-box pm-login-hint" style="display:none;margin-bottom:24px">
+    <span class="pm-note-title">ログインについて</span>
+    空き枠の確認はログインなしでご覧いただけます。ログイン（かんたん新規登録）が必要になるのは、お支払いに進む直前の1回だけです。
+  </div>
   <div id="plan-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px"></div>
 </section>
 
@@ -41,6 +45,10 @@
     <div class="pm-legend-item"><span class="pm-legend-swatch" style="background:oklch(0.97 0.006 220)"></span>枠不足</div>
   </div>
   <div class="pm-cal-scroll"><div id="slot-grid" class="pm-cal-grid"></div></div>
+  <div class="pm-note-box pm-login-hint" style="display:none;margin-top:16px">
+    <span class="pm-note-title">ログインについて</span>
+    ログイン（かんたん新規登録）が必要になるのは、お支払いに進む直前の1回だけです。入力中の内容は引き継がれます。
+  </div>
 </section>
 
 <!-- STEP: contact -->
