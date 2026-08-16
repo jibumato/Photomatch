@@ -356,10 +356,18 @@ function goConfirmStep(s) {
 // ---------- init ----------
 (async () => {
   try {
-    const [photographer, plans] = await Promise.all([getPhotographer(photographerId), getPlans(photographerId)]);
+    const [photographer, plans, session] = await Promise.all([
+      getPhotographer(photographerId), getPlans(photographerId), getSession(),
+    ]);
     state.photographer = photographer;
     state.plans = plans;
     document.getElementById('pm-loading').remove();
+
+    // Set the expectation early that login is a one-time step at the end, so
+    // hitting the auth gate mid-flow isn't a surprise. Pointless once signed in.
+    if (!session) {
+      document.querySelectorAll('.pm-login-hint').forEach((el) => { el.style.display = 'block'; });
+    }
 
     const restored = restoreDraft();
     if (restored) {

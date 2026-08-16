@@ -70,9 +70,22 @@ create table if not exists photographers (
   photo_url text,
   price_comment text,
   bio text,
+  gender text check (gender in ('male', 'female')),
   instant_booking boolean not null default true,
   created_at timestamptz not null default now()
 );
+
+-- gender drives the "女性カメラマンのみ" search filter. Added after the
+-- initial release, so bring existing installs up to date too (create table
+-- if not exists above is a no-op for them).
+alter table photographers add column if not exists gender text;
+alter table photographers drop constraint if exists photographers_gender_check;
+alter table photographers add constraint photographers_gender_check check (gender in ('male', 'female'));
+
+-- Backfill the seeded listings. `gender is null` keeps this safe to re-run
+-- and never overwrites a value set by hand in the dashboard.
+update photographers set gender = 'male'   where id in ('p1', 'p3', 'p5') and gender is null;
+update photographers set gender = 'female' where id in ('p2', 'p4', 'p6') and gender is null;
 
 alter table photographers enable row level security;
 
@@ -307,13 +320,13 @@ create policy "counseling_sheets: client update" on counseling_sheets
 -- seed data — photographers, plans, reviews
 -- (ported from design_handoff_photomatch/PhotoMatch.dc.html)
 -- ============================================================
-insert into photographers (id, name, area, price_from, rating, reviews_count, availability_label, photo_url, price_comment, bio, instant_booking) values
-  ('p1', 'Takumi', '名古屋エリア', '9,800', 4.9, 58, '今週末 空きあり', 'assets/photographer-p1.jpg', '緊張しやすい方こそ、まずは気軽にご相談ください！', 'マッチングアプリ用の写真に特化。自然な会話をしながら緊張をほぐし、表情が硬くならない一枚に仕上げます。名古屋中心部での撮影が中心です。', true),
-  ('p2', '夏目むぎ', '岐阜エリア', '12,000', 4.8, 46, '来週 空きあり', 'assets/cameraman-asano.jpg', '私服選びの相談も大歓迎、当日一緒に決めましょう。', '岐阜の路地やレトロな街並みを活かしたカジュアルな一枚が得意です。私服の相談やポーズが苦手な方にも丁寧にディレクションします。', true),
-  ('p3', '伊藤 啓志', '名古屋エリア', '11,000', 4.9, 39, '今週末 空きあり', null, '「量産型」にならない一枚、一緒に探しましょう。', '岐阜の自然や街並みを背景に、趣味やアクティブな雰囲気を伝える写真を撮影します。よくある構図を避けた「量産型にならない」一枚が得意です。', true),
-  ('p4', '早川 ゆかり', '尾張エリア', '9,000', 4.7, 31, '来週 空きあり', null, '短時間でもしっかり結果にこだわります！', '短時間・低価格のライトプランを中心に、自然光を活かしたメイン写真を撮影しています。かしこまらないカジュアルな撮影が得意です。', true),
-  ('p5', '伊藤 大輔（仮名）', '岐阜エリア', '13,000', 4.8, 42, '今月 空きあり', null, '季節ごとのおすすめロケーションもご提案します。', '街歩き風の自然なスナップが得意です。季節ごとのロケーションを提案し、撮影後の納品スピードにも定評があります。', true),
-  ('p6', '渡辺 さくら（仮名）', '一宮エリア', '10,500', 4.9, 50, '来週 空きあり', null, 'プロフィール文の相談も一緒に受け付けています。', 'メイン写真から趣味系の写真まで幅広く対応。事前の料金説明とプロフィール文へのアドバイスにも定評があります。', true)
+insert into photographers (id, name, area, price_from, rating, reviews_count, availability_label, photo_url, price_comment, bio, gender, instant_booking) values
+  ('p1', 'Takumi', '名古屋エリア', '9,800', 4.9, 58, '今週末 空きあり', 'assets/photographer-p1.jpg', '緊張しやすい方こそ、まずは気軽にご相談ください！', 'マッチングアプリ用の写真に特化。自然な会話をしながら緊張をほぐし、表情が硬くならない一枚に仕上げます。名古屋中心部での撮影が中心です。', 'male', true),
+  ('p2', '夏目むぎ', '岐阜エリア', '12,000', 4.8, 46, '来週 空きあり', 'assets/cameraman-asano.jpg', '私服選びの相談も大歓迎、当日一緒に決めましょう。', '岐阜の路地やレトロな街並みを活かしたカジュアルな一枚が得意です。私服の相談やポーズが苦手な方にも丁寧にディレクションします。', 'female', true),
+  ('p3', '伊藤 啓志', '名古屋エリア', '11,000', 4.9, 39, '今週末 空きあり', null, '「量産型」にならない一枚、一緒に探しましょう。', '岐阜の自然や街並みを背景に、趣味やアクティブな雰囲気を伝える写真を撮影します。よくある構図を避けた「量産型にならない」一枚が得意です。', 'male', true),
+  ('p4', '早川 ゆかり', '尾張エリア', '9,000', 4.7, 31, '来週 空きあり', null, '短時間でもしっかり結果にこだわります！', '短時間・低価格のライトプランを中心に、自然光を活かしたメイン写真を撮影しています。かしこまらないカジュアルな撮影が得意です。', 'female', true),
+  ('p5', '伊藤 大輔（仮名）', '岐阜エリア', '13,000', 4.8, 42, '今月 空きあり', null, '季節ごとのおすすめロケーションもご提案します。', '街歩き風の自然なスナップが得意です。季節ごとのロケーションを提案し、撮影後の納品スピードにも定評があります。', 'male', true),
+  ('p6', '渡辺 さくら（仮名）', '一宮エリア', '10,500', 4.9, 50, '来週 空きあり', null, 'プロフィール文の相談も一緒に受け付けています。', 'メイン写真から趣味系の写真まで幅広く対応。事前の料金説明とプロフィール文へのアドバイスにも定評があります。', 'female', true)
 on conflict (id) do nothing;
 
 insert into plans (photographer_id, name, price, original_price, discount_label, description, duration_min, sort_order)

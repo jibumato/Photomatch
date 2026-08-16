@@ -16,11 +16,38 @@
 <main>
   <section class="pm-wrap" style="padding:24px 32px 0">
     <a class="pm-back-link" href="index.html">← トップに戻る</a>
-    <h1 style="font:700 26px var(--pm-font-body);margin:16px 0 4px">名古屋エリアのカメラマン</h1>
+    <h1 id="pm-results-title" style="font:700 26px var(--pm-font-body);margin:16px 0 4px">カメラマンを探す</h1>
     <p id="pm-result-count" style="color:var(--pm-text-3);font:14px var(--pm-font-body);margin:0"></p>
   </section>
 
-  <section class="pm-wrap" style="padding:8px 32px 80px">
+  <section class="pm-wrap" style="padding:20px 32px 0">
+    <div class="pm-card" style="padding:18px 20px;display:flex;flex-direction:column;gap:16px">
+      <div>
+        <div style="font:700 12px var(--pm-font-body);color:var(--pm-text-2);letter-spacing:0.04em;margin-bottom:10px">撮影エリア</div>
+        <div id="pm-area-chips" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;border-top:1px solid var(--pm-border-faint);padding-top:16px">
+        <div style="flex:1;min-width:200px">
+          <div style="font:700 12px var(--pm-font-body);color:var(--pm-text-2);letter-spacing:0.04em;margin-bottom:10px">こだわり条件</div>
+          <label id="pm-female-toggle" style="display:inline-flex;align-items:center;gap:9px;cursor:pointer;font:600 13px var(--pm-font-body);color:oklch(0.32 0.02 240)">
+            <input type="checkbox" id="pm-female-only" style="width:18px;height:18px;accent-color:oklch(0.66 0.13 236);cursor:pointer">
+            女性カメラマンのみ
+          </label>
+          <div style="font:11px/1.7 var(--pm-font-body);color:var(--pm-text-muted);margin-top:6px">同伴者ありでの撮影もご相談いただけます。</div>
+        </div>
+        <div style="min-width:180px">
+          <label style="display:block;font:700 12px var(--pm-font-body);color:var(--pm-text-2);letter-spacing:0.04em;margin-bottom:10px" for="pm-sort">並び替え</label>
+          <select class="pm-select" id="pm-sort">
+            <option value="recommended">おすすめ順</option>
+            <option value="rating">評価が高い順</option>
+            <option value="reviews">レビューが多い順</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pm-wrap" style="padding:24px 32px 80px">
     <div id="pm-loading" class="pm-loading">読み込み中…</div>
     <div id="pm-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px"></div>
   </section>
