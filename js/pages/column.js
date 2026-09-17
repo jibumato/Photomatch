@@ -5,7 +5,7 @@ mountLayout();
 
 function cardHtml(a) {
   return `
-  <a href="article.html?id=${a.id}" class="pm-card pm-column-card" style="display:block;padding:22px 24px;text-decoration:none;color:inherit">
+  <a href="column-${a.id}.html" class="pm-card pm-column-card" style="display:block;padding:22px 24px;text-decoration:none;color:inherit">
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
       <span style="font:700 11px var(--pm-font-body);color:#fff;background:var(--pm-brand-grad);padding:4px 10px;border-radius:100px">優先度 ${a.priority}</span>
       <span style="font:700 11px var(--pm-font-body);color:oklch(0.48 0.1 210);background:oklch(0.95 0.03 205);padding:4px 10px;border-radius:100px">${a.tag}</span>
