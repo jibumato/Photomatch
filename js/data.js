@@ -237,6 +237,7 @@ export const EXTRA_OPTIONS = [
 ];
 
 export const COUNSELING_QUESTIONS = [
+  { id: 'ageBand', type: 'single', label: '年代', options: ['20代前半', '20代後半', '30代前半', '30代後半', '40代以上'] },
   { id: 'apps', type: 'multi', label: '主に使うマッチングアプリ・サービス', options: ['Pairs', 'with', 'Omiai', 'タップル', 'Tinder', 'Bumble', '結婚相談所', 'その他'] },
   { id: 'mainShot', type: 'single', label: 'メインで使いたい写真', options: ['正面の顔メイン', '全身', '趣味の様子', 'おまかせ'] },
   { id: 'impression', type: 'multi', label: '叶えたい印象（複数選択可）', options: ['清潔感', '親しみやすさ', '誠実さ', 'おしゃれ感', '明るさ'] },
