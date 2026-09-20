@@ -145,7 +145,9 @@ export const FAQS = [
 // label は AREAS 定数（名古屋／岐阜／一宮）と揃える。駅名としての
 // 「尾張一宮駅」はそのまま（正式な駅名のため）。
 export const MEETING_POINTS = [
-  { key: 'nagoya', label: '名古屋', detail: '名古屋駅 桜通口 中央改札前（仮）', mapQuery: '名古屋駅 桜通口' },
+  // mapQuery は緯度経度で固定（同名店舗が他にもあり得るテキスト検索より確実なため）。
+  // 出典: https://www.google.com/maps/place/.../@35.1719812,136.909068,...
+  { key: 'nagoya', label: '名古屋', detail: 'ファミリーマート オアシス21前店 前（〒461-0005 愛知県名古屋市東区東桜1丁目10-33）', mapQuery: '35.1719812,136.909068' },
   { key: 'gifu1', label: '岐阜', detail: 'ドトールコーヒーショップ アスティ岐阜店 前（仮）', mapQuery: 'ドトールコーヒーショップ アスティ岐阜店' },
   { key: 'ichinomiya', label: '一宮', detail: '尾張一宮駅 北口広場前（仮）', mapQuery: '尾張一宮駅 北口' },
 ];
