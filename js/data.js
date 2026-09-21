@@ -148,8 +148,8 @@ export const MEETING_POINTS = [
   // mapQuery は緯度経度で固定（同名店舗が他にもあり得るテキスト検索より確実なため）。
   // 出典: https://www.google.com/maps/place/.../@35.1719812,136.909068,...
   { key: 'nagoya', label: '名古屋', detail: 'ファミリーマート オアシス21前店 前（〒461-0005 愛知県名古屋市東区東桜1丁目10-33）', mapQuery: '35.1719812,136.909068' },
-  { key: 'gifu1', label: '岐阜', detail: 'ドトールコーヒーショップ アスティ岐阜店 前（仮）', mapQuery: 'ドトールコーヒーショップ アスティ岐阜店' },
-  { key: 'ichinomiya', label: '一宮', detail: '尾張一宮駅 北口広場前（仮）', mapQuery: '尾張一宮駅 北口' },
+  { key: 'gifu1', label: '岐阜', detail: 'ドトールコーヒーショップ アスティ岐阜店 前', mapQuery: 'ドトールコーヒーショップ アスティ岐阜店' },
+  { key: 'ichinomiya', label: '一宮', detail: '尾張一宮駅 北口広場前', mapQuery: '尾張一宮駅 北口' },
 ];
 
 export const COLUMN_ARTICLES = [
