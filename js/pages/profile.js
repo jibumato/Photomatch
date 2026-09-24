@@ -37,19 +37,25 @@ function starsLabel(stars) { return '★★★★★☆☆☆☆☆'.slice(5 - s
     document.getElementById('pm-price-comment').textContent = photographer.price_comment || '';
     document.getElementById('pm-availability').textContent = photographer.availability_label || '';
     document.getElementById('pm-rating-line').innerHTML = `<span style="color:var(--pm-star)">★</span>${photographer.rating ?? '-'}（${photographer.reviews_count ?? 0}件のレビュー）`;
-    document.getElementById('pm-book-btn').href = `booking.html?id=${photographer.id}`;
 
-    document.getElementById('pm-plans').innerHTML = plans.map((plan, idx) => `
-      <a href="booking.html?id=${photographer.id}&plan=${idx}" class="pm-card" style="display:block;border-radius:14px;padding:16px;text-decoration:none;color:inherit">
-        <div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:6px">${plan.name}</div>
-        ${plan.original_price ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
-          <span style="font:600 12px var(--pm-font-num);color:var(--pm-text-muted);text-decoration:line-through">¥${plan.original_price.toLocaleString()}</span>
-          <span style="font:700 10px var(--pm-font-body);color:#fff;background:var(--pm-warn);padding:2px 7px;border-radius:100px">${plan.discount_label || ''}</span>
-        </div>` : ''}
-        <div style="font:700 18px var(--pm-font-body);margin-bottom:2px">¥${plan.price.toLocaleString()}<span style="font:11px var(--pm-font-body);color:var(--pm-text-3)">（税込）</span></div>
-        <div style="font:12px/1.6 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:12px">${plan.description || ''}</div>
-        <div style="text-align:center;background:var(--pm-bg-mint);color:oklch(0.42 0.13 210);border-radius:8px;padding:9px;font:700 12px var(--pm-font-body)">このプランで予約</div>
-      </a>`).join('') || '<div class="pm-empty">プラン情報がありません。</div>';
+    if (photographer.is_visible === false) {
+      const bookBtn = document.getElementById('pm-book-btn');
+      bookBtn.outerHTML = '<div class="pm-note-box" style="margin-bottom:10px">現在、こちらのカメラマンは新規のご予約受付を休止しています。</div>';
+      document.getElementById('pm-plans').innerHTML = '<div class="pm-empty">現在、こちらのカメラマンは新規のご予約受付を休止しています。</div>';
+    } else {
+      document.getElementById('pm-book-btn').href = `booking.html?id=${photographer.id}`;
+      document.getElementById('pm-plans').innerHTML = plans.map((plan, idx) => `
+        <a href="booking.html?id=${photographer.id}&plan=${idx}" class="pm-card" style="display:block;border-radius:14px;padding:16px;text-decoration:none;color:inherit">
+          <div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:6px">${plan.name}</div>
+          ${plan.original_price ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+            <span style="font:600 12px var(--pm-font-num);color:var(--pm-text-muted);text-decoration:line-through">¥${plan.original_price.toLocaleString()}</span>
+            <span style="font:700 10px var(--pm-font-body);color:#fff;background:var(--pm-warn);padding:2px 7px;border-radius:100px">${plan.discount_label || ''}</span>
+          </div>` : ''}
+          <div style="font:700 18px var(--pm-font-body);margin-bottom:2px">¥${plan.price.toLocaleString()}<span style="font:11px var(--pm-font-body);color:var(--pm-text-3)">（税込）</span></div>
+          <div style="font:12px/1.6 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:12px">${plan.description || ''}</div>
+          <div style="text-align:center;background:var(--pm-bg-mint);color:oklch(0.42 0.13 210);border-radius:8px;padding:9px;font:700 12px var(--pm-font-body)">このプランで予約</div>
+        </a>`).join('') || '<div class="pm-empty">プラン情報がありません。</div>';
+    }
 
     document.getElementById('pm-reviews').innerHTML = reviews.map((rv) => `
       <div style="border:1px solid var(--pm-border-soft);border-radius:14px;padding:16px">
