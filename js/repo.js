@@ -240,6 +240,53 @@ export async function reviewGuaranteeClaim(claimId, status, reviewNote) {
   if (error) throw error;
 }
 
+// ---- monitor applications (モニター価格プログラム) ----
+
+export async function submitMonitorApplication({ hasExistingPhotos, currentApps, motivation, followUpOptIn }) {
+  const session = await getSession();
+  if (!session) throw new Error('not signed in');
+  const { error } = await supabase.from('monitor_applications').insert({
+    client_id: session.user.id,
+    has_existing_photos: hasExistingPhotos,
+    current_apps: currentApps,
+    motivation,
+    follow_up_opt_in: followUpOptIn,
+  });
+  if (error) throw error;
+}
+
+export async function getMyMonitorApplications() {
+  const session = await getSession();
+  if (!session) return [];
+  const { data, error } = await supabase
+    .from('monitor_applications')
+    .select('*')
+    .eq('client_id', session.user.id)
+    .order('applied_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+// ops: review queue across all clients
+export async function getMonitorApplicationsForReview() {
+  const { data, error } = await supabase
+    .from('monitor_applications')
+    .select('*, profiles(name, email)')
+    .order('applied_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function reviewMonitorApplication(applicationId, status, reviewNote) {
+  const session = await getSession();
+  if (!session) throw new Error('not signed in');
+  const { error } = await supabase
+    .from('monitor_applications')
+    .update({ status, review_note: reviewNote, reviewed_at: new Date().toISOString(), reviewed_by: session.user.id })
+    .eq('id', applicationId);
+  if (error) throw error;
+}
+
 // ---- counseling sheet ----
 
 export async function getCounselingSheet(bookingId) {

@@ -423,6 +423,43 @@ create policy "guarantee_claims: ops review" on guarantee_claims
   );
 
 -- ============================================================
+-- monitor_applications (モニター価格プログラムへの応募)
+-- ============================================================
+-- 先着10名・スタンダード半額(¥4,400)でのモニター撮影に応募するテーブル。
+-- 効果測定（施策前後のマッチング数比較）のため、既存アカウントに紐づけて
+-- 申し込む必要がある（bookingは審査通過後にops側で別途作成する運用）。
+create table if not exists monitor_applications (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references profiles(id) on delete cascade,
+  -- applied: 応募直後。accepted/rejected: 定員審査の結果。completed: 撮影・追跡調査まで完了。
+  status text not null default 'applied' check (status in ('applied', 'accepted', 'rejected', 'completed')),
+  has_existing_photos boolean not null default false, -- 施策前後比較のため既存写真が必須の要件
+  current_apps text, -- 使用中のマッチングアプリ（任意記入）
+  motivation text, -- 応募理由・自由記述
+  follow_up_opt_in boolean not null default false, -- 1ヶ月後の任意アンケートに協力するか
+  applied_at timestamptz not null default now(),
+  review_note text,
+  reviewed_at timestamptz,
+  reviewed_by uuid references profiles(id)
+);
+
+alter table monitor_applications enable row level security;
+
+create policy "monitor_applications: read own or ops" on monitor_applications
+  for select using (
+    client_id = auth.uid()
+    or exists (select 1 from profiles where id = auth.uid() and role = 'ops')
+  );
+
+create policy "monitor_applications: client apply" on monitor_applications
+  for insert with check (client_id = auth.uid());
+
+create policy "monitor_applications: ops review" on monitor_applications
+  for update using (
+    exists (select 1 from profiles where id = auth.uid() and role = 'ops')
+  );
+
+-- ============================================================
 -- demo accounts (manual step)
 -- ============================================================
 -- Supabase Auth users can't be created from plain SQL with a known password.
