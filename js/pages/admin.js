@@ -1,8 +1,9 @@
 import { mountLayout } from '../layout.js';
-import { requireRole, signOut, getSession } from '../auth.js';
+import { requireRole, signOut } from '../auth.js';
 import {
   getMyPhotographerRow, getClosedShifts, toggleShift, bulkSetShiftsOpen, bulkSetShiftsClosed,
   getPhotographerBookings, getMessageCounts, getReadTimestamps,
+  getBankAccount, saveBankAccount,
 } from '../repo.js';
 import { mountChatModal } from '../chat.js';
 import { SLOT_TIMES, buildBookingDays } from '../data.js';
@@ -188,54 +189,81 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   location.href = 'index.html';
 });
 
-// ---------- Stripe受け取り設定 ----------
-async function renderStripeSection(photographer) {
-  const el = document.getElementById('pm-stripe-section');
-  const params = new URLSearchParams(location.search);
+// ---------- 報酬振込先の登録 ----------
+function bankAccountFormHtml(account) {
+  const a = account || {};
+  return `
+    <div style="font:700 15px var(--pm-font-body);margin-bottom:6px">報酬の振込先を登録する</div>
+    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 14px">お客様からのお支払いは一旦PhotoMatchでお預かりし、撮影完了・保証期間（30日）経過後、月末締め・翌月25日払いで運営より銀行振込にてお支払いします（プラン料金の50%）。</p>
+    <div style="display:flex;flex-direction:column;gap:14px;max-width:400px">
+      <div class="pm-field">
+        <label>金融機関名</label>
+        <input class="pm-input" type="text" id="f-bank-name" placeholder="例）〇〇銀行" value="${a.bank_name ? escapeAttr(a.bank_name) : ''}">
+      </div>
+      <div class="pm-field">
+        <label>支店名</label>
+        <input class="pm-input" type="text" id="f-branch-name" placeholder="例）〇〇支店" value="${a.branch_name ? escapeAttr(a.branch_name) : ''}">
+      </div>
+      <div class="pm-field">
+        <label>口座種別</label>
+        <select class="pm-select" id="f-account-type">
+          <option value="ordinary" ${a.account_type !== 'checking' ? 'selected' : ''}>普通</option>
+          <option value="checking" ${a.account_type === 'checking' ? 'selected' : ''}>当座</option>
+        </select>
+      </div>
+      <div class="pm-field">
+        <label>口座番号</label>
+        <input class="pm-input" type="text" inputmode="numeric" id="f-account-number" placeholder="1234567" value="${a.account_number ? escapeAttr(a.account_number) : ''}">
+      </div>
+      <div class="pm-field">
+        <label>口座名義（カタカナ）</label>
+        <input class="pm-input" type="text" id="f-account-holder" placeholder="例）ヤマダ タロウ" value="${a.account_holder_name ? escapeAttr(a.account_holder_name) : ''}">
+      </div>
+      <div class="pm-error-text" id="bank-account-error" style="display:none"></div>
+      <button class="pm-btn pm-btn-primary" id="bank-account-save-btn" style="align-self:flex-start">${account ? '更新する' : '登録する'}</button>
+      <div id="bank-account-saved-note" style="display:none;font:12px var(--pm-font-body);color:oklch(0.5 0.14 160)">保存しました。</div>
+    </div>`;
+}
 
-  if (params.get('stripe_return')) {
-    el.innerHTML = '<div style="font:13px var(--pm-font-body);color:var(--pm-text-3)">Stripeの設定状況を確認しています…</div>';
-    try {
-      const session = await getSession();
-      const res = await fetch('/api/connect/status', { headers: { Authorization: `Bearer ${session.access_token}` } });
-      const data = await res.json();
-      if (res.ok) {
-        photographer.stripe_payouts_enabled = data.payouts_enabled;
-        photographer.stripe_charges_enabled = data.charges_enabled;
-      }
-    } catch (err) { /* fall back to the last-known DB value rendered below */ }
-    history.replaceState(null, '', location.pathname);
-  }
+function escapeAttr(s) {
+  return String(s).replace(/"/g, '&quot;');
+}
 
-  if (photographer.stripe_payouts_enabled) {
-    el.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span style="font:700 12px var(--pm-font-body);color:#fff;background:oklch(0.55 0.14 160);border-radius:100px;padding:4px 12px">設定済み</span>
-        <span style="font:13px var(--pm-font-body);color:var(--pm-text-3)">Stripeでの報酬受け取り設定が完了しています。</span>
-      </div>`;
-    return;
-  }
+async function renderBankAccountSection(photographer) {
+  const el = document.getElementById('pm-bank-account-section');
+  const account = await getBankAccount(photographer.id);
+  el.innerHTML = bankAccountFormHtml(account);
 
-  el.innerHTML = `
-    <div style="font:700 15px var(--pm-font-body);margin-bottom:6px">Stripeで報酬の受け取り設定を行う</div>
-    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 14px">お客様からのお支払いは一旦PhotoMatchでお預かりし、撮影完了・保証期間（30日）経過後にStripe経由で報酬（プラン料金の50%）をお振込みします。受け取るにはStripeでの口座・本人確認登録が必要です。</p>
-    <button class="pm-btn pm-btn-primary" id="stripe-onboard-btn">Stripeで設定する</button>
-    <div class="pm-error-text" id="stripe-onboard-error" style="display:none;margin-top:10px"></div>`;
-
-  document.getElementById('stripe-onboard-btn').addEventListener('click', async () => {
-    const btn = document.getElementById('stripe-onboard-btn');
-    const errorEl = document.getElementById('stripe-onboard-error');
+  document.getElementById('bank-account-save-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('bank-account-save-btn');
+    const errorEl = document.getElementById('bank-account-error');
+    const savedNote = document.getElementById('bank-account-saved-note');
     errorEl.style.display = 'none';
+    savedNote.style.display = 'none';
+
+    const fields = {
+      bank_name: document.getElementById('f-bank-name').value.trim(),
+      branch_name: document.getElementById('f-branch-name').value.trim(),
+      account_type: document.getElementById('f-account-type').value,
+      account_number: document.getElementById('f-account-number').value.trim(),
+      account_holder_name: document.getElementById('f-account-holder').value.trim(),
+    };
+    if (Object.values(fields).some((v) => !v)) {
+      errorEl.textContent = 'すべての項目をご入力ください。';
+      errorEl.style.display = 'block';
+      return;
+    }
+
     btn.disabled = true;
     try {
-      const session = await getSession();
-      const res = await fetch('/api/connect/onboard', { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` } });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || '設定の開始に失敗しました。');
-      location.href = data.url;
+      await saveBankAccount(photographer.id, fields);
+      savedNote.style.display = 'block';
+      btn.textContent = '更新する';
     } catch (err) {
-      errorEl.textContent = err.message || '設定の開始に失敗しました。時間をおいて再度お試しください。';
+      errorEl.textContent = '保存に失敗しました。時間をおいて再度お試しください。';
       errorEl.style.display = 'block';
+      console.error(err);
+    } finally {
       btn.disabled = false;
     }
   });
@@ -257,7 +285,7 @@ async function init() {
 
   state.photographerId = photographer.id;
   document.getElementById('pm-admin').style.display = 'block';
-  renderStripeSection(photographer);
+  renderBankAccountSection(photographer);
 
   const [bookings] = await Promise.all([getPhotographerBookings(state.photographerId), loadShifts()]);
   state.bookings = bookings;

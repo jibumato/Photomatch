@@ -66,8 +66,3 @@ export async function getProfile(env, userId) {
   const rows = await restSelect(env, 'profiles', { id: `eq.${userId}`, select: '*' });
   return rows[0] || null;
 }
-
-export async function getMyPhotographerRow(env, userId) {
-  const rows = await restSelect(env, 'photographers', { profile_id: `eq.${userId}`, select: '*' });
-  return rows[0] || null;
-}

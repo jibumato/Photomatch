@@ -3,7 +3,7 @@ import { requireRole, signOut } from '../auth.js';
 import {
   getGuaranteeClaimsForReview, reviewGuaranteeClaim,
   getMonitorApplicationsForReview, reviewMonitorApplication,
-  getPayoutCandidates, getGuaranteeClaimsForBookings, releasePayout,
+  getPayoutCandidates, getGuaranteeClaimsForBookings, releasePayout, getBankAccountsForPhotographers,
 } from '../repo.js';
 import { PHOTOGRAPHER_PAYOUT_RATE } from '../data.js';
 
@@ -137,27 +137,58 @@ function eligiblePayoutDate(bookingDate) {
   return d;
 }
 
-function payoutCardHtml(booking, { ready }) {
-  const photographerName = booking.photographers?.name || booking.photographer_id || '-';
-  const amount = Math.round(booking.total_price * PHOTOGRAPHER_PAYOUT_RATE);
-  const eligible = eligiblePayoutDate(booking.booking_date);
+function bankAccountLineHtml(account) {
+  if (!account) return '<div class="pm-error-text" style="margin:10px 0">振込先口座が未登録です。カメラマンに登録を依頼してください。</div>';
+  const typeLabel = account.account_type === 'checking' ? '当座' : '普通';
+  return `<div style="font:12px/1.8 var(--pm-font-body);color:oklch(0.4 0.02 235);background:var(--pm-bg-mint);border-radius:10px;padding:10px 12px;margin:10px 0">
+    振込先：${escapeHtml(account.bank_name)} ${escapeHtml(account.branch_name)} ${typeLabel} ${escapeHtml(account.account_number)}　名義：${escapeHtml(account.account_holder_name)}
+  </div>`;
+}
+
+// カメラマンごとにまとめて表示・送金する（銀行振込は1件ずつより合算1回の方が
+// 手数料・手間の両面で現実的なため）。
+function payoutGroupHtml(group, { ready }) {
+  const bookingLines = group.items.map((b) => {
+    const amount = Math.round(b.total_price * PHOTOGRAPHER_PAYOUT_RATE);
+    return `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">・${b.booking_date}　${escapeHtml(b.plan_name || '')}　依頼者：${escapeHtml(b.customer_name || '-')}　¥${amount.toLocaleString()}</div>`;
+  }).join('');
   return `
   <div class="pm-card" style="padding:18px 20px">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:8px">
       <div style="min-width:0">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
-          <span style="font:700 15px var(--pm-font-body)">${escapeHtml(photographerName)}</span>
-          <span style="font:700 13px var(--pm-font-num);color:oklch(0.4 0.14 200)">送金額：¥${amount.toLocaleString()}</span>
+          <span style="font:700 15px var(--pm-font-body)">${escapeHtml(group.photographerName)}</span>
+          <span style="font:700 14px var(--pm-font-num);color:oklch(0.4 0.14 200)">合計 ¥${group.total.toLocaleString()}（${group.items.length}件）</span>
         </div>
-        <div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">依頼者：${escapeHtml(booking.customer_name || '-')} ・ ${escapeHtml(booking.plan_name || '')} ・ 合計¥${(booking.total_price || 0).toLocaleString()}</div>
-        <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">撮影日：${booking.booking_date} ・ 送金可能日：${eligible.toISOString().slice(0, 10)}</div>
       </div>
     </div>
+    ${ready ? bankAccountLineHtml(group.bankAccount) : ''}
+    <div style="margin-bottom:10px">${bookingLines}</div>
     ${ready ? `
     <div style="display:flex;gap:8px">
-      <button data-booking-id="${booking.id}" class="btn-payout-release" style="background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 18px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer">送金する</button>
+      <button data-photographer-id="${group.photographerId}" data-booking-ids="${group.items.map((b) => b.id).join(',')}" data-total="${group.total}" class="btn-payout-release" ${group.bankAccount ? '' : 'disabled'} style="background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 18px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer">まとめて振込済みにする</button>
     </div>` : ''}
   </div>`;
+}
+
+function groupByPhotographer(bookings, bankAccounts) {
+  const map = new Map();
+  bookings.forEach((b) => {
+    const key = b.photographer_id;
+    if (!map.has(key)) {
+      map.set(key, {
+        photographerId: key,
+        photographerName: b.photographers?.name || key,
+        bankAccount: bankAccounts[key] || null,
+        items: [],
+        total: 0,
+      });
+    }
+    const group = map.get(key);
+    group.items.push(b);
+    group.total += Math.round(b.total_price * PHOTOGRAPHER_PAYOUT_RATE);
+  });
+  return [...map.values()];
 }
 
 async function loadPayouts() {
@@ -173,25 +204,34 @@ async function loadPayouts() {
     (pastWindow && !disputed ? ready : waiting).push(b);
   });
 
+  const photographerIds = [...new Set([...ready, ...waiting].map((b) => b.photographer_id))];
+  const bankAccounts = await getBankAccountsForPhotographers(photographerIds);
+  const readyGroups = groupByPhotographer(ready, bankAccounts);
+  const waitingGroups = groupByPhotographer(waiting, bankAccounts);
+
   const readyEl = document.getElementById('pm-payout-ready');
-  readyEl.innerHTML = ready.length
-    ? ready.map((b) => payoutCardHtml(b, { ready: true })).join('')
+  readyEl.innerHTML = readyGroups.length
+    ? readyGroups.map((g) => payoutGroupHtml(g, { ready: true })).join('')
     : '<div class="pm-empty">現在、送金可能な予約はありません。</div>';
 
   const waitingEl = document.getElementById('pm-payout-waiting');
-  waitingEl.innerHTML = waiting.length
-    ? waiting.map((b) => payoutCardHtml(b, { ready: false })).join('')
+  waitingEl.innerHTML = waitingGroups.length
+    ? waitingGroups.map((g) => payoutGroupHtml(g, { ready: false })).join('')
     : '<div class="pm-empty">対象データがありません。</div>';
 
   readyEl.querySelectorAll('.btn-payout-release').forEach((btn) => {
     btn.addEventListener('click', async () => {
-      if (!confirm('この予約についてカメラマンへ送金します。よろしいですか？')) return;
+      const ids = btn.dataset.bookingIds.split(',');
+      const total = Number(btn.dataset.total).toLocaleString();
+      if (!confirm(`${ids.length}件・合計¥${total}を銀行振込済みとして記録します（実際の振込は別途行ってください）。よろしいですか？`)) return;
       btn.disabled = true;
       try {
-        await releasePayout(btn.dataset.bookingId);
+        for (const id of ids) {
+          await releasePayout(id, '月次バッチ（月末締め・翌月25日払い）');
+        }
         loadPayouts();
       } catch (err) {
-        alert(err.message || '送金に失敗しました。');
+        alert(err.message || '更新に失敗しました。');
         console.error(err);
         btn.disabled = false;
       }
