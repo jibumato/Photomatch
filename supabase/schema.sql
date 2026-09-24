@@ -465,7 +465,7 @@ create policy "monitor_applications: ops review" on monitor_applications
 -- Supabase Auth users can't be created from plain SQL with a known password.
 -- To reproduce the design's demo logins:
 --   1. In the Supabase dashboard, Authentication > Users > Add user, create:
---        guest@example.com / guest        (user metadata: {"role":"client","name":"ゲスト ユーザー"})
+--        guest@example.com / guest1       (user metadata: {"role":"client","name":"ゲスト ユーザー"})
 --        camera@photomatch.jp / camera    (user metadata: {"role":"photographer","name":"Takumi"})
 --      (the trigger above will create matching profiles/photographers rows)
 --   2. Link the photographer demo account to the seeded "Takumi" listing:
