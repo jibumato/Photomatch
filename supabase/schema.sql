@@ -82,6 +82,14 @@ alter table photographers add column if not exists gender text;
 alter table photographers drop constraint if exists photographers_gender_check;
 alter table photographers add constraint photographers_gender_check check (gender in ('male', 'female'));
 
+-- カメラマンの参加状況が未定などで一時的に検索・新規予約から外したい場合に
+-- false にする（データは消さず、公開範囲だけ絞る）。デフォルトは表示。
+alter table photographers add column if not exists is_visible boolean not null default true;
+
+-- 伊藤 啓志（p3）・早川 ゆかり（p4）は参加未定のため一時的に非表示。
+-- 参加が決まったら update photographers set is_visible = true where id in ('p3','p4'); で戻す。
+update photographers set is_visible = false where id in ('p3', 'p4');
+
 -- Backfill the seeded listings. `gender is null` keeps this safe to re-run
 -- and never overwrites a value set by hand in the dashboard.
 update photographers set gender = 'male'   where id in ('p1', 'p3', 'p5') and gender is null;

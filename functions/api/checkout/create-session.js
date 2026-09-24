@@ -66,6 +66,11 @@ export async function onRequestPost({ request, env }) {
   const plan = plans[0];
   if (!photographerRow) return jsonResponse({ error: 'カメラマンが見つかりません。' }, 404);
   if (!plan) return jsonResponse({ error: 'プランが見つかりません。' }, 404);
+  // The client already hides unavailable photographers, but re-check here
+  // since this is the actual point of no return (money changes hands).
+  if (photographerRow.is_visible === false) {
+    return jsonResponse({ error: '現在、このカメラマンは新規のご予約受付を休止しています。' }, 409);
+  }
 
   const durationMin = plan.duration_min || 30;
   const slotCount = Math.max(1, Math.ceil(durationMin / 30));

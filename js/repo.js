@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient.js';
 import { getSession } from './auth.js';
 
 export async function listPhotographers() {
-  const { data, error } = await supabase.from('photographers').select('*').order('id');
+  const { data, error } = await supabase.from('photographers').select('*').eq('is_visible', true).order('id');
   if (error) throw error;
   return data;
 }

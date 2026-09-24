@@ -364,24 +364,30 @@ function showConfirmForBooking(booking) {
     ]);
     state.photographer = photographer;
     state.plans = plans;
+
+    // Returning from Stripe Checkout takes priority over everything else,
+    // including the is_visible gate below — a booking that already succeeded
+    // must still be viewable even if the photographer went unavailable since.
+    const paidBookingId = params.get('paid_booking');
+    const canceled = params.get('canceled');
+    if (paidBookingId) {
+      document.getElementById('pm-loading').remove();
+      clearDraft();
+      const booking = await getBooking(paidBookingId);
+      showConfirmForBooking(booking);
+      return;
+    }
+
+    if (photographer.is_visible === false) {
+      document.getElementById('pm-loading').textContent = '現在、こちらのカメラマンは新規のご予約受付を休止しています。お手数ですが他のカメラマンをお探しください。';
+      return;
+    }
     document.getElementById('pm-loading').remove();
 
     // Set the expectation early that login is a one-time step at the end, so
     // hitting the auth gate mid-flow isn't a surprise. Pointless once signed in.
     if (!session) {
       document.querySelectorAll('.pm-login-hint').forEach((el) => { el.style.display = 'block'; });
-    }
-
-    // Returning from Stripe Checkout takes priority over any in-progress
-    // draft — the payment either succeeded (show the real booking) or was
-    // canceled (restore the draft so nothing is lost).
-    const paidBookingId = params.get('paid_booking');
-    const canceled = params.get('canceled');
-    if (paidBookingId) {
-      clearDraft();
-      const booking = await getBooking(paidBookingId);
-      showConfirmForBooking(booking);
-      return;
     }
 
     const restored = restoreDraft();
