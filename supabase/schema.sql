@@ -179,6 +179,14 @@ create policy "bookings: update own (cancel / status)" on bookings
     or photographer_id in (select id from photographers where profile_id = auth.uid())
   );
 
+-- ops needs to browse all bookings to review Stripe payouts (js/pages/ops.js).
+-- Added after the initial release; policies are additive (OR'd) so this only
+-- widens visibility, it never narrows the policies above.
+create policy "bookings: ops read" on bookings
+  for select using (
+    exists (select 1 from profiles where id = auth.uid() and role = 'ops')
+  );
+
 -- Public view of taken slots only (no customer PII) — used to render the
 -- booking calendar for anonymous/other visitors without leaking bookings.
 create or replace view booking_slots as
@@ -458,6 +466,41 @@ create policy "monitor_applications: ops review" on monitor_applications
   for update using (
     exists (select 1 from profiles where id = auth.uid() and role = 'ops')
   );
+
+-- ============================================================
+-- Stripe連携（Payments / Connect / Tax）
+-- ============================================================
+-- カメラマンへのStripe Express Connectアカウント情報。
+alter table photographers add column if not exists stripe_account_id text;
+alter table photographers add column if not exists stripe_charges_enabled boolean not null default false;
+alter table photographers add column if not exists stripe_payouts_enabled boolean not null default false;
+
+-- 予約ごとの決済・送金情報。予約は決済前は status='pending_payment' で作成され、
+-- Stripe Webhookが checkout.session.completed を受け取った時点で 'paid' に更新する。
+-- payout_status は「プラットフォームが一旦全額を預かり、保証期間（30日）経過後に
+-- opsが手動でカメラマンへ50%を送金する」運用のための状態（released 前は pending）。
+alter table bookings add column if not exists stripe_checkout_session_id text;
+alter table bookings add column if not exists stripe_payment_intent_id text;
+alter table bookings add column if not exists stripe_charge_id text;
+alter table bookings add column if not exists payout_status text not null default 'pending';
+alter table bookings drop constraint if exists bookings_payout_status_check;
+alter table bookings add constraint bookings_payout_status_check check (payout_status in ('pending', 'released'));
+alter table bookings add column if not exists stripe_transfer_id text;
+alter table bookings add column if not exists payout_released_at timestamptz;
+
+-- Postgres names an unnamed inline check constraint "<table>_<column>_check".
+alter table bookings drop constraint if exists bookings_status_check;
+alter table bookings add constraint bookings_status_check
+  check (status in ('pending_payment', 'paid', 'requested', 'confirmed', 'completed', 'canceled'));
+
+-- 決済待ち（pending_payment）の予約もカレンダー上は「予約済み」として枠を塞ぐが、
+-- 20分を過ぎても決済が完了しない（Stripe Checkoutを離脱した等）場合は自動的に
+-- 空き枠へ戻す。クリーンアップ用のバッチ処理は不要。
+create or replace view booking_slots as
+  select photographer_id, booking_date, start_time, end_time
+  from bookings
+  where status <> 'canceled'
+    and (status <> 'pending_payment' or created_at > now() - interval '20 minutes');
 
 -- ============================================================
 -- demo accounts (manual step)

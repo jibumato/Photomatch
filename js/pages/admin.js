@@ -1,5 +1,5 @@
 import { mountLayout } from '../layout.js';
-import { requireRole, signOut } from '../auth.js';
+import { requireRole, signOut, getSession } from '../auth.js';
 import {
   getMyPhotographerRow, getClosedShifts, toggleShift, bulkSetShiftsOpen, bulkSetShiftsClosed,
   getPhotographerBookings, getMessageCounts, getReadTimestamps,
@@ -188,6 +188,59 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   location.href = 'index.html';
 });
 
+// ---------- Stripe受け取り設定 ----------
+async function renderStripeSection(photographer) {
+  const el = document.getElementById('pm-stripe-section');
+  const params = new URLSearchParams(location.search);
+
+  if (params.get('stripe_return')) {
+    el.innerHTML = '<div style="font:13px var(--pm-font-body);color:var(--pm-text-3)">Stripeの設定状況を確認しています…</div>';
+    try {
+      const session = await getSession();
+      const res = await fetch('/api/connect/status', { headers: { Authorization: `Bearer ${session.access_token}` } });
+      const data = await res.json();
+      if (res.ok) {
+        photographer.stripe_payouts_enabled = data.payouts_enabled;
+        photographer.stripe_charges_enabled = data.charges_enabled;
+      }
+    } catch (err) { /* fall back to the last-known DB value rendered below */ }
+    history.replaceState(null, '', location.pathname);
+  }
+
+  if (photographer.stripe_payouts_enabled) {
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font:700 12px var(--pm-font-body);color:#fff;background:oklch(0.55 0.14 160);border-radius:100px;padding:4px 12px">設定済み</span>
+        <span style="font:13px var(--pm-font-body);color:var(--pm-text-3)">Stripeでの報酬受け取り設定が完了しています。</span>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div style="font:700 15px var(--pm-font-body);margin-bottom:6px">Stripeで報酬の受け取り設定を行う</div>
+    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 14px">お客様からのお支払いは一旦PhotoMatchでお預かりし、撮影完了・保証期間（30日）経過後にStripe経由で報酬（プラン料金の50%）をお振込みします。受け取るにはStripeでの口座・本人確認登録が必要です。</p>
+    <button class="pm-btn pm-btn-primary" id="stripe-onboard-btn">Stripeで設定する</button>
+    <div class="pm-error-text" id="stripe-onboard-error" style="display:none;margin-top:10px"></div>`;
+
+  document.getElementById('stripe-onboard-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('stripe-onboard-btn');
+    const errorEl = document.getElementById('stripe-onboard-error');
+    errorEl.style.display = 'none';
+    btn.disabled = true;
+    try {
+      const session = await getSession();
+      const res = await fetch('/api/connect/onboard', { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` } });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '設定の開始に失敗しました。');
+      location.href = data.url;
+    } catch (err) {
+      errorEl.textContent = err.message || '設定の開始に失敗しました。時間をおいて再度お試しください。';
+      errorEl.style.display = 'block';
+      btn.disabled = false;
+    }
+  });
+}
+
 async function init() {
   const profile = await requireRole('photographer', 'pro-login.html');
   if (!profile) return;
@@ -204,6 +257,7 @@ async function init() {
 
   state.photographerId = photographer.id;
   document.getElementById('pm-admin').style.display = 'block';
+  renderStripeSection(photographer);
 
   const [bookings] = await Promise.all([getPhotographerBookings(state.photographerId), loadShifts()]);
   state.bookings = bookings;

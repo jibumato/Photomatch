@@ -109,6 +109,12 @@ export async function createBooking(record) {
   return data;
 }
 
+export async function getBooking(id) {
+  const { data, error } = await supabase.from('bookings').select('*').eq('id', id).single();
+  if (error) throw error;
+  return data;
+}
+
 export async function getMyBookings() {
   const session = await getSession();
   if (!session) return [];
@@ -238,6 +244,35 @@ export async function reviewGuaranteeClaim(claimId, status, reviewNote) {
     .update({ status, review_note: reviewNote, reviewed_at: new Date().toISOString(), reviewed_by: session.user.id })
     .eq('id', claimId);
   if (error) throw error;
+}
+
+// ---- payouts (Stripeでのカメラマンへの送金) ----
+
+// ops: paid bookings still awaiting a payout, across all photographers.
+export async function getPayoutCandidates() {
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*, photographers(name)')
+    .eq('status', 'paid')
+    .eq('payout_status', 'pending')
+    .order('booking_date', { ascending: true });
+  if (error) throw error;
+  return data;
+}
+
+// The actual money movement happens server-side (needs the Stripe secret
+// key), so this just calls the Pages Function instead of touching Supabase.
+export async function releasePayout(bookingId) {
+  const session = await getSession();
+  if (!session) throw new Error('not signed in');
+  const res = await fetch('/api/payouts/release', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ booking_id: bookingId }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || '送金に失敗しました。');
+  return data;
 }
 
 // ---- monitor applications (モニター価格プログラム) ----

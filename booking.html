@@ -93,32 +93,11 @@
   <div class="pm-card" style="padding:24px;display:flex;flex-direction:column;gap:18px">
     <div style="display:flex;align-items:center;gap:8px;font:12px var(--pm-font-num);color:var(--pm-text-3)">
       <span style="display:inline-flex;align-items:center;gap:6px;background:oklch(0.96 0.02 265);color:oklch(0.42 0.14 275);font-weight:700;padding:5px 10px;border-radius:6px">Stripe</span>
-      <span>安全に暗号化されて送信されます（デモ環境のため実際の課金は発生しません）</span>
+      <span>Stripeの決済ページへ移動します。カード情報はPhotoMatchのサーバーを経由しません。</span>
     </div>
-    <div class="pm-field">
-      <label>カード番号</label>
-      <input class="pm-input" type="text" inputmode="numeric" id="f-card-number" placeholder="1234 5678 9012 3456">
-      <div class="pm-error-text" id="err-card-number" style="display:none">カード番号をご確認ください</div>
-    </div>
-    <div class="pm-field">
-      <label>カード名義</label>
-      <input class="pm-input" type="text" id="f-card-name" placeholder="TARO YAMADA">
-      <div class="pm-error-text" id="err-card-name" style="display:none">カード名義をご記入ください</div>
-    </div>
-    <div style="display:flex;gap:16px;flex-wrap:wrap">
-      <div class="pm-field" style="flex:1;min-width:120px">
-        <label>有効期限</label>
-        <input class="pm-input" type="text" id="f-card-exp" placeholder="MM/YY">
-        <div class="pm-error-text" id="err-card-exp" style="display:none">MM/YY形式でご入力ください</div>
-      </div>
-      <div class="pm-field" style="flex:1;min-width:120px">
-        <label>セキュリティコード</label>
-        <input class="pm-input" type="text" inputmode="numeric" id="f-card-cvc" placeholder="CVC">
-        <div class="pm-error-text" id="err-card-cvc" style="display:none">3〜4桁でご入力ください</div>
-      </div>
-    </div>
+    <div class="pm-error-text" id="err-payment" style="display:none"></div>
     <div class="pm-note-box"><span class="pm-note-title">キャンセルポリシー</span>撮影日の3日前まで：無料 ／ 2日前：料金の50% ／ 前日・当日：料金の100%</div>
-    <button class="pm-btn pm-btn-primary pm-btn-block" id="payment-submit"><span id="payment-submit-label">支払って予約を確定</span></button>
+    <button class="pm-btn pm-btn-primary pm-btn-block" id="payment-submit"><span id="payment-submit-label">Stripeの決済ページへ進む</span></button>
   </div>
 </section>
 

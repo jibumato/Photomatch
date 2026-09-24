@@ -1,0 +1,15 @@
+# Cloudflare Pages Functions environment variables — テンプレートです。
+# 実際の値はここに書かず、Cloudflare Pagesダッシュボードの
+# Settings > Environment variables（本番/プレビューそれぞれ）に設定してください。
+# ローカルで `wrangler pages dev` を使う場合のみ、このファイルをコピーして
+# `.dev.vars` として実際の値を入れてください（.gitignore済み・コミットしないこと）。
+
+# Stripeダッシュボード > Developers > API keys（テストモードのシークレットキー）
+STRIPE_SECRET_KEY=sk_test_...
+
+# Stripeダッシュボード > Developers > Webhooks でエンドポイント登録後に発行される署名シークレット
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Supabaseダッシュボード > Project Settings > API（service_role キー。RLSを
+# バイパスするため、Cloudflare側のsecret設定以外では絶対に使わないこと）
+SUPABASE_SERVICE_ROLE_KEY=...
