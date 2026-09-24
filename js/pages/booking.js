@@ -3,7 +3,7 @@ import { getSession } from '../auth.js';
 import { getPhotographer, getPlans, createBooking, getTakenSlots, getClosedShifts } from '../repo.js';
 import { mountSheetModal } from '../sheet.js';
 import {
-  AREAS, EXTRA_OPTIONS, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
+  AREAS, EXTRA_OPTIONS, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor, isoDate,
 } from '../data.js';
 
 mountLayout();
@@ -84,18 +84,25 @@ function cellTaken(iso, slotTime) {
 async function loadWeather() {
   state.weather = null;
   const area = AREAS.find((a) => a.key === state.selectedArea) || AREAS[0];
-  const start = state.days[0].iso;
-  const endDate = new Date(state.days[0].date);
+  // Open-Meteoの無料予報枠は「今日から最大16日先」まで。予約可能な最短日（3日後）を
+  // 起点に+15日すると実質18日先までのリクエストになり、範囲外エラーで全日分の予報が
+  // 取得できなくなっていた。今日を起点に計算し、日付文字列でstate.daysと突き合わせる
+  // （予報範囲外の日は単にnullとなり、アイコン無しで自然にフォールバックする）。
+  const start = isoDate(new Date());
+  const endDate = new Date();
   endDate.setDate(endDate.getDate() + 15);
-  const end = endDate.toISOString().slice(0, 10);
+  const end = isoDate(endDate);
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${area.lat}&longitude=${area.lon}&daily=weathercode,precipitation_probability_max&timezone=Asia%2FTokyo&start_date=${start}&end_date=${end}`;
     const res = await fetch(url);
     if (!res.ok) return;
     const data = await res.json();
+    const dates = (data.daily && data.daily.time) || [];
     const codes = (data.daily && data.daily.weathercode) || [];
     const pops = (data.daily && data.daily.precipitation_probability_max) || [];
-    state.weather = codes.map((code, i) => ({ code, pop: pops[i] }));
+    const byDate = {};
+    dates.forEach((iso, i) => { byDate[iso] = { code: codes[i], pop: pops[i] }; });
+    state.weather = state.days.map((d) => byDate[d.iso] || null);
   } catch (err) { /* weather is best-effort */ }
 }
 
