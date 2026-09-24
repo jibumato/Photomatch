@@ -308,6 +308,11 @@ export function addMinutes(timeStr, mins) {
   return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
 }
 
+// カメラマンが受け取る割合（残りがPhotoMatchのプラットフォーム手数料）。
+// functions/_lib/pricing.js に金額計算用のサーバー側コピーがあるので、
+// 変更する場合はそちらも合わせて更新すること。
+export const PHOTOGRAPHER_PAYOUT_RATE = 0.5;
+
 export function weatherIconFor(code) {
   if (code == null) return { icon: '', color: 'oklch(0.5 0.05 220)' };
   if (code <= 1) return { icon: '☀', color: 'oklch(0.68 0.17 55)' };

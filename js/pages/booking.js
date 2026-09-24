@@ -1,6 +1,6 @@
 import { mountLayout } from '../layout.js';
 import { getSession } from '../auth.js';
-import { getPhotographer, getPlans, createBooking, getTakenSlots, getClosedShifts } from '../repo.js';
+import { getPhotographer, getPlans, getBooking, getTakenSlots, getClosedShifts } from '../repo.js';
 import { mountSheetModal } from '../sheet.js';
 import {
   AREAS, EXTRA_OPTIONS, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor, isoDate,
@@ -295,68 +295,64 @@ function goPaymentStep() {
 }
 
 document.getElementById('payment-submit').addEventListener('click', async () => {
-  const number = document.getElementById('f-card-number').value;
-  const name = document.getElementById('f-card-name').value.trim();
-  const exp = document.getElementById('f-card-exp').value.trim();
-  const cvc = document.getElementById('f-card-cvc').value.trim();
-  const digits = number.replace(/\s/g, '');
-  const errors = {
-    'err-card-number': digits.length < 14,
-    'err-card-name': !name,
-    'err-card-exp': !/^\d{2}\/\d{2}$/.test(exp),
-    'err-card-cvc': !/^\d{3,4}$/.test(cvc),
-  };
-  Object.entries(errors).forEach(([id, hasError]) => { document.getElementById(id).style.display = hasError ? 'block' : 'none'; });
-  if (Object.values(errors).some(Boolean)) return;
-
+  const errorEl = document.getElementById('err-payment');
+  errorEl.style.display = 'none';
   const btn = document.getElementById('payment-submit');
   btn.disabled = true;
   const s = currentSummary();
   try {
-    const booking = await createBooking({
-      photographer_id: photographerId,
-      plan_name: s.plan.name,
-      plan_price: s.plan.price,
-      duration_min: s.plan.duration_min,
-      area: s.areaLabel,
-      booking_date: s.d.iso,
-      start_time: s.startTime,
-      end_time: s.endTime,
-      customer_name: state.name,
-      customer_contact: state.contact,
-      options: s.selectedOptions.map((o) => ({ key: o.key, label: o.label, price: o.price })),
-      options_total: s.optionsTotal,
-      total_price: s.grandTotal,
-      status: 'paid',
+    const session = await getSession();
+    if (!session) throw new Error('ログインが必要です。');
+    // Saved so a canceled/abandoned Stripe Checkout can restore this exact
+    // slot/contact selection instead of losing it on the redirect back.
+    saveDraft();
+    const res = await fetch('/api/checkout/create-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({
+        photographer_id: photographerId,
+        plan_name: s.plan.name,
+        booking_date: s.d.iso,
+        start_time: s.startTime,
+        area: state.selectedArea,
+        customer_name: state.name,
+        customer_contact: state.contact,
+        option_keys: state.options,
+      }),
     });
-    state.lastBooking = booking;
-    clearDraft();
-    goConfirmStep(s);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '決済ページの作成に失敗しました。');
+    location.href = data.url;
   } catch (err) {
-    alert('予約の確定に失敗しました。時間をおいて再度お試しください。');
+    errorEl.textContent = err.message || '決済ページの作成に失敗しました。時間をおいて再度お試しください。';
+    errorEl.style.display = 'block';
     console.error(err);
-  } finally {
     btn.disabled = false;
   }
 });
 
 // ---------- render: confirm ----------
-function goConfirmStep(s) {
+// Rendered only after returning from Stripe Checkout with `?paid_booking=`,
+// using the real booking row (the webhook is what actually marks it paid —
+// this page never trusts the redirect alone).
+function showConfirmForBooking(booking) {
   showStep('confirm');
   document.getElementById('confirm-lead').textContent = `${state.photographer.name}さんとの撮影が確定しました。当日は撮影場所で直接お待ち合わせください。`;
-  const optionsHtml = s.selectedOptions.map((o) => `<div>＋オプション：${o.label}（+¥${o.price.toLocaleString()}）</div>`).join('');
+  const options = (booking.options || []).map((o) => EXTRA_OPTIONS.find((eo) => eo.key === o.key)).filter(Boolean);
+  const optionsHtml = options.map((o) => `<div>＋オプション：${o.label}（+¥${o.price.toLocaleString()}）</div>`).join('');
+  const dateLabel = `${Number(booking.booking_date.slice(5, 7))}/${Number(booking.booking_date.slice(8, 10))}`;
   document.getElementById('confirm-details').innerHTML = `
     <div>カメラマン：${state.photographer.name}</div>
-    <div>撮影エリア：${s.areaLabel}</div>
-    <div>日時：${s.d.dateLabel}（${s.d.label}） ${s.startTime}〜${s.endTime}</div>
-    <div>プラン：${s.plan.name}（¥${s.plan.price.toLocaleString()}　税込）</div>
+    <div>撮影エリア：${booking.area}</div>
+    <div>日時：${dateLabel} ${booking.start_time.slice(0, 5)}〜${booking.end_time.slice(0, 5)}</div>
+    <div>プラン：${booking.plan_name}（¥${booking.plan_price.toLocaleString()}　税込）</div>
     ${optionsHtml}
-    <div style="font:700 14px var(--pm-font-body);color:oklch(0.3 0.02 235)">お支払い合計：¥${s.grandTotal.toLocaleString()}（税込）</div>
-    <div>お支払い：クレジットカードで決済完了</div>
-    <div>お名前：${state.name}</div>
-    <div>連絡先：${state.contact}</div>`;
+    <div style="font:700 14px var(--pm-font-body);color:oklch(0.3 0.02 235)">お支払い合計：¥${booking.total_price.toLocaleString()}（税込）</div>
+    <div>お支払い：Stripeで決済完了</div>
+    <div>お名前：${booking.customer_name}</div>
+    <div>連絡先：${booking.customer_contact}</div>`;
   document.getElementById('confirm-sheet-btn').onclick = () => {
-    sheetModal.open(state.lastBooking.id, `${s.d.dateLabel} ${s.startTime}〜 ・ ${state.photographer.name}さん`);
+    sheetModal.open(booking.id, `${dateLabel} ${booking.start_time.slice(0, 5)}〜 ・ ${state.photographer.name}さん`);
   };
 }
 
@@ -376,8 +372,26 @@ function goConfirmStep(s) {
       document.querySelectorAll('.pm-login-hint').forEach((el) => { el.style.display = 'block'; });
     }
 
+    // Returning from Stripe Checkout takes priority over any in-progress
+    // draft — the payment either succeeded (show the real booking) or was
+    // canceled (restore the draft so nothing is lost).
+    const paidBookingId = params.get('paid_booking');
+    const canceled = params.get('canceled');
+    if (paidBookingId) {
+      clearDraft();
+      const booking = await getBooking(paidBookingId);
+      showConfirmForBooking(booking);
+      return;
+    }
+
     const restored = restoreDraft();
-    if (restored) {
+    if (canceled && restored) {
+      await goSlotStepFromRestore();
+      goPaymentStep();
+      const errorEl = document.getElementById('err-payment');
+      errorEl.textContent = 'お支払いがキャンセルされました。内容をご確認の上、再度お試しください。';
+      errorEl.style.display = 'block';
+    } else if (restored) {
       goSlotStepFromRestore();
     } else if (planParam != null && plans[Number(planParam)]) {
       state.planIndex = Number(planParam);
@@ -387,7 +401,8 @@ function goConfirmStep(s) {
       showStep('plan');
     }
   } catch (err) {
-    document.getElementById('pm-loading').textContent = 'カメラマン情報の取得に失敗しました。';
+    const loadingEl = document.getElementById('pm-loading');
+    if (loadingEl) loadingEl.textContent = '情報の取得に失敗しました。時間をおいて再度お試しください。';
     console.error(err);
   }
 })();
