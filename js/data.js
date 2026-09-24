@@ -83,7 +83,7 @@ export const LEGAL_PAGES = {
     intro: '特定商取引法第11条に基づき表示します。',
     rows: [
       { k: '販売事業者', v: 'PhotoMatch運営事務局' },
-      { k: '運営責任者', v: '（担当者名を記載）' },
+      { k: '運営責任者', v: '下山 慧' },
       { k: '所在地', v: '愛知県名古屋市中区（請求があれば遅滞なく開示します）' },
       { k: '連絡先', v: 'support@photomatch.example.jp' },
       { k: '販売価格', v: '各プランページに税込で表示します（スタンダード¥8,800〜）' },
@@ -226,6 +226,7 @@ export const COLUMN_ARTICLES = [
 ];
 
 export const PRICING_PLANS = [
+  { name: 'スマホプラン', price: '5,500', desc: '30分・10枚納品・スマホ撮影' },
   { name: 'スタンダード', price: '8,800', originalPrice: '9,800', discountLabel: '10%OFF', desc: '45分・20枚納品' },
   { name: 'スタンダードプラス', price: '11,800', originalPrice: '13,100', discountLabel: '10%OFF', desc: '45分・20枚納品＋スマホ用5枚' },
   { name: '結婚相談所', price: '8,800', originalPrice: '9,800', discountLabel: '10%OFF', desc: '45分・10枚納品' },

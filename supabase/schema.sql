@@ -342,12 +342,25 @@ insert into plans (photographer_id, name, price, original_price, discount_label,
 select p.id, v.name, v.price, v.original_price, v.discount_label, v.description, v.duration_min, v.sort_order
 from photographers p
 cross join (values
+  ('スマホプラン', 5500, null, null, '30分・10枚納品・スマホ撮影', 30, 0),
   ('スタンダード', 8800, 9800, '10%OFF', '45分・20枚納品', 45, 1),
   ('スタンダードプラス', 11800, 13100, '10%OFF', '45分・20枚納品＋スマホ用5枚', 45, 2),
   ('結婚相談所', 8800, 9800, '10%OFF', '45分・10枚納品', 45, 3)
 ) as v(name, price, original_price, discount_label, description, duration_min, sort_order)
 where p.id in ('p1','p2','p3','p4','p5','p6')
 on conflict do nothing;
+
+-- plans には id 以外の一意制約がなく、上の insert は再実行のたびに重複行を
+-- 作ってしまう（on conflict do nothing が効く対象がない）。新規追加した
+-- スマホプランだけは、既存インストールにも安全に反映できるよう存在チェック
+-- 付きで別途投入する。
+insert into plans (photographer_id, name, price, original_price, discount_label, description, duration_min, sort_order)
+select p.id, 'スマホプラン', 5500, null, null, '30分・10枚納品・スマホ撮影', 30, 0
+from photographers p
+where p.id in ('p1','p2','p3','p4','p5','p6')
+  and not exists (
+    select 1 from plans where photographer_id = p.id and name = 'スマホプラン'
+  );
 
 insert into reviews (photographer_id, reviewer_name, stars, comment) values
   ('p1', 'K.T様', 5, '緊張していましたが自然な表情を引き出してもらえました。マッチング数も明らかに増えました。'),
