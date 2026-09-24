@@ -44,6 +44,7 @@ function footerHtml() {
       <div class="pm-h">サービス情報</div>
       <a href="terms.html?key=company">運営会社</a>
       <a href="column.html">コラム</a>
+      <a href="monitor.html">モニター価格プラン募集</a>
       <a href="terms.html?key=tokushoho">特定商取引法に基づく表記</a>
       <a href="terms.html?key=privacy">プライバシーポリシー</a>
       <a href="terms.html?key=terms">利用規約</a>

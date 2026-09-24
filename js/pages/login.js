@@ -38,7 +38,7 @@ toggle.addEventListener('click', () => {
 
 document.getElementById('fill-demo').addEventListener('click', () => {
   document.getElementById('f-email').value = 'guest@example.com';
-  document.getElementById('f-password').value = 'guest';
+  document.getElementById('f-password').value = 'guest1';
 });
 
 submitBtn.addEventListener('click', async () => {

@@ -41,10 +41,10 @@ document.getElementById('pm-steps').innerHTML = HOW_IT_WORKS.map((s) => `
 document.getElementById('pm-pricing').innerHTML = PRICING_PLANS.map((pl) => `
   <a href="search.html" class="pm-card" style="display:block;border-radius:18px;padding:28px;text-decoration:none;color:inherit">
     <div style="font:700 15px var(--pm-font-body);margin-bottom:6px">${pl.name}</div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+    ${pl.originalPrice ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
       <span style="font:600 14px var(--pm-font-num);color:var(--pm-text-muted);text-decoration:line-through">¥${pl.originalPrice}</span>
       <span style="font:700 11px var(--pm-font-body);color:#fff;background:var(--pm-warn);padding:2px 8px;border-radius:100px">${pl.discountLabel}</span>
-    </div>
+    </div>` : ''}
     <div style="font:800 26px var(--pm-font-num);margin-bottom:4px">¥${pl.price}</div>
     <div style="font:11px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">税込</div>
     <div style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:16px">${pl.desc}</div>
