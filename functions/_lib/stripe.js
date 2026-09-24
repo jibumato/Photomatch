@@ -59,16 +59,6 @@ export const stripe = {
   paymentIntents: {
     retrieve: (env, id, params) => stripeRequest(env, 'GET', `/payment_intents/${id}`, params),
   },
-  accounts: {
-    create: (env, params) => stripeRequest(env, 'POST', '/accounts', params),
-    retrieve: (env, id) => stripeRequest(env, 'GET', `/accounts/${id}`),
-  },
-  accountLinks: {
-    create: (env, params) => stripeRequest(env, 'POST', '/account_links', params),
-  },
-  transfers: {
-    create: (env, params) => stripeRequest(env, 'POST', '/transfers', params),
-  },
 };
 
 // Verifies a Stripe webhook signature using the Web Crypto API (no Node

@@ -246,7 +246,36 @@ export async function reviewGuaranteeClaim(claimId, status, reviewNote) {
   if (error) throw error;
 }
 
-// ---- payouts (Stripeでのカメラマンへの送金) ----
+// ---- bank accounts (カメラマンの報酬振込先) ----
+
+export async function getBankAccount(photographerId) {
+  const { data, error } = await supabase
+    .from('photographer_bank_accounts')
+    .select('*')
+    .eq('photographer_id', photographerId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function saveBankAccount(photographerId, fields) {
+  const { error } = await supabase
+    .from('photographer_bank_accounts')
+    .upsert({ photographer_id: photographerId, ...fields, updated_at: new Date().toISOString() }, { onConflict: 'photographer_id' });
+  if (error) throw error;
+}
+
+// ops: bank accounts for a batch of photographers, keyed by photographer_id.
+export async function getBankAccountsForPhotographers(photographerIds) {
+  if (!photographerIds.length) return {};
+  const { data, error } = await supabase.from('photographer_bank_accounts').select('*').in('photographer_id', photographerIds);
+  if (error) throw error;
+  const map = {};
+  for (const row of data) map[row.photographer_id] = row;
+  return map;
+}
+
+// ---- payouts (カメラマンへの報酬送金 — 月末締め・翌月25日payoutの銀行振込) ----
 
 // ops: paid bookings still awaiting a payout, across all photographers.
 export async function getPayoutCandidates() {
@@ -260,18 +289,20 @@ export async function getPayoutCandidates() {
   return data;
 }
 
-// The actual money movement happens server-side (needs the Stripe secret
-// key), so this just calls the Pages Function instead of touching Supabase.
-export async function releasePayout(bookingId) {
+// Marking a payout released is a plain DB write (no Stripe Connect involved
+// — the actual transfer happens as a manual bank transfer by ops), but it
+// still goes through a Function so ops-role authorization is enforced
+// server-side rather than relying on RLS alone for money-adjacent state.
+export async function releasePayout(bookingId, note) {
   const session = await getSession();
   if (!session) throw new Error('not signed in');
   const res = await fetch('/api/payouts/release', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-    body: JSON.stringify({ booking_id: bookingId }),
+    body: JSON.stringify({ booking_id: bookingId, note }),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || '送金に失敗しました。');
+  if (!res.ok) throw new Error(data.error || '更新に失敗しました。');
   return data;
 }
 
