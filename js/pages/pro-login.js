@@ -40,11 +40,6 @@ toggle.addEventListener('click', () => {
   errorEl.style.display = 'none';
 });
 
-document.getElementById('fill-demo').addEventListener('click', () => {
-  document.getElementById('f-email').value = 'camera@photomatch.jp';
-  document.getElementById('f-password').value = 'camera';
-});
-
 submitBtn.addEventListener('click', async () => {
   const email = document.getElementById('f-email').value.trim();
   const password = document.getElementById('f-password').value;
