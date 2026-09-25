@@ -125,9 +125,18 @@ export async function getPhotographerBookings(photographerId) {
   return data;
 }
 
+// Goes through a Function (not a direct table update) so the cancellation
+// emails to the customer and photographer are always sent.
 export async function cancelBooking(bookingId) {
-  const { error } = await supabase.from('bookings').update({ status: 'canceled' }).eq('id', bookingId);
-  if (error) throw error;
+  const session = await getSession();
+  if (!session) throw new Error('not signed in');
+  const res = await fetch('/api/bookings/cancel', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ booking_id: bookingId }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'キャンセル処理に失敗しました。');
 }
 
 // ---- chat ----
