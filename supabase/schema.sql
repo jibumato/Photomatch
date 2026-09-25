@@ -276,7 +276,17 @@ create policy "messages: participants insert" on messages
     )
   );
 
-alter publication supabase_realtime add table messages;
+-- alter publication ... add table has no IF NOT EXISTS form, so guard it to
+-- keep this file safe to re-run in full.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'messages'
+  ) then
+    alter publication supabase_realtime add table messages;
+  end if;
+end $$;
 
 -- ============================================================
 -- message_reads (last-read timestamp per booking+role, drives unread badges)
@@ -385,21 +395,15 @@ cross join (values
   ('結婚相談所', 8800, 9800, '10%OFF', '45分・10枚納品', 45, 3)
 ) as v(name, price, original_price, discount_label, description, duration_min, sort_order)
 where p.id in ('p1','p2','p3','p4','p5','p6')
-on conflict do nothing;
-
--- plans には id 以外の一意制約がなく、上の insert は再実行のたびに重複行を
--- 作ってしまう（on conflict do nothing が効く対象がない）。新規追加した
--- スマホプランだけは、既存インストールにも安全に反映できるよう存在チェック
--- 付きで別途投入する。
-insert into plans (photographer_id, name, price, original_price, discount_label, description, duration_min, sort_order)
-select p.id, 'スマホプラン', 5500, null, null, '30分・10枚納品・スマホ撮影', 30, 0
-from photographers p
-where p.id in ('p1','p2','p3','p4','p5','p6')
+  -- plans has no unique key besides id, so on conflict can't dedupe; check
+  -- by (photographer, plan name) instead to keep re-runs from duplicating.
   and not exists (
-    select 1 from plans where photographer_id = p.id and name = 'スマホプラン'
+    select 1 from plans x where x.photographer_id = p.id and x.name = v.name
   );
 
-insert into reviews (photographer_id, reviewer_name, stars, comment) values
+insert into reviews (photographer_id, reviewer_name, stars, comment)
+select v.photographer_id, v.reviewer_name, v.stars, v.comment
+from (values
   ('p1', 'K.T様', 5, '緊張していましたが自然な表情を引き出してもらえました。マッチング数も明らかに増えました。'),
   ('p1', 'M.S様', 5, '料金が事前に明確だったので安心して依頼できました。'),
   ('p2', 'A.N様', 5, '普段の自分らしい写真が撮れて、プロフィールの反応が良くなりました。'),
@@ -407,7 +411,11 @@ insert into reviews (photographer_id, reviewer_name, stars, comment) values
   ('p3', 'R.I様', 5, '事前チャットでイメージをすり合わせられたので、他の人と被らない写真になりました。'),
   ('p4', 'K.M様', 5, '短時間でも希望のカットをたくさん撮ってもらえました。'),
   ('p5', 'T.O様', 5, '安心して任せられる進行でした。'),
-  ('p6', 'H.S様', 5, '事前の料金説明が丁寧でわかりやすかったです。');
+  ('p6', 'H.S様', 5, '事前の料金説明が丁寧でわかりやすかったです。')
+) as v(photographer_id, reviewer_name, stars, comment)
+where not exists (
+  select 1 from reviews r where r.photographer_id = v.photographer_id and r.reviewer_name = v.reviewer_name
+);
 
 -- ============================================================
 -- ============================================================
