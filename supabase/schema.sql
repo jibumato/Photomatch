@@ -186,16 +186,25 @@ create policy "bookings: client read own" on bookings
     or photographer_id in (select id from photographers where profile_id = auth.uid())
   );
 
+-- Bookings are created and moved to 'paid' only server-side (Pages Functions
+-- with the service_role key, which bypasses RLS): /api/checkout/create-session
+-- and the Stripe webhook. Browsers must never insert or freely update rows,
+-- or a client could create a 'paid' booking without paying, or rewrite
+-- total_price / payout_status. The only write left to browsers is a client
+-- cancelling their own active booking.
 drop policy if exists "bookings: client insert own" on bookings;
-create policy "bookings: client insert own" on bookings
-  for insert with check (client_id = auth.uid());
-
 drop policy if exists "bookings: update own (cancel / status)" on bookings;
-create policy "bookings: update own (cancel / status)" on bookings
-  for update using (
-    client_id = auth.uid()
-    or photographer_id in (select id from photographers where profile_id = auth.uid())
-  );
+
+drop policy if exists "bookings: client cancel own" on bookings;
+create policy "bookings: client cancel own" on bookings
+  for update
+  using (client_id = auth.uid() and status in ('pending_payment', 'paid', 'requested', 'confirmed'))
+  with check (client_id = auth.uid() and status = 'canceled');
+
+-- RLS can't restrict *which columns* an update touches, so also narrow the
+-- table grants (Supabase grants API roles full privileges by default).
+revoke insert, update, delete on bookings from anon, authenticated;
+grant update (status) on bookings to authenticated;
 
 -- ops needs to browse all bookings to review Stripe payouts (js/pages/ops.js).
 -- Added after the initial release; policies are additive (OR'd) so this only

@@ -97,18 +97,6 @@ export async function bulkSetShiftsClosed(photographerId, rows) {
 
 // ---- bookings ----
 
-export async function createBooking(record) {
-  const session = await getSession();
-  if (!session) throw new Error('not signed in');
-  const { data, error } = await supabase
-    .from('bookings')
-    .insert({ ...record, client_id: session.user.id })
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
-}
-
 export async function getBooking(id) {
   const { data, error } = await supabase.from('bookings').select('*').eq('id', id).single();
   if (error) throw error;

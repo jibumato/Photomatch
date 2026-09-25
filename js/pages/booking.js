@@ -3,7 +3,7 @@ import { getSession } from '../auth.js';
 import { getPhotographer, getPlans, getBooking, getTakenSlots, getClosedShifts } from '../repo.js';
 import { mountSheetModal } from '../sheet.js';
 import {
-  AREAS, EXTRA_OPTIONS, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor, isoDate,
+  AREAS, EXTRA_OPTIONS, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
 } from '../data.js';
 
 mountLayout();
@@ -84,26 +84,30 @@ function cellTaken(iso, slotTime) {
 async function loadWeather() {
   state.weather = null;
   const area = AREAS.find((a) => a.key === state.selectedArea) || AREAS[0];
-  // Open-Meteoの無料予報枠は「今日から最大16日先」まで。予約可能な最短日（3日後）を
-  // 起点に+15日すると実質18日先までのリクエストになり、範囲外エラーで全日分の予報が
-  // 取得できなくなっていた。今日を起点に計算し、日付文字列でstate.daysと突き合わせる
-  // （予報範囲外の日は単にnullとなり、アイコン無しで自然にフォールバックする）。
-  const start = isoDate(new Date());
-  const endDate = new Date();
-  endDate.setDate(endDate.getDate() + 15);
-  const end = isoDate(endDate);
+  // Let Open-Meteo decide the window (forecast_days) instead of sending explicit
+  // start/end dates computed from the visitor's clock: its allowed range is
+  // judged on its side, so a client-computed end date can land one day past it
+  // (e.g. JST mornings, when Japan is already on the next UTC date) and the
+  // whole request is rejected. Days are matched by date string; days beyond
+  // the forecast simply get no icon.
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${area.lat}&longitude=${area.lon}&daily=weathercode,precipitation_probability_max&timezone=Asia%2FTokyo&start_date=${start}&end_date=${end}`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${area.lat}&longitude=${area.lon}&daily=weather_code,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=16`;
     const res = await fetch(url);
-    if (!res.ok) return;
+    if (!res.ok) {
+      console.warn('weather fetch failed', res.status, await res.text().catch(() => ''));
+      return;
+    }
     const data = await res.json();
-    const dates = (data.daily && data.daily.time) || [];
-    const codes = (data.daily && data.daily.weathercode) || [];
-    const pops = (data.daily && data.daily.precipitation_probability_max) || [];
+    const daily = data.daily || {};
+    const dates = daily.time || [];
+    const codes = daily.weather_code || daily.weathercode || [];
+    const pops = daily.precipitation_probability_max || [];
     const byDate = {};
     dates.forEach((iso, i) => { byDate[iso] = { code: codes[i], pop: pops[i] }; });
     state.weather = state.days.map((d) => byDate[d.iso] || null);
-  } catch (err) { /* weather is best-effort */ }
+  } catch (err) {
+    console.warn('weather fetch failed', err);
+  }
 }
 
 // ---------- render: plan select ----------
@@ -158,7 +162,8 @@ function renderAreaChips() {
 
 function renderSlotGrid() {
   const areaLabel = (AREAS.find((a) => a.key === state.selectedArea) || AREAS[0]).label;
-  document.getElementById('slot-weather-line').textContent = `天気予報は「${areaLabel}」の予報です。ご予約は3日後から30日先まで承っています。`;
+  const weatherNote = state.weather ? `天気予報は「${areaLabel}」の予報です。` : '天気予報を取得できませんでした。';
+  document.getElementById('slot-weather-line').textContent = `${weatherNote}ご予約は3日後から30日先まで承っています。`;
 
   const plan = state.plans[state.planIndex];
   const slotCount = Math.max(1, Math.ceil((plan.duration_min || 30) / 30));
