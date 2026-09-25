@@ -20,9 +20,11 @@ create table if not exists profiles (
 
 alter table profiles enable row level security;
 
+drop policy if exists "profiles: read own" on profiles;
 create policy "profiles: read own" on profiles
   for select using (auth.uid() = id);
 
+drop policy if exists "profiles: update own" on profiles;
 create policy "profiles: update own" on profiles
   for update using (auth.uid() = id);
 
@@ -97,9 +99,11 @@ update photographers set gender = 'female' where id in ('p2', 'p4', 'p6') and ge
 
 alter table photographers enable row level security;
 
+drop policy if exists "photographers: public read" on photographers;
 create policy "photographers: public read" on photographers
   for select using (true);
 
+drop policy if exists "photographers: owner update" on photographers;
 create policy "photographers: owner update" on photographers
   for update using (profile_id = auth.uid());
 
@@ -120,9 +124,11 @@ create table if not exists plans (
 
 alter table plans enable row level security;
 
+drop policy if exists "plans: public read" on plans;
 create policy "plans: public read" on plans
   for select using (true);
 
+drop policy if exists "plans: owner write" on plans;
 create policy "plans: owner write" on plans
   for all using (
     photographer_id in (select id from photographers where profile_id = auth.uid())
@@ -142,6 +148,7 @@ create table if not exists reviews (
 
 alter table reviews enable row level security;
 
+drop policy if exists "reviews: public read" on reviews;
 create policy "reviews: public read" on reviews
   for select using (true);
 
@@ -172,15 +179,18 @@ create index if not exists bookings_photographer_date_idx on bookings (photograp
 
 alter table bookings enable row level security;
 
+drop policy if exists "bookings: client read own" on bookings;
 create policy "bookings: client read own" on bookings
   for select using (
     client_id = auth.uid()
     or photographer_id in (select id from photographers where profile_id = auth.uid())
   );
 
+drop policy if exists "bookings: client insert own" on bookings;
 create policy "bookings: client insert own" on bookings
   for insert with check (client_id = auth.uid());
 
+drop policy if exists "bookings: update own (cancel / status)" on bookings;
 create policy "bookings: update own (cancel / status)" on bookings
   for update using (
     client_id = auth.uid()
@@ -190,6 +200,7 @@ create policy "bookings: update own (cancel / status)" on bookings
 -- ops needs to browse all bookings to review Stripe payouts (js/pages/ops.js).
 -- Added after the initial release; policies are additive (OR'd) so this only
 -- widens visibility, it never narrows the policies above.
+drop policy if exists "bookings: ops read" on bookings;
 create policy "bookings: ops read" on bookings
   for select using (
     exists (select 1 from profiles where id = auth.uid() and role = 'ops')
@@ -218,9 +229,11 @@ create table if not exists shifts (
 
 alter table shifts enable row level security;
 
+drop policy if exists "shifts: public read" on shifts;
 create policy "shifts: public read" on shifts
   for select using (true);
 
+drop policy if exists "shifts: owner write" on shifts;
 create policy "shifts: owner write" on shifts
   for all using (
     photographer_id in (select id from photographers where profile_id = auth.uid())
@@ -242,6 +255,7 @@ create index if not exists messages_booking_idx on messages (booking_id, created
 
 alter table messages enable row level security;
 
+drop policy if exists "messages: participants read" on messages;
 create policy "messages: participants read" on messages
   for select using (
     booking_id in (
@@ -251,6 +265,7 @@ create policy "messages: participants read" on messages
     )
   );
 
+drop policy if exists "messages: participants insert" on messages;
 create policy "messages: participants insert" on messages
   for insert with check (
     sender_id = auth.uid()
@@ -275,6 +290,7 @@ create table if not exists message_reads (
 
 alter table message_reads enable row level security;
 
+drop policy if exists "message_reads: participants read" on message_reads;
 create policy "message_reads: participants read" on message_reads
   for select using (
     booking_id in (
@@ -284,6 +300,7 @@ create policy "message_reads: participants read" on message_reads
     )
   );
 
+drop policy if exists "message_reads: participants upsert" on message_reads;
 create policy "message_reads: participants upsert" on message_reads
   for insert with check (
     booking_id in (
@@ -293,6 +310,7 @@ create policy "message_reads: participants upsert" on message_reads
     )
   );
 
+drop policy if exists "message_reads: participants update" on message_reads;
 create policy "message_reads: participants update" on message_reads
   for update using (
     booking_id in (
@@ -313,6 +331,7 @@ create table if not exists counseling_sheets (
 
 alter table counseling_sheets enable row level security;
 
+drop policy if exists "counseling_sheets: participants read" on counseling_sheets;
 create policy "counseling_sheets: participants read" on counseling_sheets
   for select using (
     booking_id in (
@@ -322,11 +341,13 @@ create policy "counseling_sheets: participants read" on counseling_sheets
     )
   );
 
+drop policy if exists "counseling_sheets: client upsert" on counseling_sheets;
 create policy "counseling_sheets: client upsert" on counseling_sheets
   for insert with check (
     booking_id in (select id from bookings where client_id = auth.uid())
   );
 
+drop policy if exists "counseling_sheets: client update" on counseling_sheets;
 create policy "counseling_sheets: client update" on counseling_sheets
   for update using (
     booking_id in (select id from bookings where client_id = auth.uid())
@@ -415,12 +436,14 @@ create table if not exists guarantee_claims (
 
 alter table guarantee_claims enable row level security;
 
+drop policy if exists "guarantee_claims: read own or ops" on guarantee_claims;
 create policy "guarantee_claims: read own or ops" on guarantee_claims
   for select using (
     client_id = auth.uid()
     or exists (select 1 from profiles where id = auth.uid() and role = 'ops')
   );
 
+drop policy if exists "guarantee_claims: client apply" on guarantee_claims;
 create policy "guarantee_claims: client apply" on guarantee_claims
   for insert with check (
     client_id = auth.uid()
@@ -429,10 +452,12 @@ create policy "guarantee_claims: client apply" on guarantee_claims
 
 -- Clients may only move applied -> claimed (with check blocks setting
 -- status to approved/rejected directly); ops can update any field.
+drop policy if exists "guarantee_claims: client submit claim" on guarantee_claims;
 create policy "guarantee_claims: client submit claim" on guarantee_claims
   for update using (client_id = auth.uid())
   with check (client_id = auth.uid() and status in ('applied', 'claimed'));
 
+drop policy if exists "guarantee_claims: ops review" on guarantee_claims;
 create policy "guarantee_claims: ops review" on guarantee_claims
   for update using (
     exists (select 1 from profiles where id = auth.uid() and role = 'ops')
@@ -461,15 +486,18 @@ create table if not exists monitor_applications (
 
 alter table monitor_applications enable row level security;
 
+drop policy if exists "monitor_applications: read own or ops" on monitor_applications;
 create policy "monitor_applications: read own or ops" on monitor_applications
   for select using (
     client_id = auth.uid()
     or exists (select 1 from profiles where id = auth.uid() and role = 'ops')
   );
 
+drop policy if exists "monitor_applications: client apply" on monitor_applications;
 create policy "monitor_applications: client apply" on monitor_applications
   for insert with check (client_id = auth.uid());
 
+drop policy if exists "monitor_applications: ops review" on monitor_applications;
 create policy "monitor_applications: ops review" on monitor_applications
   for update using (
     exists (select 1 from profiles where id = auth.uid() and role = 'ops')
@@ -534,11 +562,13 @@ create table if not exists photographer_bank_accounts (
 
 alter table photographer_bank_accounts enable row level security;
 
+drop policy if exists "bank accounts: owner manage" on photographer_bank_accounts;
 create policy "bank accounts: owner manage" on photographer_bank_accounts
   for all using (
     photographer_id in (select id from photographers where profile_id = auth.uid())
   );
 
+drop policy if exists "bank accounts: ops read" on photographer_bank_accounts;
 create policy "bank accounts: ops read" on photographer_bank_accounts
   for select using (
     exists (select 1 from profiles where id = auth.uid() and role = 'ops')
