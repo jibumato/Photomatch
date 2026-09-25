@@ -36,11 +36,6 @@ toggle.addEventListener('click', () => {
   errorEl.style.display = 'none';
 });
 
-document.getElementById('fill-demo').addEventListener('click', () => {
-  document.getElementById('f-email').value = 'guest@example.com';
-  document.getElementById('f-password').value = 'guest1';
-});
-
 submitBtn.addEventListener('click', async () => {
   const email = document.getElementById('f-email').value.trim();
   const password = document.getElementById('f-password').value;

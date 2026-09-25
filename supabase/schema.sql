@@ -88,14 +88,10 @@ alter table photographers add constraint photographers_gender_check check (gende
 -- false にする（データは消さず、公開範囲だけ絞る）。デフォルトは表示。
 alter table photographers add column if not exists is_visible boolean not null default true;
 
--- 伊藤 啓志（p3）・早川 ゆかり（p4）は参加未定のため一時的に非表示。
--- 参加が決まったら update photographers set is_visible = true where id in ('p3','p4'); で戻す。
-update photographers set is_visible = false where id in ('p3', 'p4');
-
--- Backfill the seeded listings. `gender is null` keeps this safe to re-run
--- and never overwrites a value set by hand in the dashboard.
-update photographers set gender = 'male'   where id in ('p1', 'p3', 'p5') and gender is null;
-update photographers set gender = 'female' where id in ('p2', 'p4', 'p6') and gender is null;
+-- Note: the gender/is_visible backfills for the seeded listings (p1〜p6) run
+-- further down, after `insert into photographers` — on a genuinely fresh
+-- database these rows don't exist yet at this point in the file, so an
+-- update here would silently match zero rows.
 
 alter table photographers enable row level security;
 
@@ -103,9 +99,15 @@ drop policy if exists "photographers: public read" on photographers;
 create policy "photographers: public read" on photographers
   for select using (true);
 
+-- No feature lets a photographer edit their own listing from the browser
+-- today (bio/photo editing isn't built), so this policy had no legitimate
+-- use — only value as an attack surface: any photographer could rewrite
+-- their own rating, reviews_count, or flip is_visible back on after ops
+-- hid them. Removed entirely; a future self-edit feature should add a
+-- narrowly-scoped policy + column grant (see "bookings: client cancel own"
+-- below for the pattern), not this blanket one.
 drop policy if exists "photographers: owner update" on photographers;
-create policy "photographers: owner update" on photographers
-  for update using (profile_id = auth.uid());
+revoke insert, update, delete on photographers from anon, authenticated;
 
 -- ============================================================
 -- plans (per photographer pricing plans)
@@ -394,6 +396,17 @@ on conflict (id) do nothing;
 update photographers set area = '一宮エリア' where area = '尾張エリア';
 update photographers set price_from = '8,800' where id in ('p1','p2','p3','p4','p5','p6');
 
+-- gender/is_visible: the insert above already sets these for a fresh
+-- install; these backfills only matter for installs that ran an earlier
+-- version of this file before those columns existed. `gender is null`
+-- keeps this safe to re-run and never overwrites a value set by hand.
+update photographers set gender = 'male'   where id in ('p1', 'p3', 'p5') and gender is null;
+update photographers set gender = 'female' where id in ('p2', 'p4', 'p6') and gender is null;
+
+-- 伊藤 啓志（p3）・早川 ゆかり（p4）は参加未定のため一時的に非表示。
+-- 参加が決まったら update photographers set is_visible = true where id in ('p3','p4'); で戻す。
+update photographers set is_visible = false where id in ('p3', 'p4');
+
 insert into plans (photographer_id, name, price, original_price, discount_label, description, duration_min, sort_order)
 select p.id, v.name, v.price, v.original_price, v.discount_label, v.description, v.duration_min, v.sort_order
 from photographers p
@@ -510,15 +523,25 @@ create policy "monitor_applications: read own or ops" on monitor_applications
     or exists (select 1 from profiles where id = auth.uid() and role = 'ops')
   );
 
+-- with check only constrained client_id, not status — an applicant could
+-- insert their own application already status='accepted' (or 'completed'),
+-- skipping ops review entirely.
 drop policy if exists "monitor_applications: client apply" on monitor_applications;
 create policy "monitor_applications: client apply" on monitor_applications
-  for insert with check (client_id = auth.uid());
+  for insert with check (client_id = auth.uid() and status = 'applied');
 
 drop policy if exists "monitor_applications: ops review" on monitor_applications;
 create policy "monitor_applications: ops review" on monitor_applications
   for update using (
     exists (select 1 from profiles where id = auth.uid() and role = 'ops')
   );
+
+-- RLS can't restrict *which columns* an insert sets, so also narrow the
+-- table grant: an applicant can only ever supply these columns (status is
+-- covered by its default + the with check above, not by the client).
+revoke insert, update, delete on monitor_applications from anon, authenticated;
+grant insert (client_id, has_existing_photos, current_apps, motivation, follow_up_opt_in) on monitor_applications to authenticated;
+grant update on monitor_applications to authenticated; -- rows filtered by "ops review" above
 
 -- ============================================================
 -- Stripe連携（Payments / Connect / Tax）
