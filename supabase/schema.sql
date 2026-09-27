@@ -88,6 +88,9 @@ alter table photographers add constraint photographers_gender_check check (gende
 -- false にする（データは消さず、公開範囲だけ絞る）。デフォルトは表示。
 alter table photographers add column if not exists is_visible boolean not null default true;
 
+-- Instagramのユーザー名（@なし）。設定されているカメラマンのみプロフィールにリンクを表示。
+alter table photographers add column if not exists instagram text;
+
 -- Note: the gender/is_visible backfills for the seeded listings (p1〜p6) run
 -- further down, after `insert into photographers` — on a genuinely fresh
 -- database these rows don't exist yet at this point in the file, so an
@@ -400,6 +403,9 @@ update photographers set gender = 'female' where id in ('p2', 'p4', 'p6') and ge
 -- 伊藤 啓志（p3）・早川 ゆかり（p4）は参加未定のため一時的に非表示。
 -- 参加が決まったら update photographers set is_visible = true where id in ('p3','p4'); で戻す。
 update photographers set is_visible = false where id in ('p3', 'p4');
+
+-- `instagram is null` so a value later changed in the dashboard isn't overwritten on re-run.
+update photographers set instagram = 'ooo.neige' where id = 'p2' and instagram is null;
 
 insert into plans (photographer_id, name, price, original_price, discount_label, description, duration_min, sort_order)
 select p.id, v.name, v.price, v.original_price, v.discount_label, v.description, v.duration_min, v.sort_order

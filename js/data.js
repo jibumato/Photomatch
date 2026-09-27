@@ -247,10 +247,10 @@ export const PRICING_PLANS = [
 ];
 
 export const EXTRA_OPTIONS = [
-  { key: 'fullData', label: '全データ納品', desc: '撮影した全カットをまとめてお渡し', price: 3200 },
-  { key: 'retouch', label: 'スキンレタッチ（美肌補正）', desc: '肌の質感・くすみを自然に補正（20枚まで）', price: 3200 },
-  { key: 'speed', label: 'スピード納品', desc: '撮影日から原則3営業日以内の通常納期を、撮影日の翌営業日（土日祝を除く）に早めるオプションです。', price: 3200 },
-  { key: 'reschedule', label: 'あんしん振替プラン', desc: '当日の突然の不調や急用でも無料で日程変更が可能です（1回まで）', price: 2200 },
+  { key: 'fullData', label: '全データ納品', desc: '撮影した全カットをまとめてお渡し', price: 3800 },
+  { key: 'retouch', label: 'スキンレタッチ（美肌補正）', desc: '肌の質感・くすみを自然に補正（20枚まで）', price: 3800 },
+  { key: 'speed', label: 'スピード納品', desc: '撮影日から原則3営業日以内の通常納期を、撮影日の翌営業日（土日祝を除く）に早めるオプションです。', price: 3800 },
+  { key: 'reschedule', label: 'あんしん振替プラン', desc: '当日の突然の不調や急用でも無料で日程変更が可能です（1回まで）', price: 3800 },
 ];
 
 export const COUNSELING_QUESTIONS = [
@@ -309,8 +309,8 @@ export function addMinutes(timeStr, mins) {
 }
 
 // カメラマンが受け取る割合（残りがPhotoMatchのプラットフォーム手数料）。
-// functions/_lib/pricing.js に金額計算用のサーバー側コピーがあるので、
-// 変更する場合はそちらも合わせて更新すること。
+// EXTRA_OPTIONS の料金とあわせ、サーバー側（functions/_lib/pricing.js）も
+// ここを直接参照して請求額を計算する。変更はここだけでよい。
 export const PHOTOGRAPHER_PAYOUT_RATE = 0.5;
 
 export function weatherIconFor(code) {
