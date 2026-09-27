@@ -81,6 +81,34 @@ export async function signIn({ email, password }) {
   return data;
 }
 
+// Password reset: the emailed link lands on reset-password.html with a
+// recovery session, where updatePassword() sets the new one. `next` is carried
+// through so the customer ends up back where they started (e.g. mid-booking).
+// Supabase answers the same way whether or not the address is registered.
+export async function requestPasswordReset(email, next) {
+  const url = new URL('reset-password.html', location.href);
+  if (next) url.searchParams.set('next', next);
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: url.href });
+  if (error) throw error;
+}
+
+export async function updatePassword(password) {
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) throw error;
+}
+
+// Only same-origin destinations are honored for ?next=, so a crafted link
+// can't bounce someone to another site after logging in.
+export function safeNext(raw, fallback) {
+  if (!raw) return fallback;
+  try {
+    const url = new URL(raw, location.href);
+    return url.origin === location.origin ? url.href : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+
 export async function signOut() {
   await supabase.auth.signOut();
 }

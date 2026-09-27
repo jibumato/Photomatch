@@ -32,7 +32,7 @@ const state = {
   name: '',
   email: '',
   phone: '',
-  awaitingEmailConfirm: false,
+  resumeToPayment: false,
   weather: null,
   days: buildBookingDays(TOTAL_BOOKING_DAYS),
   takenIntervals: {}, // iso -> [[startMin,endMin], ...]
@@ -51,7 +51,7 @@ function saveDraft() {
       savedAt: Date.now(),
       photographerId, planIndex: state.planIndex, dayIndex: state.dayIndex, slotIndex: state.slotIndex,
       options: state.options, name: state.name, email: state.email, phone: state.phone,
-      selectedArea: state.selectedArea, awaitingEmailConfirm: state.awaitingEmailConfirm,
+      selectedArea: state.selectedArea, resumeToPayment: state.resumeToPayment,
     }));
   } catch (e) { /* storage unavailable: the flow still works, just without restore */ }
 }
@@ -346,7 +346,7 @@ document.getElementById('contact-submit').addEventListener('click', async () => 
   try {
     // Saved before signing up so the confirmation link (which may open in a
     // new tab) lands back here with everything still filled in.
-    state.awaitingEmailConfirm = false;
+    state.resumeToPayment = false;
     saveDraft();
     const result = await signInOrSignUp({ email, password, name, redirectTo: confirmRedirectUrl() });
     if (result.status === 'signed_in') {
@@ -354,10 +354,17 @@ document.getElementById('contact-submit').addEventListener('click', async () => 
     } else if (result.status === 'wrong_password') {
       passwordErr.textContent = 'このメールアドレスは登録済みです。登録時のパスワードをご入力ください。';
       passwordErr.style.display = 'block';
+      // Reset link returns here with the draft intact and goes straight to
+      // payment, so forgetting the password doesn't mean starting over.
+      const resetUrl = new URL('reset-password.html', location.href);
+      resetUrl.searchParams.set('email', email);
+      resetUrl.searchParams.set('next', confirmRedirectUrl());
+      showAuthNotice(`<span class="pm-note-title">パスワードをお忘れの方</span><a href="${resetUrl.href}" id="forgot-in-booking" style="color:oklch(0.45 0.14 210);font-weight:700">パスワードを再設定する</a>（入力内容は保持されます）`);
+      document.getElementById('forgot-in-booking').onclick = () => { state.resumeToPayment = true; saveDraft(); };
     } else {
       // confirm_email / email_not_confirmed: the account exists but the
       // session only starts once the emailed link is opened.
-      state.awaitingEmailConfirm = true;
+      state.resumeToPayment = true;
       saveDraft();
       showAuthNotice(`<span class="pm-note-title">メールアドレスの確認をお願いします</span>${email.replace(/[<>&"]/g, '')} に確認メールをお送りしました。メール内のリンクを開くと、入力内容をそのままにお支払いへ進めます（このブラウザで開いてください）。<br><a href="#" id="resend-confirm" style="color:oklch(0.45 0.14 210);font-weight:700">確認メールを再送する</a>`);
       document.getElementById('resend-confirm').onclick = async (e) => {
@@ -513,10 +520,10 @@ function showConfirmForBooking(booking) {
       const errorEl = document.getElementById('err-payment');
       errorEl.textContent = 'お支払いがキャンセルされました。内容をご確認の上、再度お試しください。';
       errorEl.style.display = 'block';
-    } else if (restored && state.awaitingEmailConfirm && session && state.dayIndex != null && state.slotIndex != null) {
-      // Back from the sign-up confirmation link: everything was already
-      // entered, so go straight to payment.
-      state.awaitingEmailConfirm = false;
+    } else if (restored && state.resumeToPayment && session && state.dayIndex != null && state.slotIndex != null) {
+      // Back from the sign-up confirmation or password-reset link: everything
+      // was already entered, so go straight to payment.
+      state.resumeToPayment = false;
       saveDraft();
       await goSlotStepFromRestore();
       goPaymentStep();

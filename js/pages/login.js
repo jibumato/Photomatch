@@ -1,10 +1,10 @@
 import { mountLayout } from '../layout.js';
-import { signIn, signUp, getSession } from '../auth.js';
+import { signIn, signUp, getSession, safeNext } from '../auth.js';
 
 mountLayout();
 
 const params = new URLSearchParams(location.search);
-const next = params.get('next');
+const next = safeNext(params.get('next'), '');
 
 (async () => {
   const session = await getSession();
@@ -17,18 +17,32 @@ const nameField = document.getElementById('name-field');
 const submitBtn = document.getElementById('submit-btn');
 const toggle = document.getElementById('toggle-mode');
 const errorEl = document.getElementById('form-error');
+const NEXT_FOR_RESET = next;
+
+// Carries the typed email (and where to return) over to the reset page.
+const forgotLink = document.getElementById('forgot-link');
+forgotLink.addEventListener('click', (e) => {
+  e.preventDefault();
+  const url = new URL('reset-password.html', location.href);
+  const email = document.getElementById('f-email').value.trim();
+  if (email) url.searchParams.set('email', email);
+  if (NEXT_FOR_RESET) url.searchParams.set('next', NEXT_FOR_RESET);
+  location.href = url.href;
+});
 
 toggle.addEventListener('click', () => {
   mode = mode === 'login' ? 'signup' : 'login';
   if (mode === 'signup') {
     title.textContent = '新規登録';
     nameField.style.display = 'block';
+    forgotLink.style.display = 'none';
     submitBtn.textContent = '登録する';
     toggle.textContent = 'ログイン';
     toggle.previousSibling.textContent = 'すでにアカウントをお持ちの方は ';
   } else {
     title.textContent = 'ログイン';
     nameField.style.display = 'none';
+    forgotLink.style.display = '';
     submitBtn.textContent = 'ログイン';
     toggle.textContent = '新規登録';
     toggle.previousSibling.textContent = 'アカウントをお持ちでない方は ';
