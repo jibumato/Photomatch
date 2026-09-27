@@ -6,6 +6,7 @@
 // closing the tab after paying must not leave the booking unpaid.
 import { verifyStripeSignature, stripe } from '../../_lib/stripe.js';
 import { restUpdate } from '../../_lib/supabaseAdmin.js';
+import { notifyBooking } from '../../_lib/notifications.js';
 
 export async function onRequestPost({ request, env }) {
   const payload = await request.text();
@@ -39,11 +40,17 @@ export async function onRequestPost({ request, env }) {
             ? paymentIntent.latest_charge
             : (paymentIntent.latest_charge && paymentIntent.latest_charge.id) || null;
         }
-        await restUpdate(env, 'bookings', { id: `eq.${bookingId}` }, {
+        // Conditional on pending_payment: Stripe may deliver this event more
+        // than once, and only the delivery that actually flips the booking
+        // to paid should send the confirmation emails.
+        const updated = await restUpdate(env, 'bookings', { id: `eq.${bookingId}`, status: 'eq.pending_payment' }, {
           status: 'paid',
           stripe_payment_intent_id: session.payment_intent || null,
           stripe_charge_id: chargeId,
         });
+        if (updated.length) {
+          await notifyBooking(env, bookingId, 'confirmed', new URL(request.url).origin);
+        }
       }
     } else if (event.type === 'checkout.session.expired') {
       // Free the slot immediately instead of waiting for the 20-minute

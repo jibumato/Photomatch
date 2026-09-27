@@ -8,6 +8,18 @@ const id = params.get('id') || 'p1';
 
 function starsLabel(stars) { return '★★★★★☆☆☆☆☆'.slice(5 - stars, 10 - stars); }
 
+// Only render handles that match Instagram's own username rules, so a typo or
+// stray characters in the DB can't produce a broken or injected link.
+function instagramLinkHtml(raw) {
+  const handle = String(raw || '').trim().replace(/^@/, '');
+  if (!/^[A-Za-z0-9._]{1,30}$/.test(handle)) return '';
+  return `<a href="https://www.instagram.com/${handle}/" target="_blank" rel="noopener noreferrer"
+    style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;font:600 13px var(--pm-font-body);color:oklch(0.45 0.14 210);text-decoration:none">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor"/></svg>
+    Instagram @${handle}
+  </a>`;
+}
+
 (async () => {
   try {
     const [photographer, plans, reviews] = await Promise.all([
@@ -31,6 +43,7 @@ function starsLabel(stars) { return '★★★★★☆☆☆☆☆'.slice(5 - s
         <div style="display:flex;align-items:center;gap:6px;font:14px var(--pm-font-body);color:oklch(0.4 0.02 235)">
           <span style="color:var(--pm-star)">★</span>${photographer.rating ?? '-'}<span style="color:var(--pm-text-muted)">（${photographer.reviews_count ?? 0}件）</span>
         </div>
+        ${instagramLinkHtml(photographer.instagram)}
       </div>`;
 
     document.getElementById('pm-bio').textContent = photographer.bio || '';
