@@ -380,7 +380,7 @@ create policy "counseling_sheets: client update" on counseling_sheets
 -- 残すと将来表示したときに誤表示になるため実額に揃える（最安値はスマホプラン）。
 insert into photographers (id, name, area, price_from, rating, reviews_count, availability_label, photo_url, price_comment, bio, gender, instant_booking) values
   ('p1', 'Takumi', '名古屋エリア', '6,800', 4.9, 58, '今週末 空きあり', 'assets/photographer-p1.jpg', '緊張しやすい方こそ、まずは気軽にご相談ください！', 'マッチングアプリ用の写真に特化。自然な会話をしながら緊張をほぐし、表情が硬くならない一枚に仕上げます。名古屋中心部での撮影が中心です。', 'male', true),
-  ('p2', '夏目むぎ', '岐阜エリア', '6,800', 4.8, 46, '来週 空きあり', 'assets/cameraman-asano.jpg', '私服選びの相談も大歓迎、当日一緒に決めましょう。', '岐阜の路地やレトロな街並みを活かしたカジュアルな一枚が得意です。私服の相談やポーズが苦手な方にも丁寧にディレクションします。', 'female', true),
+  ('p2', '夏目むぎ', '岐阜エリア', '6,800', 4.8, 46, '来週 空きあり', 'assets/cameraman-asano.jpg', '私服選びの相談も大歓迎、当日一緒に決めましょう。', 'アプリやSNSアイコン、結婚相談所のお写真まで。魅力が伝わる、自然な瞬間をお写真に残します。', 'female', true),
   ('p3', '伊藤 啓志', '名古屋エリア', '6,800', 4.9, 39, '今週末 空きあり', null, '「量産型」にならない一枚、一緒に探しましょう。', '岐阜の自然や街並みを背景に、趣味やアクティブな雰囲気を伝える写真を撮影します。よくある構図を避けた「量産型にならない」一枚が得意です。', 'male', true),
   ('p4', '早川 ゆかり', '一宮エリア', '6,800', 4.7, 31, '来週 空きあり', null, '短時間でもしっかり結果にこだわります！', '短時間・低価格のライトプランを中心に、自然光を活かしたメイン写真を撮影しています。かしこまらないカジュアルな撮影が得意です。', 'female', true),
   ('p5', '伊藤 大輔（仮名）', '岐阜エリア', '6,800', 4.8, 42, '今月 空きあり', null, '季節ごとのおすすめロケーションもご提案します。', '街歩き風の自然なスナップが得意です。季節ごとのロケーションを提案し、撮影後の納品スピードにも定評があります。', 'male', true),
@@ -406,6 +406,9 @@ update photographers set is_visible = false where id in ('p3', 'p4');
 
 -- `instagram is null` so a value later changed in the dashboard isn't overwritten on re-run.
 update photographers set instagram = 'ooo.neige' where id = 'p2' and instagram is null;
+
+-- 上の insert は既存インストールでは何もしないため、紹介文の変更を既存行にも当てる。
+update photographers set bio = 'アプリやSNSアイコン、結婚相談所のお写真まで。魅力が伝わる、自然な瞬間をお写真に残します。' where id = 'p2';
 
 insert into plans (photographer_id, name, price, original_price, discount_label, description, duration_min, sort_order)
 select p.id, v.name, v.price, v.original_price, v.discount_label, v.description, v.duration_min, v.sort_order
