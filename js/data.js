@@ -251,6 +251,7 @@ export const EXTRA_OPTIONS = [
   { key: 'retouch', label: 'スキンレタッチ（美肌補正）', desc: '肌の質感・くすみを自然に補正（20枚まで）', price: 3800 },
   { key: 'speed', label: 'スピード納品', desc: '撮影日から原則3営業日以内の通常納期を、撮影日の翌営業日（土日祝を除く）に早めるオプションです。', price: 3800 },
   { key: 'reschedule', label: 'あんしん振替プラン', desc: '当日の突然の不調や急用でも無料で日程変更が可能です（1回まで）', price: 3800 },
+  { key: 'oppositeSexPick', label: '異性スタッフ写真セレクト', desc: '異性のスタッフ目線でマッチングアプリ受けの良い一枚を選び、おすすめとしてご提案します', price: 3800 },
 ];
 
 export const COUNSELING_QUESTIONS = [
