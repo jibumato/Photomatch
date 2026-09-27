@@ -1,5 +1,5 @@
 import { mountLayout } from '../layout.js';
-import { getSession } from '../auth.js';
+import { getSession, getProfile, signInOrSignUp, resendSignupEmail } from '../auth.js';
 import { getPhotographer, getPlans, getBooking, getTakenSlots, getClosedShifts } from '../repo.js';
 import { mountSheetModal } from '../sheet.js';
 import {
@@ -30,7 +30,9 @@ const state = {
   slotIndex: null,
   options: [],
   name: '',
-  contact: '',
+  email: '',
+  phone: '',
+  awaitingEmailConfirm: false,
   weather: null,
   days: buildBookingDays(TOTAL_BOOKING_DAYS),
   takenIntervals: {}, // iso -> [[startMin,endMin], ...]
@@ -38,23 +40,75 @@ const state = {
   lastBooking: null,
 };
 
+// The draft lives in localStorage (not sessionStorage) so it survives the
+// sign-up confirmation link opening in a new tab. It expires after a day so a
+// stale selection doesn't reappear on some later visit. The password is never
+// stored.
+const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 function saveDraft() {
-  sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
-    photographerId, planIndex: state.planIndex, dayIndex: state.dayIndex, slotIndex: state.slotIndex,
-    options: state.options, name: state.name, contact: state.contact, selectedArea: state.selectedArea,
-  }));
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({
+      savedAt: Date.now(),
+      photographerId, planIndex: state.planIndex, dayIndex: state.dayIndex, slotIndex: state.slotIndex,
+      options: state.options, name: state.name, email: state.email, phone: state.phone,
+      selectedArea: state.selectedArea, awaitingEmailConfirm: state.awaitingEmailConfirm,
+    }));
+  } catch (e) { /* storage unavailable: the flow still works, just without restore */ }
 }
 function restoreDraft() {
   try {
-    const raw = sessionStorage.getItem(DRAFT_KEY);
+    const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return false;
-    const d = JSON.parse(raw);
+    const { savedAt, ...d } = JSON.parse(raw);
+    if (!savedAt || Date.now() - savedAt > DRAFT_TTL_MS) { clearDraft(); return false; }
     if (d.photographerId !== photographerId) return false;
+    // Day/slot indexes are relative to today's booking window, so a draft from
+    // an earlier day would point at a different date — drop the slot then.
+    if (new Date(savedAt).toDateString() !== new Date().toDateString()) {
+      d.dayIndex = null; d.slotIndex = null;
+    }
     Object.assign(state, d);
     return true;
   } catch (e) { return false; }
 }
-function clearDraft() { sessionStorage.removeItem(DRAFT_KEY); }
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); sessionStorage.removeItem(DRAFT_KEY); } catch (e) { /* ignore */ }
+}
+
+function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+// Logged-in customers only confirm what's already known (name from their
+// profile, email from their account) — the password field disappears and the
+// email is fixed to the account's address, which is where notifications go.
+async function syncAuthFields() {
+  const session = await getSession();
+  const emailEl = document.getElementById('f-email');
+  const hintEl = document.getElementById('email-hint');
+  document.getElementById('password-field').style.display = session ? 'none' : '';
+  if (session) {
+    state.email = session.user.email || state.email;
+    emailEl.value = state.email;
+    emailEl.readOnly = true;
+    hintEl.textContent = 'ログイン中のアカウントのメールアドレスです。予約確定メールをこちらにお送りします。';
+    if (!state.name) {
+      const profile = await getProfile();
+      if (profile && profile.name) {
+        state.name = profile.name;
+        document.getElementById('f-name').value = state.name;
+      }
+    }
+  } else {
+    emailEl.readOnly = false;
+    hintEl.textContent = '予約確定メールをお送りします。';
+  }
+  return session;
+}
+
+function showAuthNotice(html) {
+  const el = document.getElementById('auth-notice');
+  el.innerHTML = html;
+  el.style.display = html ? 'block' : 'none';
+}
 
 function timeToMinutes(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 
@@ -228,8 +282,13 @@ function goContactStep() {
   document.getElementById('contact-summary').innerHTML =
     `${state.photographer.name}さん ・ ${s.plan.name}（${s.plan.duration_min}分）<br>${s.d.dateLabel}（${s.d.label}） ${s.startTime}〜${s.endTime}<br>撮影エリア：${s.areaLabel}`;
   document.getElementById('f-name').value = state.name;
-  document.getElementById('f-contact').value = state.contact;
+  document.getElementById('f-email').value = state.email;
+  document.getElementById('f-phone').value = state.phone;
+  document.getElementById('f-password').value = '';
+  document.getElementById('err-password').style.display = 'none';
+  showAuthNotice('');
   renderOptionTiles();
+  syncAuthFields();
 }
 
 function renderOptionTiles() {
@@ -255,23 +314,72 @@ function renderOptionTiles() {
   });
 }
 
+function confirmRedirectUrl() {
+  return `${location.origin}${location.pathname}?id=${encodeURIComponent(photographerId)}`;
+}
+
 document.getElementById('contact-submit').addEventListener('click', async () => {
+  const btn = document.getElementById('contact-submit');
   const name = document.getElementById('f-name').value.trim();
-  const contact = document.getElementById('f-contact').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const passwordEl = document.getElementById('f-password');
+  const passwordErr = document.getElementById('err-password');
   document.getElementById('err-name').style.display = name ? 'none' : 'block';
-  document.getElementById('err-contact').style.display = contact ? 'none' : 'block';
-  if (!name || !contact) return;
-  state.name = name; state.contact = contact;
+  document.getElementById('err-email').style.display = isValidEmail(email) ? 'none' : 'block';
+  passwordErr.style.display = 'none';
+  showAuthNotice('');
+  if (!name || !isValidEmail(email)) return;
+  state.name = name; state.email = email; state.phone = phone;
 
   const session = await getSession();
-  if (!session) {
-    saveDraft();
-    const next = encodeURIComponent(location.href);
-    document.getElementById('auth-gate').style.display = 'block';
-    document.getElementById('auth-gate-link').href = `login.html?next=${next}`;
+  if (session) { goPaymentStep(); return; }
+
+  const password = passwordEl.value;
+  if (password.length < 6) {
+    passwordErr.textContent = 'パスワードは6文字以上でご記入ください';
+    passwordErr.style.display = 'block';
     return;
   }
-  goPaymentStep();
+
+  btn.disabled = true;
+  try {
+    // Saved before signing up so the confirmation link (which may open in a
+    // new tab) lands back here with everything still filled in.
+    state.awaitingEmailConfirm = false;
+    saveDraft();
+    const result = await signInOrSignUp({ email, password, name, redirectTo: confirmRedirectUrl() });
+    if (result.status === 'signed_in') {
+      goPaymentStep();
+    } else if (result.status === 'wrong_password') {
+      passwordErr.textContent = 'このメールアドレスは登録済みです。登録時のパスワードをご入力ください。';
+      passwordErr.style.display = 'block';
+    } else {
+      // confirm_email / email_not_confirmed: the account exists but the
+      // session only starts once the emailed link is opened.
+      state.awaitingEmailConfirm = true;
+      saveDraft();
+      showAuthNotice(`<span class="pm-note-title">メールアドレスの確認をお願いします</span>${email.replace(/[<>&"]/g, '')} に確認メールをお送りしました。メール内のリンクを開くと、入力内容をそのままにお支払いへ進めます（このブラウザで開いてください）。<br><a href="#" id="resend-confirm" style="color:oklch(0.45 0.14 210);font-weight:700">確認メールを再送する</a>`);
+      document.getElementById('resend-confirm').onclick = async (e) => {
+        e.preventDefault();
+        try {
+          await resendSignupEmail(email, confirmRedirectUrl());
+          e.target.textContent = '再送しました';
+        } catch (err) {
+          e.target.textContent = '再送できませんでした。しばらくしてからお試しください';
+          console.error(err);
+        }
+      };
+    }
+  } catch (err) {
+    passwordErr.textContent = /rate limit|too many/i.test(err.message || '')
+      ? '短時間にお試しいただいた回数が多すぎます。数分おいてから再度お試しください。'
+      : 'ログイン・登録に失敗しました。時間をおいて再度お試しください。';
+    passwordErr.style.display = 'block';
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 // ---------- render: payment ----------
@@ -308,6 +416,7 @@ document.getElementById('payment-submit').addEventListener('click', async () => 
   try {
     const session = await getSession();
     if (!session) throw new Error('ログインが必要です。');
+    if (!state.email) state.email = session.user.email || '';
     // Saved so a canceled/abandoned Stripe Checkout can restore this exact
     // slot/contact selection instead of losing it on the redirect back.
     saveDraft();
@@ -321,7 +430,9 @@ document.getElementById('payment-submit').addEventListener('click', async () => 
         start_time: s.startTime,
         area: state.selectedArea,
         customer_name: state.name,
-        customer_contact: state.contact,
+        // Photographers see this in their booking list, so include the phone
+        // number when one was given — the email alone otherwise.
+        customer_contact: state.phone ? `${state.email} / ${state.phone}` : state.email,
         option_keys: state.options,
       }),
     });
@@ -402,6 +513,13 @@ function showConfirmForBooking(booking) {
       const errorEl = document.getElementById('err-payment');
       errorEl.textContent = 'お支払いがキャンセルされました。内容をご確認の上、再度お試しください。';
       errorEl.style.display = 'block';
+    } else if (restored && state.awaitingEmailConfirm && session && state.dayIndex != null && state.slotIndex != null) {
+      // Back from the sign-up confirmation link: everything was already
+      // entered, so go straight to payment.
+      state.awaitingEmailConfirm = false;
+      saveDraft();
+      await goSlotStepFromRestore();
+      goPaymentStep();
     } else if (restored) {
       goSlotStepFromRestore();
     } else if (planParam != null && plans[Number(planParam)]) {

@@ -44,7 +44,17 @@ submitBtn.addEventListener('click', async () => {
   submitBtn.disabled = true;
   try {
     if (mode === 'signup') {
-      await signUp({ email, password, name, role: 'client' });
+      const data = await signUp({
+        email, password, name, role: 'client',
+        redirectTo: new URL(next || 'mypage.html', location.href).href,
+      });
+      // With Supabase "Confirm email" on, there's no session until the emailed
+      // link is opened — redirecting now would just bounce back to login.
+      if (!data.session) {
+        errorEl.textContent = `${email} に確認メールをお送りしました。メール内のリンクを開くと登録が完了します。`;
+        errorEl.style.display = 'block';
+        return;
+      }
     } else {
       await signIn({ email, password });
     }
