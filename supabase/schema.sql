@@ -376,22 +376,22 @@ create policy "counseling_sheets: client update" on counseling_sheets
 -- (ported from design_handoff_photomatch/PhotoMatch.dc.html)
 -- ============================================================
 -- price_from は「最も安いプランの税込価格」。全カメラマンが同じプラン構成
--- （スタンダード ¥8,800〜）なので全員同額。現在どの画面にも表示していないが、
--- 実価格と食い違ったまま残すと将来表示したときに誤表示になるため実額に揃える。
+-- なので全員同額。現在どの画面にも表示していないが、実価格と食い違ったまま
+-- 残すと将来表示したときに誤表示になるため実額に揃える（最安値はスマホプラン）。
 insert into photographers (id, name, area, price_from, rating, reviews_count, availability_label, photo_url, price_comment, bio, gender, instant_booking) values
-  ('p1', 'Takumi', '名古屋エリア', '8,800', 4.9, 58, '今週末 空きあり', 'assets/photographer-p1.jpg', '緊張しやすい方こそ、まずは気軽にご相談ください！', 'マッチングアプリ用の写真に特化。自然な会話をしながら緊張をほぐし、表情が硬くならない一枚に仕上げます。名古屋中心部での撮影が中心です。', 'male', true),
-  ('p2', '夏目むぎ', '岐阜エリア', '8,800', 4.8, 46, '来週 空きあり', 'assets/cameraman-asano.jpg', '私服選びの相談も大歓迎、当日一緒に決めましょう。', '岐阜の路地やレトロな街並みを活かしたカジュアルな一枚が得意です。私服の相談やポーズが苦手な方にも丁寧にディレクションします。', 'female', true),
-  ('p3', '伊藤 啓志', '名古屋エリア', '8,800', 4.9, 39, '今週末 空きあり', null, '「量産型」にならない一枚、一緒に探しましょう。', '岐阜の自然や街並みを背景に、趣味やアクティブな雰囲気を伝える写真を撮影します。よくある構図を避けた「量産型にならない」一枚が得意です。', 'male', true),
-  ('p4', '早川 ゆかり', '一宮エリア', '8,800', 4.7, 31, '来週 空きあり', null, '短時間でもしっかり結果にこだわります！', '短時間・低価格のライトプランを中心に、自然光を活かしたメイン写真を撮影しています。かしこまらないカジュアルな撮影が得意です。', 'female', true),
-  ('p5', '伊藤 大輔（仮名）', '岐阜エリア', '8,800', 4.8, 42, '今月 空きあり', null, '季節ごとのおすすめロケーションもご提案します。', '街歩き風の自然なスナップが得意です。季節ごとのロケーションを提案し、撮影後の納品スピードにも定評があります。', 'male', true),
-  ('p6', '渡辺 さくら（仮名）', '一宮エリア', '8,800', 4.9, 50, '来週 空きあり', null, 'プロフィール文の相談も一緒に受け付けています。', 'メイン写真から趣味系の写真まで幅広く対応。事前の料金説明とプロフィール文へのアドバイスにも定評があります。', 'female', true)
+  ('p1', 'Takumi', '名古屋エリア', '6,800', 4.9, 58, '今週末 空きあり', 'assets/photographer-p1.jpg', '緊張しやすい方こそ、まずは気軽にご相談ください！', 'マッチングアプリ用の写真に特化。自然な会話をしながら緊張をほぐし、表情が硬くならない一枚に仕上げます。名古屋中心部での撮影が中心です。', 'male', true),
+  ('p2', '夏目むぎ', '岐阜エリア', '6,800', 4.8, 46, '来週 空きあり', 'assets/cameraman-asano.jpg', '私服選びの相談も大歓迎、当日一緒に決めましょう。', '岐阜の路地やレトロな街並みを活かしたカジュアルな一枚が得意です。私服の相談やポーズが苦手な方にも丁寧にディレクションします。', 'female', true),
+  ('p3', '伊藤 啓志', '名古屋エリア', '6,800', 4.9, 39, '今週末 空きあり', null, '「量産型」にならない一枚、一緒に探しましょう。', '岐阜の自然や街並みを背景に、趣味やアクティブな雰囲気を伝える写真を撮影します。よくある構図を避けた「量産型にならない」一枚が得意です。', 'male', true),
+  ('p4', '早川 ゆかり', '一宮エリア', '6,800', 4.7, 31, '来週 空きあり', null, '短時間でもしっかり結果にこだわります！', '短時間・低価格のライトプランを中心に、自然光を活かしたメイン写真を撮影しています。かしこまらないカジュアルな撮影が得意です。', 'female', true),
+  ('p5', '伊藤 大輔（仮名）', '岐阜エリア', '6,800', 4.8, 42, '今月 空きあり', null, '季節ごとのおすすめロケーションもご提案します。', '街歩き風の自然なスナップが得意です。季節ごとのロケーションを提案し、撮影後の納品スピードにも定評があります。', 'male', true),
+  ('p6', '渡辺 さくら（仮名）', '一宮エリア', '6,800', 4.9, 50, '来週 空きあり', null, 'プロフィール文の相談も一緒に受け付けています。', 'メイン写真から趣味系の写真まで幅広く対応。事前の料金説明とプロフィール文へのアドバイスにも定評があります。', 'female', true)
 on conflict (id) do nothing;
 
 -- 上の insert は既存インストールでは何もしないため、同じ修正を既存行にも当てる。
 -- エリア表記は AREAS 定数（名古屋／岐阜／一宮）に統一する。「尾張エリア」は
 -- p4 だけで使われていた表記で、検索の絞り込みが分断されていた。
 update photographers set area = '一宮エリア' where area = '尾張エリア';
-update photographers set price_from = '8,800' where id in ('p1','p2','p3','p4','p5','p6');
+update photographers set price_from = '6,800' where id in ('p1','p2','p3','p4','p5','p6');
 
 -- gender/is_visible: the insert above already sets these for a fresh
 -- install; these backfills only matter for installs that ran an earlier
@@ -411,10 +411,10 @@ insert into plans (photographer_id, name, price, original_price, discount_label,
 select p.id, v.name, v.price, v.original_price, v.discount_label, v.description, v.duration_min, v.sort_order
 from photographers p
 cross join (values
-  ('スマホプラン', 5500, null, null, '30分・10枚納品・スマホ撮影', 30, 0),
-  ('スタンダード', 8800, 9800, '10%OFF', '45分・20枚納品', 45, 1),
-  ('スタンダードプラス', 11800, 13100, '10%OFF', '45分・20枚納品＋スマホ用5枚', 45, 2),
-  ('結婚相談所', 8800, 9800, '10%OFF', '45分・10枚納品', 45, 3)
+  ('スマホプラン', 6800, 7800, '10%OFF', '45分・10枚納品・スマホ撮影', 45, 0),
+  ('スタンダード', 9800, 10800, '10%OFF', '45分・20枚納品', 45, 1),
+  ('スタンダードプラス', 12800, 14100, '10%OFF', '45分・20枚納品＋スマホ用5枚', 45, 2),
+  ('結婚相談所', 9800, 10800, '10%OFF', '45分・10枚納品', 45, 3)
 ) as v(name, price, original_price, discount_label, description, duration_min, sort_order)
 where p.id in ('p1','p2','p3','p4','p5','p6')
   -- plans has no unique key besides id, so on conflict can't dedupe; check
@@ -422,6 +422,14 @@ where p.id in ('p1','p2','p3','p4','p5','p6')
   and not exists (
     select 1 from plans x where x.photographer_id = p.id and x.name = v.name
   );
+
+-- 上の insert は既存の行には触れないため、価格改定を既存インストールにも当てる。
+update plans set price = 6800, original_price = 7800, discount_label = '10%OFF', duration_min = 45
+  where name = 'スマホプラン' and photographer_id in ('p1','p2','p3','p4','p5','p6');
+update plans set price = 9800, original_price = 10800, discount_label = '10%OFF'
+  where name in ('スタンダード', '結婚相談所') and photographer_id in ('p1','p2','p3','p4','p5','p6');
+update plans set price = 12800, original_price = 14100, discount_label = '10%OFF'
+  where name = 'スタンダードプラス' and photographer_id in ('p1','p2','p3','p4','p5','p6');
 
 insert into reviews (photographer_id, reviewer_name, stars, comment)
 select v.photographer_id, v.reviewer_name, v.stars, v.comment
