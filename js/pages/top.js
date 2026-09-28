@@ -9,6 +9,12 @@ document.getElementById('pm-stats').innerHTML = STATS.map((s) => `
     <div style="font:13px var(--pm-font-body);color:var(--pm-text-3)">${s.label}</div>
   </div>`).join('');
 
+// Hero keeps a one-line version of the stats so the trust signal is still
+// seen by people who leave before the full 実績 section further down.
+document.getElementById('pm-hero-proof').innerHTML = STATS.map((s) => `
+  <span style="white-space:nowrap">${s.label} <b style="font:800 15px var(--pm-font-num);color:oklch(0.45 0.14 210)">${s.value}</b></span>`).join('<span style="color:var(--pm-text-muted);margin:0 10px">／</span>')
+  + '<a href="#results-section" style="display:block;margin-top:4px;font:11px var(--pm-font-body);color:var(--pm-text-muted);text-decoration:underline">※代表カメラマンの実績です</a>';
+
 document.getElementById('pm-pains').innerHTML = TARGET_PAINS.map((p) => `
   <div style="display:flex;align-items:flex-start;gap:10px;background:oklch(1 0 0 / 0.08);border:1px solid oklch(1 0 0 / 0.14);border-radius:12px;padding:14px 16px">
     <span style="font:700 14px var(--pm-font-num);color:oklch(0.82 0.12 195);flex-shrink:0">✓</span>
