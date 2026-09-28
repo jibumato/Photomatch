@@ -86,3 +86,19 @@ faqEl.addEventListener('click', (e) => {
   answer.style.display = open ? 'none' : 'block';
   icon.textContent = open ? '＋' : '−';
 });
+
+// Mobile sticky "撮影を予約する" bar: visible while scrolling through the page,
+// hidden while the hero's own button or the final CTA section is on screen so
+// it never sits redundantly next to another copy of the same button.
+{
+  const bar = document.getElementById('pm-mobile-cta');
+  const heroCta = document.getElementById('hero-cta');
+  const finalCta = document.getElementById('final-cta-section');
+  if (bar && heroCta && finalCta && 'IntersectionObserver' in window) {
+    const heroVisible = new Set();
+    const finalVisible = new Set();
+    const update = () => { bar.style.display = heroVisible.size || finalVisible.size ? 'none' : ''; };
+    new IntersectionObserver(([e]) => { e.isIntersecting ? heroVisible.add(1) : heroVisible.delete(1); update(); }).observe(heroCta);
+    new IntersectionObserver(([e]) => { e.isIntersecting ? finalVisible.add(1) : finalVisible.delete(1); update(); }).observe(finalCta);
+  }
+}

@@ -152,7 +152,7 @@
       </div>
       <h1 style="font:900 clamp(30px,7vw,42px)/1.45 var(--pm-font-hand);margin:0 0 20px;letter-spacing:0.005em">その一枚が、<span style="background:linear-gradient(120deg, oklch(0.64 0.15 200), oklch(0.58 0.15 250));background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent">恋の始まり。</span></h1>
       <p style="font:clamp(14px,3.5vw,16px)/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0 0 32px;max-width:470px">待ち合わせから撮影終了まで、わずか45分。<br>あなたの街を舞台に、プロカメラマンが<br>最高の一枚を引き出します。</p>
-      <a class="pm-btn pm-btn-primary pm-btn-lg" href="search.html">撮影を予約する</a>
+      <a class="pm-btn pm-btn-primary pm-btn-lg" href="search.html" id="hero-cta">撮影を予約する</a>
       <div id="pm-hero-proof" style="margin-top:18px;font:600 13px var(--pm-font-body);color:var(--pm-text-2)"></div>
     </div>
   </section>
@@ -289,7 +289,7 @@
   </section>
 
   <!-- CTA -->
-  <section style="background:linear-gradient(120deg, oklch(0.3 0.06 220), oklch(0.24 0.05 245));color:#fff;padding:clamp(56px,12vw,80px) clamp(20px,5vw,32px);text-align:center">
+  <section id="final-cta-section" style="background:linear-gradient(120deg, oklch(0.3 0.06 220), oklch(0.24 0.05 245));color:#fff;padding:clamp(56px,12vw,80px) clamp(20px,5vw,32px);text-align:center">
     <div style="max-width:640px;margin:0 auto">
       <h2 style="font:700 28px/1.5 var(--pm-font-body);margin:0 0 14px">次のマッチングは、この一枚から。</h2>
       <p style="font:14px/1.9 var(--pm-font-body);color:oklch(0.82 0.02 220);margin:0 0 32px">名古屋エリアの審査済みカメラマンを、今すぐ比較できます。</p>
@@ -297,6 +297,13 @@
     </div>
   </section>
 </main>
+
+<!-- スマホで読み進めている間、ヒーローと最後のCTAの間だけ予約ボタンを画面下に固定表示 -->
+<div id="pm-mobile-cta" class="pm-sticky-cta pm-mobile-only" style="display:none">
+  <div class="pm-sticky-cta-inner">
+    <a class="pm-btn pm-btn-primary pm-btn-block" href="search.html">撮影を予約する</a>
+  </div>
+</div>
 
 <footer class="pm-footer" id="pm-footer"></footer>
 

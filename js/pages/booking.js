@@ -16,6 +16,9 @@ const DRAFT_KEY = 'pm_booking_draft';
 const steps = ['plan', 'slot', 'contact', 'payment', 'confirm'];
 function showStep(name) {
   steps.forEach((s) => { document.getElementById('step-' + s).style.display = s === name ? '' : 'none'; });
+  // The running-total bar only applies to the contact step (where options are
+  // still being chosen); other steps show their own totals inline.
+  document.getElementById('contact-sticky-bar').style.display = name === 'contact' ? '' : 'none';
   window.scrollTo({ top: 0 });
 }
 
@@ -275,6 +278,10 @@ function currentSummary() {
   return { plan, d, startTime, endTime, areaLabel, selectedOptions, optionsTotal, grandTotal };
 }
 
+function updateContactStickyTotal() {
+  document.getElementById('contact-sticky-total').textContent = `¥${currentSummary().grandTotal.toLocaleString()}`;
+}
+
 function goContactStep() {
   showStep('contact');
   document.getElementById('contact-back-link').onclick = (e) => { e.preventDefault(); goSlotStep(); };
@@ -288,6 +295,7 @@ function goContactStep() {
   document.getElementById('err-password').style.display = 'none';
   showAuthNotice('');
   renderOptionTiles();
+  updateContactStickyTotal();
   syncAuthFields();
 }
 
@@ -310,6 +318,7 @@ function renderOptionTiles() {
       const key = el.dataset.key;
       state.options = state.options.includes(key) ? state.options.filter((k) => k !== key) : [...state.options, key];
       renderOptionTiles();
+      updateContactStickyTotal();
     });
   });
 }
@@ -329,7 +338,11 @@ document.getElementById('contact-submit').addEventListener('click', async () => 
   document.getElementById('err-email').style.display = isValidEmail(email) ? 'none' : 'block';
   passwordErr.style.display = 'none';
   showAuthNotice('');
-  if (!name || !isValidEmail(email)) return;
+  // The submit button is now a fixed bar at the bottom of the screen, so a
+  // field error further up the form could otherwise go unseen — scroll it
+  // into view rather than relying on the button and the error being adjacent.
+  if (!name) { document.getElementById('f-name').scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+  if (!isValidEmail(email)) { document.getElementById('f-email').scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
   state.name = name; state.email = email; state.phone = phone;
 
   const session = await getSession();
@@ -339,6 +352,7 @@ document.getElementById('contact-submit').addEventListener('click', async () => 
   if (password.length < 6) {
     passwordErr.textContent = 'パスワードは6文字以上でご記入ください';
     passwordErr.style.display = 'block';
+    passwordEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
     return;
   }
 

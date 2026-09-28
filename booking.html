@@ -53,7 +53,7 @@
 </section>
 
 <!-- STEP: contact -->
-<section id="step-contact" style="display:none;max-width:560px;margin:0 auto;padding:24px 32px 80px">
+<section id="step-contact" style="display:none;max-width:560px;margin:0 auto;padding:24px 32px 110px">
   <a class="pm-back-link" href="#" id="contact-back-link">← 枠選択に戻る</a>
   <h1 style="font:700 24px var(--pm-font-body);margin:16px 0 6px">ご連絡先を入力</h1>
   <div id="contact-summary" style="background:var(--pm-bg-mint);border-radius:14px;padding:18px;margin-bottom:24px;font:13px/1.8 var(--pm-font-body);color:oklch(0.35 0.03 220)"></div>
@@ -84,12 +84,22 @@
       <label>オプション（追加料金・任意）</label>
       <div id="option-tiles" style="display:flex;flex-direction:column;gap:10px"></div>
     </div>
-    <div class="pm-note-box"><span class="pm-note-title">撮影当日について</span>当日の流れ：集合場所でご挨拶・撮影イメージの確認 → 撮影 → その場で解散(データは後日メール)。<br>持ち物：特別なものは不要です。着替えたい服が1〜2着あると安心です。<br>服装：白・ネイビー・ベージュなど明るめの無地がおすすめです。</div>
-    <div class="pm-note-box"><span class="pm-note-title">キャンセルポリシー</span>撮影日の3日前まで：無料 ／ 2日前：料金の50% ／ 前日・当日：料金の100%<br>集合時間に15分以上遅れた場合、キャンセル扱いとなることがあり、その際の返金はできません。</div>
-    <div class="pm-note-box"><span class="pm-note-title">日程振替について</span>予約確定後にご都合で日程を振り替える場合、別途5,400円（税込）がかかります。「あんしん振替プラン」（+¥4,800）にご加入の場合は1回まで無料です。</div>
-    <button class="pm-btn pm-btn-primary pm-btn-block" id="contact-submit">お支払いへ進む</button>
+    <details class="pm-note-details"><summary>撮影当日について</summary>当日の流れ：集合場所でご挨拶・撮影イメージの確認 → 撮影 → その場で解散(データは後日メール)。<br>持ち物：特別なものは不要です。着替えたい服が1〜2着あると安心です。<br>服装：白・ネイビー・ベージュなど明るめの無地がおすすめです。</details>
+    <details class="pm-note-details"><summary>キャンセルポリシー</summary>撮影日の3日前まで：無料 ／ 2日前：料金の50% ／ 前日・当日：料金の100%<br>集合時間に15分以上遅れた場合、キャンセル扱いとなることがあり、その際の返金はできません。</details>
+    <details class="pm-note-details"><summary>日程振替について</summary>予約確定後にご都合で日程を振り替える場合、別途5,400円（税込）がかかります。「あんしん振替プラン」（+¥4,800）にご加入の場合は1回まで無料です。</details>
   </div>
 </section>
+
+<!-- STEP: contact の合計金額・送信ボタンを常に画面下に表示（オプションを選ぶたびに更新） -->
+<div id="contact-sticky-bar" class="pm-sticky-cta" style="display:none">
+  <div class="pm-sticky-cta-inner">
+    <div class="pm-sticky-cta-total">
+      <span class="pm-sticky-cta-total-label">合計（税込）</span>
+      <span class="pm-sticky-cta-total-value" id="contact-sticky-total"></span>
+    </div>
+    <button class="pm-btn pm-btn-primary" id="contact-submit">お支払いへ進む</button>
+  </div>
+</div>
 
 <!-- STEP: payment -->
 <section id="step-payment" style="display:none;max-width:560px;margin:0 auto;padding:24px 32px 100px">
