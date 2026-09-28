@@ -5,6 +5,7 @@ import { mountSheetModal } from '../sheet.js';
 import {
   AREAS, EXTRA_OPTIONS, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
 } from '../data.js';
+import { t, tf, L, getLang, areaText, planNameText, planDescText, taxIncludedSuffix } from '../i18n.js';
 
 mountLayout();
 
@@ -92,7 +93,7 @@ async function syncAuthFields() {
     state.email = session.user.email || state.email;
     emailEl.value = state.email;
     emailEl.readOnly = true;
-    hintEl.textContent = 'ログイン中のアカウントのメールアドレスです。予約確定メールをこちらにお送りします。';
+    hintEl.textContent = t('booking.contact.loggedInEmailHint');
     if (!state.name) {
       const profile = await getProfile();
       if (profile && profile.name) {
@@ -102,7 +103,7 @@ async function syncAuthFields() {
     }
   } else {
     emailEl.readOnly = false;
-    hintEl.textContent = '予約確定メールをお送りします。';
+    hintEl.textContent = t('booking.contact.emailHint');
   }
   return session;
 }
@@ -170,16 +171,16 @@ async function loadWeather() {
 // ---------- render: plan select ----------
 function renderPlanStep() {
   document.getElementById('plan-back-link').href = `profile.html?id=${photographerId}`;
-  document.getElementById('plan-intro').textContent = `${state.photographer.name}さんのプランから選択してください。所要時間分の枠を次のステップで押さえます。`;
+  document.getElementById('plan-intro').textContent = tf('booking.plan.intro', { name: state.photographer.name });
   document.getElementById('plan-list').innerHTML = state.plans.map((plan, idx) => `
     <button type="button" data-idx="${idx}" class="plan-card pm-card pm-unbutton" style="cursor:pointer;border-radius:14px;padding:20px">
-      <div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:6px">${plan.name}</div>
+      <div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:6px">${planNameText(plan.name)}</div>
       ${plan.original_price ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
         <span style="font:600 12px var(--pm-font-num);color:var(--pm-text-muted);text-decoration:line-through">¥${plan.original_price.toLocaleString()}</span>
         <span style="font:700 10px var(--pm-font-body);color:#fff;background:var(--pm-warn);padding:2px 7px;border-radius:100px">${plan.discount_label || ''}</span>
       </div>` : ''}
-      <div style="font:700 20px var(--pm-font-body);margin-bottom:2px">¥${plan.price.toLocaleString()}<span style="font:11px var(--pm-font-body);color:var(--pm-text-3)">（税込）</span></div>
-      <div style="font:12px/1.6 var(--pm-font-body);color:var(--pm-text-3)">${plan.description || ''}</div>
+      <div style="font:700 20px var(--pm-font-body);margin-bottom:2px">¥${plan.price.toLocaleString()}<span style="font:11px var(--pm-font-body);color:var(--pm-text-3)">${taxIncludedSuffix()}</span></div>
+      <div style="font:12px/1.6 var(--pm-font-body);color:var(--pm-text-3)">${planDescText(plan.description) || ''}</div>
     </button>`).join('');
   document.querySelectorAll('.plan-card').forEach((el) => {
     el.addEventListener('click', () => {
@@ -197,7 +198,7 @@ async function goSlotStep() {
   document.getElementById('slot-back-link').onclick = (e) => { e.preventDefault(); planParam != null ? (location.href = `profile.html?id=${photographerId}`) : showStep('plan'); };
   renderAreaChips();
   const plan = state.plans[state.planIndex];
-  document.getElementById('slot-plan-line').textContent = `${plan.name}（${plan.duration_min}分）・空いている時間をタップして、ご連絡先の入力へ進みます。`;
+  document.getElementById('slot-plan-line').textContent = tf('booking.slot.planLine', { plan: planNameText(plan.name), duration: plan.duration_min });
   document.getElementById('pm-loading-slot');
   await Promise.all([loadAvailability(), loadWeather()]);
   renderSlotGrid();
@@ -205,12 +206,12 @@ async function goSlotStep() {
 
 function renderAreaChips() {
   document.getElementById('area-chips').innerHTML = AREAS.map((a) => `
-    <span data-key="${a.key}" class="pm-chip ${a.key === state.selectedArea ? 'is-active' : ''}">${a.label}</span>`).join('');
+    <span data-key="${a.key}" class="pm-chip ${a.key === state.selectedArea ? 'is-active' : ''}">${areaText(a.label)}</span>`).join('');
   document.querySelectorAll('#area-chips .pm-chip').forEach((el) => {
     el.addEventListener('click', async () => {
       state.selectedArea = el.dataset.key;
       renderAreaChips();
-      document.getElementById('slot-weather-line').textContent = '天気予報を取得中…';
+      document.getElementById('slot-weather-line').textContent = t('booking.slot.weatherLoading');
       await loadWeather();
       renderSlotGrid();
     });
@@ -219,8 +220,11 @@ function renderAreaChips() {
 
 function renderSlotGrid() {
   const areaLabel = (AREAS.find((a) => a.key === state.selectedArea) || AREAS[0]).label;
-  const weatherNote = state.weather ? `天気予報は「${areaLabel}」の予報です。` : '天気予報を取得できませんでした。';
-  document.getElementById('slot-weather-line').textContent = `${weatherNote}ご予約は3日後から30日先まで承っています。`;
+  const weatherNote = state.weather ? tf('booking.slot.weatherFor', { area: areaText(areaLabel) }) : t('booking.slot.weatherFailed');
+  // English needs a space between the two sentences; Japanese reads fine
+  // running straight from one full stop into the next.
+  const sep = getLang() === 'en' ? ' ' : '';
+  document.getElementById('slot-weather-line').textContent = `${weatherNote}${sep}${t('booking.slot.windowNote')}`;
 
   const plan = state.plans[state.planIndex];
   const slotCount = Math.max(1, Math.ceil((plan.duration_min || 30) / 30));
@@ -290,8 +294,10 @@ function goContactStep() {
   showStep('contact');
   document.getElementById('contact-back-link').onclick = (e) => { e.preventDefault(); goSlotStep(); };
   const s = currentSummary();
-  document.getElementById('contact-summary').innerHTML =
-    `${state.photographer.name}さん ・ ${s.plan.name}（${s.plan.duration_min}分）<br>${s.d.dateLabel}（${s.d.label}） ${s.startTime}〜${s.endTime}<br>撮影エリア：${s.areaLabel}`;
+  document.getElementById('contact-summary').innerHTML = tf('booking.contact.summary', {
+    name: state.photographer.name, plan: planNameText(s.plan.name), duration: s.plan.duration_min,
+    date: s.d.dateLabel, day: s.d.label, start: s.startTime, end: s.endTime, area: areaText(s.areaLabel),
+  });
   document.getElementById('f-name').value = state.name;
   document.getElementById('f-email').value = state.email;
   document.getElementById('f-phone').value = state.phone;
@@ -310,8 +316,8 @@ function renderOptionTiles() {
       <div style="display:flex;align-items:center;gap:12px">
         <span style="width:20px;height:20px;border-radius:6px;flex-shrink:0;${active ? 'background:var(--pm-brand-grad);color:#fff;display:flex;align-items:center;justify-content:center;font:700 12px sans-serif' : 'border:1.5px solid oklch(0.8 0.02 220)'}">${active ? '✓' : ''}</span>
         <div>
-          <div style="font:700 13px var(--pm-font-body);color:oklch(0.3 0.02 235)">${o.label}</div>
-          <div style="font:11px var(--pm-font-body);color:var(--pm-text-3)">${o.desc}</div>
+          <div style="font:700 13px var(--pm-font-body);color:oklch(0.3 0.02 235)">${L(o, 'label')}</div>
+          <div style="font:11px var(--pm-font-body);color:var(--pm-text-3)">${L(o, 'desc')}</div>
         </div>
       </div>
       <div style="font:700 14px var(--pm-font-num);color:oklch(0.4 0.03 220);white-space:nowrap">+¥${o.price.toLocaleString()}</div>
@@ -358,7 +364,7 @@ document.getElementById('contact-submit').addEventListener('click', async () => 
 
   const password = passwordEl.value;
   if (password.length < 6) {
-    passwordErr.textContent = 'パスワードは6文字以上でご記入ください';
+    passwordErr.textContent = t('booking.contact.passwordTooShort');
     passwordErr.style.display = 'block';
     passwordEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
     return;
@@ -374,36 +380,36 @@ document.getElementById('contact-submit').addEventListener('click', async () => 
     if (result.status === 'signed_in') {
       goPaymentStep();
     } else if (result.status === 'wrong_password') {
-      passwordErr.textContent = 'このメールアドレスは登録済みです。登録時のパスワードをご入力ください。';
+      passwordErr.textContent = t('booking.contact.wrongPassword');
       passwordErr.style.display = 'block';
       // Reset link returns here with the draft intact and goes straight to
       // payment, so forgetting the password doesn't mean starting over.
       const resetUrl = new URL('reset-password.html', location.href);
       resetUrl.searchParams.set('email', email);
       resetUrl.searchParams.set('next', confirmRedirectUrl());
-      showAuthNotice(`<span class="pm-note-title">パスワードをお忘れの方</span><a href="${resetUrl.href}" id="forgot-in-booking" style="color:oklch(0.45 0.14 210);font-weight:700">パスワードを再設定する</a>（入力内容は保持されます）`);
+      showAuthNotice(`<span class="pm-note-title">${t('booking.contact.forgotTitle')}</span><a href="${resetUrl.href}" id="forgot-in-booking" style="color:oklch(0.45 0.14 210);font-weight:700">${t('booking.contact.forgotLink')}</a>${t('booking.contact.forgotSuffix')}`);
       document.getElementById('forgot-in-booking').onclick = () => { state.resumeToPayment = true; saveDraft(); };
     } else {
       // confirm_email / email_not_confirmed: the account exists but the
       // session only starts once the emailed link is opened.
       state.resumeToPayment = true;
       saveDraft();
-      showAuthNotice(`<span class="pm-note-title">メールアドレスの確認をお願いします</span>${email.replace(/[<>&"]/g, '')} に確認メールをお送りしました。メール内のリンクを開くと、入力内容をそのままにお支払いへ進めます（このブラウザで開いてください）。<br><a href="#" id="resend-confirm" style="color:oklch(0.45 0.14 210);font-weight:700">確認メールを再送する</a>`);
+      showAuthNotice(`<span class="pm-note-title">${t('booking.contact.confirmEmailTitle')}</span>${tf('booking.contact.confirmEmailBody', { email: email.replace(/[<>&"]/g, '') })}<br><a href="#" id="resend-confirm" style="color:oklch(0.45 0.14 210);font-weight:700">${t('booking.contact.resendLink')}</a>`);
       document.getElementById('resend-confirm').onclick = async (e) => {
         e.preventDefault();
         try {
           await resendSignupEmail(email, confirmRedirectUrl());
-          e.target.textContent = '再送しました';
+          e.target.textContent = t('booking.contact.resendDone');
         } catch (err) {
-          e.target.textContent = '再送できませんでした。しばらくしてからお試しください';
+          e.target.textContent = t('booking.contact.resendFailed');
           console.error(err);
         }
       };
     }
   } catch (err) {
     passwordErr.textContent = /rate limit|too many/i.test(err.message || '')
-      ? '短時間にお試しいただいた回数が多すぎます。数分おいてから再度お試しください。'
-      : 'ログイン・登録に失敗しました。時間をおいて再度お試しください。';
+      ? t('booking.contact.rateLimited')
+      : t('booking.contact.authFailed');
     passwordErr.style.display = 'block';
     console.error(err);
   } finally {
@@ -418,22 +424,22 @@ function goPaymentStep() {
   const s = currentSummary();
   const optionsHtml = s.selectedOptions.map((o) => `
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
-      <span style="font:12px var(--pm-font-body);color:oklch(0.5 0.03 220)">＋${o.label}</span>
+      <span style="font:12px var(--pm-font-body);color:oklch(0.5 0.03 220)">${tf('booking.payment.optionLine', { label: L(o, 'label') })}</span>
       <span style="font:600 13px var(--pm-font-num);color:oklch(0.4 0.03 230)">+¥${o.price.toLocaleString()}</span>
     </div>`).join('');
   document.getElementById('payment-summary').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
-      <span style="font:13px var(--pm-font-body);color:oklch(0.45 0.03 220)">${s.plan.name}（${s.plan.duration_min}分）</span>
+      <span style="font:13px var(--pm-font-body);color:oklch(0.45 0.03 220)">${tf('booking.payment.summaryDuration', { plan: planNameText(s.plan.name), duration: s.plan.duration_min })}</span>
       <span style="font:700 16px var(--pm-font-num);color:oklch(0.3 0.03 240)">¥${s.plan.price.toLocaleString()}</span>
     </div>
     ${optionsHtml}
     <div style="border-top:1px solid oklch(0.88 0.02 210);margin:10px 0 8px"></div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
-      <span style="font:700 13px var(--pm-font-body);color:oklch(0.35 0.03 220)">合計（税込）</span>
+      <span style="font:700 13px var(--pm-font-body);color:oklch(0.35 0.03 220)">${t('booking.contact.total')}</span>
       <span style="font:700 22px var(--pm-font-num);color:oklch(0.3 0.03 240)">¥${s.grandTotal.toLocaleString()}</span>
     </div>
-    <div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${state.photographer.name}さん ・ ${s.areaLabel} ・ ${s.d.dateLabel}（${s.d.label}） ${s.startTime}〜${s.endTime}</div>`;
-  document.getElementById('payment-submit-label').textContent = `¥${s.grandTotal.toLocaleString()} を支払って予約を確定`;
+    <div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${tf('booking.payment.locationLine', { name: state.photographer.name, area: areaText(s.areaLabel), date: s.d.dateLabel, day: s.d.label, start: s.startTime, end: s.endTime })}</div>`;
+  document.getElementById('payment-submit-label').textContent = tf('booking.payment.submitLabel', { total: `¥${s.grandTotal.toLocaleString()}` });
 }
 
 document.getElementById('payment-submit').addEventListener('click', async () => {
@@ -444,7 +450,7 @@ document.getElementById('payment-submit').addEventListener('click', async () => 
   const s = currentSummary();
   try {
     const session = await getSession();
-    if (!session) throw new Error('ログインが必要です。');
+    if (!session) throw new Error(t('booking.payment.loginRequired'));
     if (!state.email) state.email = session.user.email || '';
     // Saved so a canceled/abandoned Stripe Checkout can restore this exact
     // slot/contact selection instead of losing it on the redirect back.
@@ -466,10 +472,10 @@ document.getElementById('payment-submit').addEventListener('click', async () => 
       }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || '決済ページの作成に失敗しました。');
+    if (!res.ok) throw new Error(data.error || t('booking.payment.checkoutFailed'));
     location.href = data.url;
   } catch (err) {
-    errorEl.textContent = err.message || '決済ページの作成に失敗しました。時間をおいて再度お試しください。';
+    errorEl.textContent = err.message || t('booking.payment.checkoutFailedRetry');
     errorEl.style.display = 'block';
     console.error(err);
     btn.disabled = false;
@@ -482,22 +488,22 @@ document.getElementById('payment-submit').addEventListener('click', async () => 
 // this page never trusts the redirect alone).
 function showConfirmForBooking(booking) {
   showStep('confirm');
-  document.getElementById('confirm-lead').textContent = `${state.photographer.name}さんとの撮影が確定しました。当日は撮影場所で直接お待ち合わせください。`;
+  document.getElementById('confirm-lead').textContent = tf('booking.confirm.lead', { name: state.photographer.name });
   const options = (booking.options || []).map((o) => EXTRA_OPTIONS.find((eo) => eo.key === o.key)).filter(Boolean);
-  const optionsHtml = options.map((o) => `<div>＋オプション：${o.label}（+¥${o.price.toLocaleString()}）</div>`).join('');
+  const optionsHtml = options.map((o) => `<div>${tf('booking.confirm.optionLine', { label: L(o, 'label'), price: o.price.toLocaleString() })}</div>`).join('');
   const dateLabel = `${Number(booking.booking_date.slice(5, 7))}/${Number(booking.booking_date.slice(8, 10))}`;
   document.getElementById('confirm-details').innerHTML = `
-    <div>カメラマン：${state.photographer.name}</div>
-    <div>撮影エリア：${booking.area}</div>
-    <div>日時：${dateLabel} ${booking.start_time.slice(0, 5)}〜${booking.end_time.slice(0, 5)}</div>
-    <div>プラン：${booking.plan_name}（¥${booking.plan_price.toLocaleString()}　税込）</div>
+    <div>${tf('booking.confirm.photographer', { name: state.photographer.name })}</div>
+    <div>${tf('booking.confirm.area', { area: areaText(booking.area) })}</div>
+    <div>${tf('booking.confirm.datetime', { date: dateLabel, start: booking.start_time.slice(0, 5), end: booking.end_time.slice(0, 5) })}</div>
+    <div>${tf('booking.confirm.plan', { plan: planNameText(booking.plan_name), price: booking.plan_price.toLocaleString() })}</div>
     ${optionsHtml}
-    <div style="font:700 14px var(--pm-font-body);color:oklch(0.3 0.02 235)">お支払い合計：¥${booking.total_price.toLocaleString()}（税込）</div>
-    <div>お支払い：Stripeで決済完了</div>
-    <div>お名前：${booking.customer_name}</div>
-    <div>連絡先：${booking.customer_contact}</div>`;
+    <div style="font:700 14px var(--pm-font-body);color:oklch(0.3 0.02 235)">${tf('booking.confirm.total', { total: booking.total_price.toLocaleString() })}</div>
+    <div>${t('booking.confirm.paidVia')}</div>
+    <div>${tf('booking.confirm.customerName', { name: booking.customer_name })}</div>
+    <div>${tf('booking.confirm.customerContact', { contact: booking.customer_contact })}</div>`;
   document.getElementById('confirm-sheet-btn').onclick = () => {
-    sheetModal.open(booking.id, `${dateLabel} ${booking.start_time.slice(0, 5)}〜 ・ ${state.photographer.name}さん`);
+    sheetModal.open(booking.id, tf('booking.confirm.sheetOpenTitle', { date: dateLabel, start: booking.start_time.slice(0, 5), name: state.photographer.name }));
   };
 }
 
@@ -524,7 +530,7 @@ function showConfirmForBooking(booking) {
     }
 
     if (photographer.is_visible === false) {
-      document.getElementById('pm-loading').textContent = '現在、こちらのカメラマンは新規のご予約受付を休止しています。お手数ですが他のカメラマンをお探しください。';
+      document.getElementById('pm-loading').textContent = t('booking.paused');
       return;
     }
     document.getElementById('pm-loading').remove();
@@ -540,7 +546,7 @@ function showConfirmForBooking(booking) {
       await goSlotStepFromRestore();
       goPaymentStep();
       const errorEl = document.getElementById('err-payment');
-      errorEl.textContent = 'お支払いがキャンセルされました。内容をご確認の上、再度お試しください。';
+      errorEl.textContent = t('booking.payment.canceledNotice');
       errorEl.style.display = 'block';
     } else if (restored && state.resumeToPayment && session && state.dayIndex != null && state.slotIndex != null) {
       // Back from the sign-up confirmation or password-reset link: everything
@@ -560,7 +566,7 @@ function showConfirmForBooking(booking) {
     }
   } catch (err) {
     const loadingEl = document.getElementById('pm-loading');
-    if (loadingEl) loadingEl.textContent = '情報の取得に失敗しました。時間をおいて再度お試しください。';
+    if (loadingEl) loadingEl.textContent = t('booking.loadError');
     console.error(err);
   }
 })();
@@ -570,7 +576,7 @@ async function goSlotStepFromRestore() {
   await Promise.all([loadAvailability(), loadWeather()]);
   renderAreaChips();
   const plan = state.plans[state.planIndex];
-  document.getElementById('slot-plan-line').textContent = `${plan.name}（${plan.duration_min}分）・空いている時間をタップして、ご連絡先の入力へ進みます。`;
+  document.getElementById('slot-plan-line').textContent = tf('booking.slot.planLine', { plan: planNameText(plan.name), duration: plan.duration_min });
   renderSlotGrid();
   if (state.dayIndex != null && state.slotIndex != null) {
     goContactStep();

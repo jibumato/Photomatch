@@ -1,6 +1,6 @@
 import { mountLayout } from '../layout.js';
 import { getPhotographer, getPlans, getReviews } from '../repo.js';
-import { t, getLang, areaText, availabilityText, localizedField, planNameText, planDescText, reviewsCountLabel } from '../i18n.js';
+import { t, areaText, availabilityText, localizedField, planNameText, planDescText, reviewsCountLabel, taxIncludedSuffix } from '../i18n.js';
 
 mountLayout();
 
@@ -66,7 +66,7 @@ function instagramLinkHtml(raw) {
             <span style="font:600 12px var(--pm-font-num);color:var(--pm-text-muted);text-decoration:line-through">¥${plan.original_price.toLocaleString()}</span>
             <span style="font:700 10px var(--pm-font-body);color:#fff;background:var(--pm-warn);padding:2px 7px;border-radius:100px">${plan.discount_label || ''}</span>
           </div>` : ''}
-          <div style="font:700 18px var(--pm-font-body);margin-bottom:2px">¥${plan.price.toLocaleString()}<span style="font:11px var(--pm-font-body);color:var(--pm-text-3)">${getLang() === 'en' ? ` (${t('profile.taxIncluded')})` : `（${t('profile.taxIncluded')}）`}</span></div>
+          <div style="font:700 18px var(--pm-font-body);margin-bottom:2px">¥${plan.price.toLocaleString()}<span style="font:11px var(--pm-font-body);color:var(--pm-text-3)">${taxIncludedSuffix()}</span></div>
           <div style="font:12px/1.6 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:12px">${planDescText(plan.description) || ''}</div>
           <div style="text-align:center;background:var(--pm-bg-mint);color:oklch(0.42 0.13 210);border-radius:8px;padding:9px;font:700 12px var(--pm-font-body)">${t('profile.bookThisPlan')}</div>
         </a>`).join('') || `<div class="pm-empty">${t('profile.plansEmpty')}</div>`;

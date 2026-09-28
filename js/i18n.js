@@ -149,6 +149,7 @@ const DICT = {
   'booking.contact.email': { ja: 'メールアドレス', en: 'Email Address' },
   'booking.contact.emailPlaceholder': { ja: '例）guest@example.com', en: 'e.g. guest@example.com' },
   'booking.contact.emailHint': { ja: '予約確定メールをお送りします。', en: "We'll send your booking confirmation here." },
+  'booking.contact.loggedInEmailHint': { ja: 'ログイン中のアカウントのメールアドレスです。予約確定メールをこちらにお送りします。', en: "This is your logged-in account's email address. Your booking confirmation will be sent here." },
   'booking.contact.emailError': { ja: 'メールアドレスを正しくご記入ください', en: 'Please enter a valid email address' },
   'booking.contact.password': { ja: 'パスワード', en: 'Password' },
   'booking.contact.passwordPlaceholder': { ja: '6文字以上', en: '6+ characters' },
@@ -162,6 +163,8 @@ const DICT = {
   'booking.contact.cancelTitle': { ja: 'キャンセルポリシー', en: 'Cancellation Policy' },
   'booking.contact.cancelBody': { ja: '撮影日の3日前まで：無料 ／ 2日前：料金の50% ／ 前日・当日：料金の100%<br>集合時間に15分以上遅れた場合、キャンセル扱いとなることがあり、その際の返金はできません。', en: '3+ days before: free ／ 2 days before: 50% of the fee ／ the day before or same day: 100% of the fee.<br>Arriving more than 15 minutes late may be treated as a same-day cancellation, which is non-refundable.' },
   'booking.contact.rescheduleTitle': { ja: '日程振替について', en: 'Rescheduling' },
+  'booking.contact.rescheduleBody': { ja: '予約確定後にご都合で日程を振り替える場合、別途5,400円（税込）がかかります。「あんしん振替プラン」（+¥4,800）にご加入の場合は1回まで無料です。', en: 'Rescheduling after your booking is confirmed costs an extra ¥5,400 (tax incl.). With the Peace-of-Mind Reschedule Plan (+¥4,800), the first time is free.' },
+  'booking.confirm.sheetNote': { ja: '', en: 'This questionnaire is only available in Japanese.' },
   'booking.contact.submit': { ja: 'お支払いへ進む', en: 'Continue to Payment' },
   'booking.contact.total': { ja: '合計（税込）', en: 'Total (tax incl.)' },
   'booking.payment.back': { ja: '← 連絡先入力に戻る', en: '← Back to Contact Details' },
@@ -176,10 +179,49 @@ const DICT = {
   'booking.confirm.sheetTitle': { ja: '📋 事前カウンセリングシート', en: '📋 Pre-Shoot Questionnaire' },
   'booking.confirm.sheetBody': { ja: '当日をスムーズに、そして理想の1枚に近づけるために、撮影のご希望をお聞かせください（全問任意・わかる範囲でOK）。', en: 'Tell us what you have in mind so the shoot goes smoothly (every question is optional — answer what you can).' },
   'booking.confirm.sheetButton': { ja: 'カウンセリングシートに回答する', en: 'Fill Out the Questionnaire' },
-  'booking.confirm.sheetNote': { ja: 'このシートは日本語のみでのご案内となります。', en: 'This questionnaire is only available in Japanese.' },
   'booking.confirm.home': { ja: 'トップに戻る', en: 'Back to Top' },
   'booking.paused': { ja: '現在、こちらのカメラマンは新規のご予約受付を休止しています。お手数ですが他のカメラマンをお探しください。', en: 'This photographer is not accepting new bookings right now — please choose another photographer.' },
   'booking.loadError': { ja: '情報の取得に失敗しました。時間をおいて再度お試しください。', en: 'Failed to load booking information. Please try again shortly.' },
+
+  // -- booking.js: templated / dynamic strings (tf()) --
+  'booking.plan.intro': { ja: '{name}さんのプランから選択してください。所要時間分の枠を次のステップで押さえます。', en: "Choose a plan from {name}. You'll pick the time slot in the next step." },
+  'booking.slot.planLine': { ja: '{plan}（{duration}分）・空いている時間をタップして、ご連絡先の入力へ進みます。', en: '{plan} ({duration} min) · Tap an open time to continue to your contact details.' },
+  'booking.slot.weatherLoading': { ja: '天気予報を取得中…', en: 'Loading forecast…' },
+  'booking.slot.weatherFor': { ja: '天気予報は「{area}」の予報です。', en: 'The forecast shown is for {area}.' },
+  'booking.slot.weatherFailed': { ja: '天気予報を取得できませんでした。', en: "Couldn't load the weather forecast." },
+  'booking.slot.windowNote': { ja: 'ご予約は3日後から30日先まで承っています。', en: 'Bookings are open from 3 to 30 days from today.' },
+  'booking.contact.summary': { ja: '{name}さん ・ {plan}（{duration}分）<br>{date}（{day}） {start}〜{end}<br>撮影エリア：{area}', en: '{name} ・ {plan} ({duration} min)<br>{date} ({day}) {start}–{end}<br>Shoot area: {area}' },
+  'booking.contact.passwordTooShort': { ja: 'パスワードは6文字以上でご記入ください', en: 'Password must be at least 6 characters' },
+  'booking.contact.wrongPassword': { ja: 'このメールアドレスは登録済みです。登録時のパスワードをご入力ください。', en: "This email is already registered. Please enter the password you signed up with." },
+  'booking.contact.forgotTitle': { ja: 'パスワードをお忘れの方', en: 'Forgot your password?' },
+  'booking.contact.forgotLink': { ja: 'パスワードを再設定する', en: 'Reset your password' },
+  'booking.contact.forgotSuffix': { ja: '（入力内容は保持されます）', en: ' (your entries will be kept)' },
+  'booking.contact.confirmEmailTitle': { ja: 'メールアドレスの確認をお願いします', en: 'Please confirm your email' },
+  'booking.contact.confirmEmailBody': { ja: '{email} に確認メールをお送りしました。メール内のリンクを開くと、入力内容をそのままにお支払いへ進めます（このブラウザで開いてください）。', en: "We've sent a confirmation email to {email}. Open the link inside it (in this same browser) to continue straight to payment with everything you've entered kept." },
+  'booking.contact.resendLink': { ja: '確認メールを再送する', en: 'Resend the confirmation email' },
+  'booking.contact.resendDone': { ja: '再送しました', en: 'Resent' },
+  'booking.contact.resendFailed': { ja: '再送できませんでした。しばらくしてからお試しください', en: 'Could not resend — please try again shortly' },
+  'booking.contact.rateLimited': { ja: '短時間にお試しいただいた回数が多すぎます。数分おいてから再度お試しください。', en: 'Too many attempts in a short time. Please wait a few minutes and try again.' },
+  'booking.contact.authFailed': { ja: 'ログイン・登録に失敗しました。時間をおいて再度お試しください。', en: 'Log in / sign-up failed. Please try again shortly.' },
+  'booking.payment.summaryDuration': { ja: '{plan}（{duration}分）', en: '{plan} ({duration} min)' },
+  'booking.payment.optionLine': { ja: '＋{label}', en: '+ {label}' },
+  'booking.payment.locationLine': { ja: '{name}さん ・ {area} ・ {date}（{day}） {start}〜{end}', en: '{name} ・ {area} ・ {date} ({day}) {start}–{end}' },
+  'booking.payment.submitLabel': { ja: '{total} を支払って予約を確定', en: 'Pay {total} & Confirm Booking' },
+  'booking.payment.loginRequired': { ja: 'ログインが必要です。', en: 'You need to be logged in.' },
+  'booking.payment.checkoutFailed': { ja: '決済ページの作成に失敗しました。', en: 'Failed to create the payment page.' },
+  'booking.payment.checkoutFailedRetry': { ja: '決済ページの作成に失敗しました。時間をおいて再度お試しください。', en: 'Failed to create the payment page. Please try again shortly.' },
+  'booking.payment.canceledNotice': { ja: 'お支払いがキャンセルされました。内容をご確認の上、再度お試しください。', en: 'Payment was canceled. Please review the details and try again.' },
+  'booking.confirm.lead': { ja: '{name}さんとの撮影が確定しました。当日は撮影場所で直接お待ち合わせください。', en: 'Your shoot with {name} is confirmed. Please meet directly at the shoot location on the day.' },
+  'booking.confirm.optionLine': { ja: '＋オプション：{label}（+¥{price}）', en: '+ Add-on: {label} (+¥{price})' },
+  'booking.confirm.photographer': { ja: 'カメラマン：{name}', en: 'Photographer: {name}' },
+  'booking.confirm.area': { ja: '撮影エリア：{area}', en: 'Shoot area: {area}' },
+  'booking.confirm.datetime': { ja: '日時：{date} {start}〜{end}', en: 'Date & time: {date} {start}–{end}' },
+  'booking.confirm.plan': { ja: 'プラン：{plan}（¥{price}　税込）', en: 'Plan: {plan} (¥{price}, tax incl.)' },
+  'booking.confirm.total': { ja: 'お支払い合計：¥{total}（税込）', en: 'Total paid: ¥{total} (tax incl.)' },
+  'booking.confirm.paidVia': { ja: 'お支払い：Stripeで決済完了', en: 'Payment: completed via Stripe' },
+  'booking.confirm.customerName': { ja: 'お名前：{name}', en: 'Name: {name}' },
+  'booking.confirm.customerContact': { ja: '連絡先：{contact}', en: 'Contact: {contact}' },
+  'booking.confirm.sheetOpenTitle': { ja: '{date} {start}〜 ・ {name}さん', en: '{date} {start}– ・ {name}' },
 
   // -- index.html (top page) --
   'top.badge': { ja: '名古屋発、マッチングアプリ写真専門', en: 'Nagoya-based · Dating App Photography' },
@@ -233,6 +275,13 @@ export function t(key) {
   if (!entry) return key;
   const lang = getLang();
   return entry[lang] || entry.ja || key;
+}
+
+// t() with {placeholder} substitution, for the sentences booking.js builds
+// around a plan name, date, price, etc. — keeps the interpolation logic in
+// one place instead of every call site building its own template branch.
+export function tf(key, vars) {
+  return t(key).replace(/\{(\w+)\}/g, (m, name) => (name in vars ? vars[name] : m));
 }
 
 // Applies every data-i18n[-placeholder] element under `root` to the current
@@ -309,6 +358,13 @@ export function reviewsCountLabel(n, long = false) {
   // parens already carry that visual spacing themselves.
   if (getLang() === 'en') return ` (${count} review${count === 1 ? '' : 's'})`;
   return long ? `（${count}件のレビュー）` : `（${count}件）`;
+}
+
+// "（税込）" / " (tax incl.)" — used wherever a price is immediately
+// followed by the tax-included note; centralized so every call site gets
+// the correct paren width and spacing for the language automatically.
+export function taxIncludedSuffix() {
+  return getLang() === 'en' ? ` (${t('profile.taxIncluded')})` : `（${t('profile.taxIncluded')}）`;
 }
 
 export const areaText = (ja) => localize(AREA_EN, ja);
