@@ -26,7 +26,9 @@
   background: #fff; border: 1px solid var(--pm-border); border-radius: 100px; padding: 6px 14px; flex-shrink: 0;
 }
 .pm-lang-toggle:hover { border-color: oklch(0.66 0.13 236); color: oklch(0.45 0.14 210); }
-.pm-mobile-panel .pm-lang-toggle-mobile { align-self: flex-start; margin: 14px 4px 0; }
+/* Groups the mobile language toggle with the hamburger button so both sit at
+   the header's first level (no need to open the menu to switch language). */
+.pm-mobile-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .pm-menu-btn {
   width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--pm-border);
   background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;
