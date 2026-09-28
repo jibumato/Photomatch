@@ -104,6 +104,25 @@
 .pm-note-details[open] summary::after { content: '−'; }
 .pm-note-details summary:focus-visible { outline: 2px solid oklch(0.62 0.14 210); outline-offset: 2px; border-radius: 4px; }
 
+/* ---------- search: collapsible filter card ---------- */
+/* Collapsed by default on mobile (the filter card would otherwise fill most of
+   the first screen while only a couple of photographers are listed); always
+   expanded on desktop, where a toggle would add a click for no reason. */
+.pm-filter-summary {
+  cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 18px 20px; font: 700 14px var(--pm-font-body); color: oklch(0.28 0.02 240);
+}
+.pm-filter-summary::-webkit-details-marker { display: none; }
+.pm-filter-summary::after { content: '絞り込む ▾'; font: 600 12px var(--pm-font-body); color: oklch(0.5 0.14 210); flex-shrink: 0; }
+.pm-filter-details[open] .pm-filter-summary::after { content: '閉じる ▴'; }
+.pm-filter-summary:focus-visible { outline: 2px solid oklch(0.62 0.14 210); outline-offset: -2px; border-radius: var(--pm-radius-card); }
+.pm-filter-summary-note { font: 600 12px var(--pm-font-body); color: oklch(0.5 0.14 210); margin-right: auto; margin-left: 4px; }
+.pm-filter-body { padding: 0 20px 18px; }
+@media (min-width: 861px) {
+  .pm-filter-summary { display: none; }
+  .pm-filter-body { display: block !important; padding: 18px 20px; }
+}
+
 /* ---------- sticky bottom CTA (booking: contact step) ---------- */
 .pm-sticky-cta {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;

@@ -90,9 +90,13 @@ function render() {
   document.getElementById('pm-results-title').textContent = state.area ? `${state.area}のカメラマン` : 'カメラマンを探す';
 
   const conditions = [];
+  if (state.area) conditions.push(state.area);
   if (state.femaleOnly) conditions.push('女性カメラマン');
   const suffix = conditions.length ? `（${conditions.join('・')}）` : '';
   document.getElementById('pm-result-count').textContent = `${list.length}件のカメラマンが見つかりました${suffix}`;
+  // Shown next to the collapsed toggle on mobile, so an active filter is still
+  // visible without opening the (otherwise collapsed) filter card.
+  document.getElementById('pm-filter-summary-note').textContent = conditions.length ? conditions.join('・') : '';
 
   document.getElementById('pm-results').innerHTML = list.length
     ? list.map(cardHtml).join('')
@@ -125,6 +129,10 @@ function render() {
     state.femaleOnly = params.get('female') === '1';
     const sortParam = params.get('sort');
     if (['rating', 'reviews'].includes(sortParam)) state.sort = sortParam;
+
+    // A shared/bookmarked link with a filter applied should show it open on
+    // mobile too, rather than hiding the active condition behind the toggle.
+    if (state.area || state.femaleOnly) document.querySelector('.pm-filter-details').open = true;
 
     // The gender column ships in a later schema revision; if an install hasn't
     // run it yet every value is undefined, so hide the filter rather than
