@@ -125,6 +125,7 @@ const DICT = {
   'profile.paused': { ja: '現在、こちらのカメラマンは新規のご予約受付を休止しています。', en: 'This photographer is not accepting new bookings right now.' },
   'profile.loadError': { ja: 'カメラマン情報の取得に失敗しました。', en: 'Failed to load photographer information.' },
   'profile.jaOnlyNote': { ja: '', en: 'Profile details below are shown as written by the photographer, in Japanese unless noted otherwise.' },
+  'profile.bookHint': { ja: '空き枠を選ぶとその場で予約が確定します。', en: "Picking a time confirms your booking right away." },
 
   // -- booking.html --
   'booking.plan.back': { ja: '← プロフィールに戻る', en: '← Back to Profile' },
@@ -302,9 +303,12 @@ function localize(map, ja) {
 // and the profile page — handled as one function rather than dictionary
 // strings because the punctuation (full-width vs ASCII parens) and plural
 // form both depend on the count and the language together.
-export function reviewsCountLabel(n) {
+export function reviewsCountLabel(n, long = false) {
   const count = n ?? 0;
-  return getLang() === 'en' ? `(${count} review${count === 1 ? '' : 's'})` : `（${count}件）`;
+  // English wants a space before the opening paren; Japanese full-width
+  // parens already carry that visual spacing themselves.
+  if (getLang() === 'en') return ` (${count} review${count === 1 ? '' : 's'})`;
+  return long ? `（${count}件のレビュー）` : `（${count}件）`;
 }
 
 export const areaText = (ja) => localize(AREA_EN, ja);
