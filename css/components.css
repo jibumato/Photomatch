@@ -104,6 +104,21 @@
 .pm-note-details[open] summary::after { content: '−'; }
 .pm-note-details summary:focus-visible { outline: 2px solid oklch(0.62 0.14 210); outline-offset: 2px; border-radius: 4px; }
 
+/* Strips native <button> chrome (border, background, font, alignment) so a
+   button can carry the exact same inline styles a clickable <div> used to —
+   used wherever a click target needs real keyboard/focus semantics. */
+.pm-unbutton { appearance: none; -webkit-appearance: none; margin: 0; text-align: left; font: inherit; color: inherit; }
+.pm-unbutton:focus-visible { outline: 2px solid oklch(0.62 0.14 210); outline-offset: 2px; }
+
+/* ---------- FAQ (top page) ---------- */
+.pm-faq-q {
+  cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 20px;
+}
+.pm-faq-q::-webkit-details-marker { display: none; }
+.pm-faq-icon::after { content: '＋'; }
+.pm-faq-item[open] .pm-faq-icon::after { content: '−'; }
+.pm-faq-q:focus-visible { outline: 2px solid oklch(0.62 0.14 210); outline-offset: -2px; }
+
 /* ---------- search: collapsible filter card ---------- */
 /* Collapsed by default on mobile (the filter card would otherwise fill most of
    the first screen while only a couple of photographers are listed); always

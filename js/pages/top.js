@@ -66,26 +66,17 @@ document.getElementById('pm-safety').innerHTML = SAFETY_POINTS.map((s) => `
     <div style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3)">${s.desc}</div>
   </div>`).join('');
 
+// <details>/<summary> gives keyboard (Enter/Space, Tab) and screen-reader
+// support for free — the previous clickable <div> had neither.
 const faqEl = document.getElementById('pm-faqs');
-faqEl.innerHTML = FAQS.map((f, idx) => `
-  <div class="pm-card" style="border-radius:14px;overflow:hidden">
-    <div data-faq-idx="${idx}" class="pm-faq-q" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 20px">
+faqEl.innerHTML = FAQS.map((f) => `
+  <details class="pm-card pm-faq-item" style="border-radius:14px;overflow:hidden">
+    <summary class="pm-faq-q">
       <span style="font:700 15px var(--pm-font-body);color:oklch(0.28 0.02 240)">${f.q}</span>
-      <span class="pm-faq-icon" style="font:600 18px var(--pm-font-num);color:oklch(0.6 0.12 210);flex-shrink:0">＋</span>
-    </div>
-    <div class="pm-faq-a" style="display:none;font:13px/1.9 var(--pm-font-body);color:var(--pm-text-3);padding:0 20px 18px">${f.a}</div>
-  </div>`).join('');
-
-faqEl.addEventListener('click', (e) => {
-  const q = e.target.closest('.pm-faq-q');
-  if (!q) return;
-  const card = q.parentElement;
-  const answer = card.querySelector('.pm-faq-a');
-  const icon = card.querySelector('.pm-faq-icon');
-  const open = answer.style.display === 'block';
-  answer.style.display = open ? 'none' : 'block';
-  icon.textContent = open ? '＋' : '−';
-});
+      <span class="pm-faq-icon" style="font:600 18px var(--pm-font-num);color:oklch(0.6 0.12 210);flex-shrink:0"></span>
+    </summary>
+    <div style="font:13px/1.9 var(--pm-font-body);color:var(--pm-text-3);padding:0 20px 18px">${f.a}</div>
+  </details>`).join('');
 
 // Mobile sticky "撮影を予約する" bar: visible while scrolling through the page,
 // hidden while the hero's own button or the final CTA section is on screen so

@@ -172,7 +172,7 @@ function renderPlanStep() {
   document.getElementById('plan-back-link').href = `profile.html?id=${photographerId}`;
   document.getElementById('plan-intro').textContent = `${state.photographer.name}さんのプランから選択してください。所要時間分の枠を次のステップで押さえます。`;
   document.getElementById('plan-list').innerHTML = state.plans.map((plan, idx) => `
-    <div data-idx="${idx}" class="plan-card pm-card" style="cursor:pointer;border-radius:14px;padding:20px">
+    <button type="button" data-idx="${idx}" class="plan-card pm-card pm-unbutton" style="cursor:pointer;border-radius:14px;padding:20px">
       <div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:6px">${plan.name}</div>
       ${plan.original_price ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
         <span style="font:600 12px var(--pm-font-num);color:var(--pm-text-muted);text-decoration:line-through">¥${plan.original_price.toLocaleString()}</span>
@@ -180,7 +180,7 @@ function renderPlanStep() {
       </div>` : ''}
       <div style="font:700 20px var(--pm-font-body);margin-bottom:2px">¥${plan.price.toLocaleString()}<span style="font:11px var(--pm-font-body);color:var(--pm-text-3)">（税込）</span></div>
       <div style="font:12px/1.6 var(--pm-font-body);color:var(--pm-text-3)">${plan.description || ''}</div>
-    </div>`).join('');
+    </button>`).join('');
   document.querySelectorAll('.plan-card').forEach((el) => {
     el.addEventListener('click', () => {
       state.planIndex = Number(el.dataset.idx);
@@ -249,9 +249,13 @@ function renderSlotGrid() {
       }
       const bg = taken ? 'oklch(0.92 0.008 220)' : (bookable ? 'var(--pm-accent-grad)' : 'oklch(0.97 0.006 220)');
       const color = taken ? 'oklch(0.62 0.02 220)' : (bookable ? '#fff' : 'oklch(0.8 0.01 220)');
-      const cursor = bookable ? 'pointer' : 'not-allowed';
       const mark = bookable ? '○' : (taken ? '×' : '−');
-      html += `<div class="pm-cal-cell" data-day="${d.index}" data-slot="${slotIndex}" data-bookable="${bookable}" style="background:${bg};color:${color};cursor:${cursor};font-weight:${bookable ? 700 : 400}">${mark}</div>`;
+      // Only the bookable cells are real (focusable, keyboard-activatable)
+      // buttons — the rest are informational, not actions, so they stay plain
+      // divs and don't add noise to the tab order.
+      html += bookable
+        ? `<button type="button" class="pm-cal-cell pm-unbutton" data-day="${d.index}" data-slot="${slotIndex}" data-bookable="true" aria-label="${d.dateLabel}（${d.label}） ${time}〜" style="background:${bg};color:${color};cursor:pointer;font-weight:700;border:0;padding:0;width:100%">${mark}</button>`
+        : `<div class="pm-cal-cell" style="background:${bg};color:${color};cursor:not-allowed;font-weight:400">${mark}</div>`;
     });
   });
   grid.innerHTML = html;
@@ -302,7 +306,7 @@ function goContactStep() {
 function renderOptionTiles() {
   document.getElementById('option-tiles').innerHTML = EXTRA_OPTIONS.map((o) => {
     const active = state.options.includes(o.key);
-    return `<div data-key="${o.key}" class="option-tile" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;border:${active ? '2px solid oklch(0.62 0.14 210)' : '1px solid var(--pm-border)'};border-radius:12px;padding:14px 16px;background:${active ? 'var(--pm-bg-mint)' : '#fff'}">
+    return `<button type="button" data-key="${o.key}" class="option-tile pm-unbutton" aria-pressed="${active}" style="cursor:pointer;width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;border:${active ? '2px solid oklch(0.62 0.14 210)' : '1px solid var(--pm-border)'};border-radius:12px;padding:14px 16px;background:${active ? 'var(--pm-bg-mint)' : '#fff'}">
       <div style="display:flex;align-items:center;gap:12px">
         <span style="width:20px;height:20px;border-radius:6px;flex-shrink:0;${active ? 'background:var(--pm-brand-grad);color:#fff;display:flex;align-items:center;justify-content:center;font:700 12px sans-serif' : 'border:1.5px solid oklch(0.8 0.02 220)'}">${active ? '✓' : ''}</span>
         <div>
@@ -311,7 +315,7 @@ function renderOptionTiles() {
         </div>
       </div>
       <div style="font:700 14px var(--pm-font-num);color:oklch(0.4 0.03 220);white-space:nowrap">+¥${o.price.toLocaleString()}</div>
-    </div>`;
+    </button>`;
   }).join('');
   document.querySelectorAll('.option-tile').forEach((el) => {
     el.addEventListener('click', () => {
@@ -319,6 +323,10 @@ function renderOptionTiles() {
       state.options = state.options.includes(key) ? state.options.filter((k) => k !== key) : [...state.options, key];
       renderOptionTiles();
       updateContactStickyTotal();
+      // renderOptionTiles() rebuilds every tile's markup, which would
+      // otherwise drop keyboard focus off the tile the person just toggled —
+      // restore it to the (new) element for the same option key.
+      document.querySelector(`.option-tile[data-key="${key}"]`)?.focus();
     });
   });
 }
