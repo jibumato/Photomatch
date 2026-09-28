@@ -38,7 +38,7 @@ function footerHtml() {
   <div class="pm-footer-inner">
     <div>
       <img src="assets/photomatch-logo-full-transparent.png" alt="PhotoMatch" style="height:120px;width:auto;object-fit:contain;margin-bottom:10px">
-      <div style="font:13px/1.9 var(--pm-font-body);color:var(--pm-text-3)">名古屋発、マッチングアプリ写真専門サービス。<br>© 2026 PhotoMatch</div>
+      <div style="font:13px/1.9 var(--pm-font-body);color:var(--pm-text-3)">名古屋発、マッチングアプリ写真専門サービス<br>© 2026 PhotoMatch</div>
     </div>
     <div class="pm-footer-links">
       <div class="pm-h">サービス情報</div>
