@@ -194,7 +194,7 @@ async function goSlotStep() {
   document.getElementById('slot-back-link').onclick = (e) => { e.preventDefault(); planParam != null ? (location.href = `profile.html?id=${photographerId}`) : showStep('plan'); };
   renderAreaChips();
   const plan = state.plans[state.planIndex];
-  document.getElementById('slot-plan-line').textContent = `${plan.name}（${plan.duration_min}分）・タップした時間から即予約が確定します。`;
+  document.getElementById('slot-plan-line').textContent = `${plan.name}（${plan.duration_min}分）・空いている時間をタップして、ご連絡先の入力へ進みます。`;
   document.getElementById('pm-loading-slot');
   await Promise.all([loadAvailability(), loadWeather()]);
   renderSlotGrid();
@@ -548,7 +548,7 @@ async function goSlotStepFromRestore() {
   await Promise.all([loadAvailability(), loadWeather()]);
   renderAreaChips();
   const plan = state.plans[state.planIndex];
-  document.getElementById('slot-plan-line').textContent = `${plan.name}（${plan.duration_min}分）・タップした時間から即予約が確定します。`;
+  document.getElementById('slot-plan-line').textContent = `${plan.name}（${plan.duration_min}分）・空いている時間をタップして、ご連絡先の入力へ進みます。`;
   renderSlotGrid();
   if (state.dayIndex != null && state.slotIndex != null) {
     goContactStep();
