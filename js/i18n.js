@@ -104,6 +104,12 @@ const DICT = {
   'search.badge.verified': { ja: '審査済', en: 'Verified' },
   'search.badge.english': { ja: '英語対応', en: 'English OK' },
   'search.empty.reset': { ja: '条件をリセットする', en: 'Reset filters' },
+  'search.empty.title': { ja: '条件に合うカメラマンが見つかりませんでした。', en: 'No photographers match those filters.' },
+  'search.filterToggle': { ja: '絞り込み・並び替え', en: 'Filter & Sort' },
+  'search.filter.hint.open': { ja: '絞り込む ▾', en: 'Filter ▾' },
+  'search.filter.hint.close': { ja: '閉じる ▴', en: 'Close ▴' },
+  'search.loadError': { ja: 'カメラマン情報の取得に失敗しました。Supabaseの接続設定（js/config.js）をご確認ください。', en: 'Failed to load photographers. Please check the Supabase connection settings (js/config.js).' },
+  'common.loading': { ja: '読み込み中…', en: 'Loading…' },
 
   // -- profile.html --
   'profile.back': { ja: '← 検索結果に戻る', en: '← Back to Results' },
@@ -290,6 +296,15 @@ const PLAN_DESC_EN = {
 function localize(map, ja) {
   if (!ja) return ja;
   return getLang() === 'en' ? (map[ja] || ja) : ja;
+}
+
+// Builds the parenthesized "(N reviews)" / "（N件）" bit used on search cards
+// and the profile page — handled as one function rather than dictionary
+// strings because the punctuation (full-width vs ASCII parens) and plural
+// form both depend on the count and the language together.
+export function reviewsCountLabel(n) {
+  const count = n ?? 0;
+  return getLang() === 'en' ? `(${count} review${count === 1 ? '' : 's'})` : `（${count}件）`;
 }
 
 export const areaText = (ja) => localize(AREA_EN, ja);

@@ -1,6 +1,7 @@
 import { mountLayout } from '../layout.js';
 import { listPhotographers } from '../repo.js';
 import { AREAS } from '../data.js';
+import { getLang, t, areaText, availabilityText, localizedField, reviewsCountLabel } from '../i18n.js';
 
 mountLayout();
 
@@ -25,17 +26,17 @@ function cardHtml(p) {
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
         <span style="font:700 15px var(--pm-font-body)">${escapeHtml(p.name)}</span>
         <div style="display:flex;gap:6px;flex-shrink:0">
-          ${p.speaks_english ? '<span class="pm-badge" style="background:oklch(0.94 0.05 245);color:oklch(0.42 0.14 250)">英語対応</span>' : ''}
-          <span class="pm-badge">審査済</span>
+          ${p.speaks_english ? `<span class="pm-badge" style="background:oklch(0.94 0.05 245);color:oklch(0.42 0.14 250)">${t('search.badge.english')}</span>` : ''}
+          <span class="pm-badge">${t('search.badge.verified')}</span>
         </div>
       </div>
-      <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${escapeHtml(p.area || '')}</div>
+      <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${escapeHtml(areaText(p.area) || '')}</div>
       <div style="display:flex;align-items:center;gap:6px;font:13px var(--pm-font-body);color:oklch(0.4 0.02 235);margin-bottom:8px">
-        <span style="color:var(--pm-star)">★</span>${p.rating ?? '-'}<span style="color:var(--pm-text-muted)">（${p.reviews_count ?? 0}件）</span>
+        <span style="color:var(--pm-star)">★</span>${p.rating ?? '-'}<span style="color:var(--pm-text-muted)">${reviewsCountLabel(p.reviews_count)}</span>
       </div>
       <div style="border-top:1px solid var(--pm-border-faint);padding-top:10px">
-        <div style="font:13px/1.6 var(--pm-font-body);color:oklch(0.4 0.03 220);margin-bottom:6px">${escapeHtml(p.price_comment || '')}</div>
-        <span style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${escapeHtml(p.availability_label || '')}</span>
+        <div style="font:13px/1.6 var(--pm-font-body);color:oklch(0.4 0.03 220);margin-bottom:6px">${escapeHtml(localizedField(p, 'price_comment', 'price_comment_en') || '')}</div>
+        <span style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${escapeHtml(availabilityText(p.availability_label) || '')}</span>
       </div>
     </div>
   </a>`;
@@ -78,7 +79,7 @@ function syncUrl() {
 }
 
 function renderChips() {
-  const chips = [{ label: 'すべて', value: '' }, ...areaOptions().map((a) => ({ label: a, value: a }))];
+  const chips = [{ label: t('search.filter.areaAll'), value: '' }, ...areaOptions().map((a) => ({ label: areaText(a), value: a }))];
   document.getElementById('pm-area-chips').innerHTML = chips.map((c) => `
     <span class="pm-chip pm-area-chip ${c.value === state.area ? 'is-active' : ''}" data-area="${escapeHtml(c.value)}">${escapeHtml(c.label)}</span>`).join('');
   document.querySelectorAll('.pm-area-chip').forEach((el) => {
@@ -92,14 +93,18 @@ function renderChips() {
 
 function render() {
   const list = applyFilters();
-  document.getElementById('pm-results-title').textContent = state.area ? `${state.area}のカメラマン` : 'カメラマンを探す';
+  document.getElementById('pm-results-title').textContent = state.area
+    ? (getLang() === 'en' ? `Photographers in ${areaText(state.area)}` : `${state.area}のカメラマン`)
+    : t('search.title');
 
   const conditions = [];
-  if (state.area) conditions.push(state.area);
-  if (state.femaleOnly) conditions.push('女性カメラマン');
-  if (state.englishOnly) conditions.push('英語対応');
+  if (state.area) conditions.push(areaText(state.area));
+  if (state.femaleOnly) conditions.push(t('search.filter.femaleOnly'));
+  if (state.englishOnly) conditions.push(t('search.filter.englishOnly'));
   const suffix = conditions.length ? `（${conditions.join('・')}）` : '';
-  document.getElementById('pm-result-count').textContent = `${list.length}件のカメラマンが見つかりました${suffix}`;
+  document.getElementById('pm-result-count').textContent = getLang() === 'en'
+    ? `${list.length} photographer${list.length === 1 ? '' : 's'} found${conditions.length ? ` (${conditions.join(', ')})` : ''}`
+    : `${list.length}件のカメラマンが見つかりました${suffix}`;
   // Shown next to the collapsed toggle on mobile, so an active filter is still
   // visible without opening the (otherwise collapsed) filter card.
   document.getElementById('pm-filter-summary-note').textContent = conditions.length ? conditions.join('・') : '';
@@ -107,8 +112,8 @@ function render() {
   document.getElementById('pm-results').innerHTML = list.length
     ? list.map(cardHtml).join('')
     : `<div class="pm-empty" style="grid-column:1/-1">
-         条件に合うカメラマンが見つかりませんでした。<br>
-         <span id="pm-reset" style="cursor:pointer;color:oklch(0.45 0.14 210);font-weight:700;text-decoration:underline">条件をリセットする</span>
+         ${t('search.empty.title')}<br>
+         <span id="pm-reset" style="cursor:pointer;color:oklch(0.45 0.14 210);font-weight:700;text-decoration:underline">${t('search.empty.reset')}</span>
        </div>`;
 
   const reset = document.getElementById('pm-reset');
@@ -177,10 +182,16 @@ function render() {
       render();
     });
 
+    const filterDetails = document.querySelector('.pm-filter-details');
+    const hint = document.getElementById('pm-filter-summary-hint');
+    const updateHint = () => { hint.textContent = t(filterDetails.open ? 'search.filter.hint.close' : 'search.filter.hint.open'); };
+    updateHint();
+    filterDetails.addEventListener('toggle', updateHint);
+
     renderChips();
     render();
   } catch (err) {
-    document.getElementById('pm-loading').textContent = 'カメラマン情報の取得に失敗しました。Supabaseの接続設定（js/config.js）をご確認ください。';
+    document.getElementById('pm-loading').textContent = t('search.loadError');
     console.error(err);
   }
 })();
