@@ -76,6 +76,8 @@ const DICT = {
   'login.toggle.toSignup.link': { ja: '新規登録', en: 'Sign up' },
   'login.toggle.toLogin.prefix': { ja: 'すでにアカウントをお持ちの方は ', en: 'Already have an account? ' },
   'login.toggle.toLogin.link': { ja: 'ログイン', en: 'Log in' },
+  'login.signupConfirmSent': { ja: '{email} に確認メールをお送りしました。メール内のリンクを開くと登録が完了します。', en: "We've sent a confirmation email to {email}. Open the link inside it to finish signing up." },
+  'login.genericError': { ja: 'メールアドレスまたはパスワードが正しくありません。', en: 'Incorrect email or password.' },
 
   // -- reset-password.html --
   'reset.back': { ja: '← ログインに戻る', en: '← Back to Log In' },
@@ -87,6 +89,24 @@ const DICT = {
   'reset.update.passwordLabel': { ja: '新しいパスワード', en: 'New Password' },
   'reset.update.password2Label': { ja: '新しいパスワード（確認）', en: 'Confirm New Password' },
   'reset.update.button': { ja: 'パスワードを変更する', en: 'Change Password' },
+  'reset.request.emailInvalid': { ja: 'メールアドレスを正しくご記入ください。', en: 'Please enter a valid email address.' },
+  'reset.request.doneTitle': { ja: 'メールを送信しました', en: 'Email sent' },
+  'reset.request.doneBody': { ja: '{email} がご登録済みの場合、パスワード再設定用のリンクをお送りしました。メール内のリンクを開いて、新しいパスワードを設定してください。届かない場合は迷惑メールフォルダもご確認ください。', en: "If {email} is registered with us, we've sent a password reset link to it. Open the link in the email to set a new password. If it doesn't arrive, please check your spam folder too." },
+  'reset.request.resendButton': { ja: 'もう一度送る', en: 'Send again' },
+  'reset.request.rateLimited': { ja: '短時間に何度も送信されています。数分おいてから再度お試しください。', en: 'Too many requests in a short time. Please wait a few minutes and try again.' },
+  'reset.request.sendFailed': { ja: '送信に失敗しました。時間をおいて再度お試しください。', en: 'Failed to send. Please try again shortly.' },
+  'reset.update.passwordTooShort': { ja: 'パスワードは6文字以上でご記入ください。', en: 'Password must be at least 6 characters.' },
+  'reset.update.passwordMismatch': { ja: '確認用のパスワードが一致しません。', en: 'The passwords do not match.' },
+  'reset.update.samePassword': { ja: '以前と同じパスワードは使えません。別のパスワードをご入力ください。', en: 'You cannot reuse your previous password. Please choose a different one.' },
+  'reset.update.linkExpired': { ja: 'リンクの有効期限が切れています。お手数ですが、再設定メールをもう一度お送りください。', en: 'This link has expired. Please request a new password reset email.' },
+  'reset.update.failed': { ja: 'パスワードを変更できませんでした。時間をおいて再度お試しください。', en: 'Could not change your password. Please try again shortly.' },
+  'reset.link.invalidTitle': { ja: 'リンクが無効か、有効期限が切れています', en: 'This link is invalid or has expired' },
+  'reset.link.invalidBody': { ja: 'お手数ですが、下のフォームから再設定メールをもう一度お送りください。', en: 'Please use the form below to send a new password reset email.' },
+  'reset.link.expiredTitle': { ja: 'リンクの有効期限が切れています', en: 'This link has expired' },
+  'reset.done.title': { ja: 'パスワードを変更しました', en: 'Password changed' },
+  'reset.done.body': { ja: '自動的に移動します。移動しない場合は{link}。', en: "You'll be redirected automatically. If not, {link}." },
+  'reset.done.linkText': { ja: 'こちら', en: 'click here' },
+  'reset.backToBooking': { ja: '← ご予約に戻る', en: '← Back to Your Booking' },
 
   // -- search.html --
   'search.back': { ja: '← トップに戻る', en: '← Back to Top' },

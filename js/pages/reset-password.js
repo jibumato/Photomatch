@@ -1,5 +1,6 @@
 import { mountLayout } from '../layout.js';
 import { getSession, getProfile, requestPasswordReset, updatePassword, safeNext } from '../auth.js';
+import { t, tf } from '../i18n.js';
 
 mountLayout();
 
@@ -33,7 +34,7 @@ requestBtn.addEventListener('click', async () => {
   const errorEl = document.getElementById('request-error');
   errorEl.style.display = 'none';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    errorEl.textContent = 'メールアドレスを正しくご記入ください。';
+    errorEl.textContent = t('reset.request.emailInvalid');
     errorEl.style.display = 'block';
     return;
   }
@@ -43,13 +44,13 @@ requestBtn.addEventListener('click', async () => {
     const done = document.getElementById('request-done');
     // Same message whether or not the address is registered, so this form
     // can't be used to find out who has an account.
-    done.innerHTML = `<span class="pm-note-title">メールを送信しました</span>${escapeHtml(email)} がご登録済みの場合、パスワード再設定用のリンクをお送りしました。メール内のリンクを開いて、新しいパスワードを設定してください。届かない場合は迷惑メールフォルダもご確認ください。`;
+    done.innerHTML = `<span class="pm-note-title">${t('reset.request.doneTitle')}</span>${tf('reset.request.doneBody', { email: escapeHtml(email) })}`;
     done.style.display = 'block';
-    requestBtn.textContent = 'もう一度送る';
+    requestBtn.textContent = t('reset.request.resendButton');
   } catch (err) {
     errorEl.textContent = /rate limit|too many|seconds/i.test(err.message || '')
-      ? '短時間に何度も送信されています。数分おいてから再度お試しください。'
-      : '送信に失敗しました。時間をおいて再度お試しください。';
+      ? t('reset.request.rateLimited')
+      : t('reset.request.sendFailed');
     errorEl.style.display = 'block';
     console.error(err);
   } finally {
@@ -65,24 +66,26 @@ updateBtn.addEventListener('click', async () => {
   const errorEl = document.getElementById('update-error');
   errorEl.style.display = 'none';
   let message = '';
-  if (password.length < 6) message = 'パスワードは6文字以上でご記入ください。';
-  else if (password !== password2) message = '確認用のパスワードが一致しません。';
+  if (password.length < 6) message = t('reset.update.passwordTooShort');
+  else if (password !== password2) message = t('reset.update.passwordMismatch');
   if (message) { errorEl.textContent = message; errorEl.style.display = 'block'; return; }
 
   updateBtn.disabled = true;
   try {
     await updatePassword(password);
     const dest = await destinationAfterReset();
-    document.getElementById('done-link').href = dest;
+    document.getElementById('done-body').innerHTML = tf('reset.done.body', {
+      link: `<a href="${dest}" id="done-link" style="color:oklch(0.45 0.14 210);font-weight:700">${t('reset.done.linkText')}</a>`,
+    });
     show('done-view');
     setTimeout(() => { location.href = dest; }, 1500);
   } catch (err) {
     const msg = err.message || '';
     errorEl.textContent = /different from the old|same.*password/i.test(msg)
-      ? '以前と同じパスワードは使えません。別のパスワードをご入力ください。'
+      ? t('reset.update.samePassword')
       : /session|expired|jwt/i.test(msg)
-        ? 'リンクの有効期限が切れています。お手数ですが、再設定メールをもう一度お送りください。'
-        : 'パスワードを変更できませんでした。時間をおいて再度お試しください。';
+        ? t('reset.update.linkExpired')
+        : t('reset.update.failed');
     errorEl.style.display = 'block';
     console.error(err);
     updateBtn.disabled = false;
@@ -94,12 +97,12 @@ updateBtn.addEventListener('click', async () => {
   if (rawNext && /booking\.html/.test(rawNext)) {
     const back = document.getElementById('back-link');
     back.href = safeNext(rawNext, 'login.html');
-    back.textContent = '← ご予約に戻る';
+    back.textContent = t('reset.backToBooking');
   }
 
   if (hashParams.get('error_code') || hashParams.get('error')) {
     const el = document.getElementById('link-error');
-    el.innerHTML = '<span class="pm-note-title">リンクが無効か、有効期限が切れています</span>お手数ですが、下のフォームから再設定メールをもう一度お送りください。';
+    el.innerHTML = `<span class="pm-note-title">${t('reset.link.invalidTitle')}</span>${t('reset.link.invalidBody')}`;
     el.style.display = 'block';
     show('request-view');
     return;
@@ -110,7 +113,7 @@ updateBtn.addEventListener('click', async () => {
     const session = await getSession();
     if (session) { show('update-view'); return; }
     const el = document.getElementById('link-error');
-    el.innerHTML = '<span class="pm-note-title">リンクの有効期限が切れています</span>お手数ですが、下のフォームから再設定メールをもう一度お送りください。';
+    el.innerHTML = `<span class="pm-note-title">${t('reset.link.expiredTitle')}</span>${t('reset.link.invalidBody')}`;
     el.style.display = 'block';
   }
   show('request-view');

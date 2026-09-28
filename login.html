@@ -16,30 +16,30 @@
 
 <main>
   <section style="max-width:420px;margin:0 auto;padding:56px 32px 100px">
-    <a class="pm-back-link" href="index.html">← トップに戻る</a>
-    <h1 id="form-title" style="font:700 26px var(--pm-font-body);margin:20px 0 6px">ログイン</h1>
-    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 24px">マイページから予約情報を確認できます。</p>
+    <a class="pm-back-link" href="index.html" data-i18n="search.back">← トップに戻る</a>
+    <h1 id="form-title" style="font:700 26px var(--pm-font-body);margin:20px 0 6px" data-i18n="login.title.login">ログイン</h1>
+    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 24px" data-i18n="login.lead">マイページから予約情報を確認できます。</p>
 
     <div class="pm-card" style="padding:24px;display:flex;flex-direction:column;gap:18px">
       <div class="pm-field" id="name-field" style="display:none">
-        <label>お名前</label>
-        <input class="pm-input" type="text" id="f-name" placeholder="例）山田 太郎">
+        <label data-i18n="login.field.name">お名前</label>
+        <input class="pm-input" type="text" id="f-name" placeholder="例）山田 太郎" data-i18n-placeholder="booking.contact.namePlaceholder">
       </div>
       <div class="pm-field">
-        <label>メールアドレス</label>
+        <label data-i18n="login.field.email">メールアドレス</label>
         <input class="pm-input" type="email" id="f-email" placeholder="guest@example.com">
       </div>
       <div class="pm-field">
-        <label>パスワード</label>
-        <input class="pm-input" type="password" id="f-password" placeholder="パスワード">
+        <label data-i18n="login.field.password">パスワード</label>
+        <input class="pm-input" type="password" id="f-password" placeholder="パスワード" data-i18n-placeholder="login.field.password">
       </div>
       <div class="pm-error-text" id="form-error" style="display:none"></div>
-      <button class="pm-btn pm-btn-primary pm-btn-block" id="submit-btn">ログイン</button>
-      <a href="reset-password.html" id="forgot-link" style="align-self:center;font:12px var(--pm-font-body);color:oklch(0.45 0.14 210);text-decoration:underline">パスワードをお忘れの方</a>
+      <button class="pm-btn pm-btn-primary pm-btn-block" id="submit-btn" data-i18n="login.submit.login">ログイン</button>
+      <a href="reset-password.html" id="forgot-link" style="align-self:center;font:12px var(--pm-font-body);color:oklch(0.45 0.14 210);text-decoration:underline" data-i18n="login.forgot">パスワードをお忘れの方</a>
     </div>
 
     <p style="text-align:center;margin-top:18px;font:13px var(--pm-font-body);color:var(--pm-text-3)">
-      アカウントをお持ちでない方は <span id="toggle-mode" style="cursor:pointer;color:oklch(0.45 0.14 210);font-weight:700;text-decoration:underline">新規登録</span>
+      <span id="toggle-prefix" data-i18n="login.toggle.toSignup.prefix">アカウントをお持ちでない方は </span><span id="toggle-mode" style="cursor:pointer;color:oklch(0.45 0.14 210);font-weight:700;text-decoration:underline" data-i18n="login.toggle.toSignup.link">新規登録</span>
     </p>
   </section>
 </main>
