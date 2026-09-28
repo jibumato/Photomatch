@@ -21,6 +21,12 @@
 .pm-nav-desktop nav { display: flex; gap: 26px; }
 .pm-nav-link { cursor: pointer; font: 500 14px var(--pm-font-body); color: var(--pm-text-2); white-space: nowrap; }
 .pm-nav-actions { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.pm-lang-toggle {
+  cursor: pointer; font: 700 12px var(--pm-font-body); color: oklch(0.4 0.03 220);
+  background: #fff; border: 1px solid var(--pm-border); border-radius: 100px; padding: 6px 14px; flex-shrink: 0;
+}
+.pm-lang-toggle:hover { border-color: oklch(0.66 0.13 236); color: oklch(0.45 0.14 210); }
+.pm-mobile-panel .pm-lang-toggle-mobile { align-self: flex-start; margin: 14px 4px 0; }
 .pm-menu-btn {
   width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--pm-border);
   background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;
@@ -89,8 +95,67 @@
 }
 .pm-textarea { resize: vertical; font-family: var(--pm-font-body); }
 .pm-error-text { color: var(--pm-warn-text); font: 12px var(--pm-font-body); margin-top: 6px; }
-.pm-note-box { background: oklch(0.97 0.012 210); border-radius: 12px; padding: 14px 16px; font: 11px/1.7 var(--pm-font-body); color: var(--pm-text-3); }
+.pm-note-box { background: oklch(0.97 0.012 210); border-radius: 12px; padding: 14px 16px; font: 12px/1.7 var(--pm-font-body); color: var(--pm-text-2); }
 .pm-note-box b, .pm-note-box .pm-note-title { display: block; font: 700 12px var(--pm-font-body); color: oklch(0.4 0.03 220); margin-bottom: 6px; }
+
+/* Same look as .pm-note-box, but collapsed by default via <details> — used where
+   the content is good-to-know rather than decision-critical, so it doesn't add
+   to the scroll length before the CTA. Native <details>/<summary> keeps keyboard
+   and screen-reader support without extra JS. */
+.pm-note-details { background: oklch(0.97 0.012 210); border-radius: 12px; padding: 4px 16px; font: 12px/1.7 var(--pm-font-body); color: var(--pm-text-2); }
+.pm-note-details[open] { padding-bottom: 14px; }
+.pm-note-details summary { cursor: pointer; list-style: none; font: 700 12px var(--pm-font-body); color: oklch(0.4 0.03 220); padding: 12px 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pm-note-details summary::-webkit-details-marker { display: none; }
+.pm-note-details summary::after { content: '+'; font: 700 15px var(--pm-font-num); color: oklch(0.55 0.1 210); flex-shrink: 0; }
+.pm-note-details[open] summary::after { content: '−'; }
+.pm-note-details summary:focus-visible { outline: 2px solid oklch(0.62 0.14 210); outline-offset: 2px; border-radius: 4px; }
+
+/* Strips native <button> chrome (border, background, font, alignment) so a
+   button can carry the exact same inline styles a clickable <div> used to —
+   used wherever a click target needs real keyboard/focus semantics. */
+.pm-unbutton { appearance: none; -webkit-appearance: none; margin: 0; text-align: left; font: inherit; color: inherit; }
+.pm-unbutton:focus-visible { outline: 2px solid oklch(0.62 0.14 210); outline-offset: 2px; }
+
+/* ---------- FAQ (top page) ---------- */
+.pm-faq-q {
+  cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 20px;
+}
+.pm-faq-q::-webkit-details-marker { display: none; }
+.pm-faq-icon::after { content: '＋'; }
+.pm-faq-item[open] .pm-faq-icon::after { content: '−'; }
+.pm-faq-q:focus-visible { outline: 2px solid oklch(0.62 0.14 210); outline-offset: -2px; }
+
+/* ---------- search: collapsible filter card ---------- */
+/* Collapsed by default on mobile (the filter card would otherwise fill most of
+   the first screen while only a couple of photographers are listed); always
+   expanded on desktop, where a toggle would add a click for no reason. */
+.pm-filter-summary {
+  cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 18px 20px; font: 700 14px var(--pm-font-body); color: oklch(0.28 0.02 240);
+}
+.pm-filter-summary::-webkit-details-marker { display: none; }
+.pm-filter-summary-hint { font: 600 12px var(--pm-font-body); color: oklch(0.5 0.14 210); flex-shrink: 0; }
+.pm-filter-summary:focus-visible { outline: 2px solid oklch(0.62 0.14 210); outline-offset: -2px; border-radius: var(--pm-radius-card); }
+.pm-filter-summary-note { font: 600 12px var(--pm-font-body); color: oklch(0.5 0.14 210); margin-right: auto; margin-left: 4px; }
+.pm-filter-body { padding: 0 20px 18px; }
+@media (min-width: 861px) {
+  .pm-filter-summary { display: none; }
+  .pm-filter-body { display: block !important; padding: 18px 20px; }
+}
+
+/* ---------- sticky bottom CTA (booking: contact step) ---------- */
+.pm-sticky-cta {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  background: oklch(1 0 0 / 0.94); backdrop-filter: blur(10px);
+  border-top: 1px solid var(--pm-border-soft);
+  box-shadow: 0 -8px 24px oklch(0 0 0 / 0.06);
+  padding: 12px clamp(20px,5vw,32px) calc(12px + env(safe-area-inset-bottom));
+}
+.pm-sticky-cta-inner { max-width: 560px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
+.pm-sticky-cta-total { display: flex; flex-direction: column; line-height: 1.3; flex-shrink: 0; }
+.pm-sticky-cta-total-label { font: 600 11px var(--pm-font-body); color: var(--pm-text-3); }
+.pm-sticky-cta-total-value { font: 800 19px var(--pm-font-num); color: oklch(0.3 0.03 240); white-space: nowrap; }
+.pm-sticky-cta-inner .pm-btn { flex: 1; }
 
 /* ---------- footer ---------- */
 .pm-footer { border-top: 1px solid var(--pm-border-soft); padding: clamp(36px,8vw,56px) clamp(20px,5vw,32px); margin-top: 40px; }

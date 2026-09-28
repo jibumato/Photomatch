@@ -1,10 +1,13 @@
 // Static marketing / reference content shared across pages.
 // Ported from design_handoff_photomatch/PhotoMatch.dc.html sample data.
 
+// labelEn/descEn are additive display-only translations for the English
+// toggle — .label itself must stay untouched: functions/api/checkout/
+// create-session.js (server-side) matches booking requests against it.
 export const AREAS = [
-  { key: 'nagoya', label: '名古屋エリア', desc: '栄・名駅など都心のロケーション', lat: 35.1706, lon: 136.9086 },
-  { key: 'gifu', label: '岐阜エリア', desc: '長良川や街並みを背景に', lat: 35.4233, lon: 136.7606 },
-  { key: 'ichinomiya', label: '一宮エリア', desc: '落ち着いた雰囲気のスナップ', lat: 35.3039, lon: 136.8033 },
+  { key: 'nagoya', label: '名古屋エリア', labelEn: 'Nagoya Area', desc: '栄・名駅など都心のロケーション', descEn: 'Central locations like Sakae and Nagoya Station', lat: 35.1706, lon: 136.9086 },
+  { key: 'gifu', label: '岐阜エリア', labelEn: 'Gifu Area', desc: '長良川や街並みを背景に', descEn: 'Scenic backdrops along the Nagara River', lat: 35.4233, lon: 136.7606 },
+  { key: 'ichinomiya', label: '一宮エリア', labelEn: 'Ichinomiya Area', desc: '落ち着いた雰囲気のスナップ', descEn: 'Relaxed, low-key snapshots', lat: 35.3039, lon: 136.8033 },
 ];
 
 export const SHOT_TYPES = [
@@ -18,14 +21,14 @@ export const SHOT_TYPES = [
 // 効果を数値で断定する表示は、景品表示法上、根拠資料の提出を求められうるため
 // （不実証広告規制）。実証後に「※モニター◯名の実績」等の注記付きで戻す。
 export const STATS = [
-  { value: '250+', label: '名古屋エリア撮影実績' },
-  { value: '4.8', label: '平均カメラマン評価' },
+  { value: '250+', label: '名古屋エリア撮影実績', labelEn: 'Nagoya-area shoots completed' },
+  { value: '4.8', label: '平均カメラマン評価', labelEn: 'Average photographer rating' },
 ];
 
 export const TESTIMONIALS = [
-  { name: 'K.Tさん（20代・会社員）', starsLabel: '★★★★★', comment: 'これまで自撮りだったのが嘘みたいに反応が変わりました。撮影も自然体で話しながらできて緊張しませんでした。' },
-  { name: 'R.Sさん（30代・営業職）', starsLabel: '★★★★★', comment: '料金が事前に分かるので安心して予約できました。岐阜でのロケーションも雰囲気が良かったです。' },
-  { name: 'Y.Mさん（20代・エンジニア）', starsLabel: '★★★★☆', comment: 'マッチング数保証があったので思い切って依頼できました。仕上がりの写真も想像以上でした。' },
+  { name: 'K.Tさん（20代・会社員）', nameEn: 'K.T. (20s, office worker)', starsLabel: '★★★★★', comment: 'これまで自撮りだったのが嘘みたいに反応が変わりました。撮影も自然体で話しながらできて緊張しませんでした。', commentEn: "The response I'm getting compared to my old selfies is night and day. The shoot itself felt like a relaxed conversation, so I never got nervous." },
+  { name: 'R.Sさん（30代・営業職）', nameEn: 'R.S. (30s, sales)', starsLabel: '★★★★★', comment: '料金が事前に分かるので安心して予約できました。岐阜でのロケーションも雰囲気が良かったです。', commentEn: 'Knowing the price upfront made it easy to book with confidence, and the location in Gifu had a great atmosphere.' },
+  { name: 'Y.Mさん（20代・エンジニア）', nameEn: 'Y.M. (20s, engineer)', starsLabel: '★★★★☆', comment: 'マッチング数保証があったので思い切って依頼できました。仕上がりの写真も想像以上でした。', commentEn: 'The match-count guarantee is what convinced me to try it, and the finished photos exceeded what I expected.' },
 ];
 
 export const TARGET_PAINS = [
@@ -34,36 +37,54 @@ export const TARGET_PAINS = [
   '友達に撮ってもらった写真、なんか決まらない',
 ];
 
+// Parallel English array (same order/length as TARGET_PAINS) — plain
+// strings don't have anywhere to hang an additive *En field.
+export const TARGET_PAINS_EN = [
+  'The likes come in, but matches fizzle out right away',
+  "All I've got are selfies — nothing good enough for my profile",
+  "The photo a friend took just doesn't quite land",
+];
+
 export const SUPPORTED_APPS = ['Pairs', 'with', 'Omiai', 'タップル', 'Tinder', 'Bumble', '東カレデート', 'D³'];
+// Display-only romanizations for the two Japanese-only app names above,
+// used when English is selected (falls back to the original for anything
+// not listed here, e.g. if a new Japanese-only app is added later).
+export const SUPPORTED_APPS_EN = { 'タップル': 'Tapple', '東カレデート': 'TokyoCalendarDate' };
 
 export const HOW_IT_WORKS = [
   {
     step: '01',
-    title: '空き枠を選んで予約',
+    title: '空き枠を選んで予約', titleEn: 'Pick a Time & Book',
     desc: 'カメラマンとプランを選び、カレンダーから希望の時間をタップするだけ。決済まで完了してその場で予約が確定します。',
+    descEn: 'Choose a photographer and plan, then tap a time on the calendar. Pay on the spot and your booking is confirmed instantly.',
     note: '天気予報つきカレンダーで、3日後〜30日先まで選べます',
+    noteEn: 'The calendar shows the forecast and lets you book 3 to 30 days out',
   },
   {
     step: '02',
-    title: '当日は手ぶらで集合',
+    title: '当日は手ぶらで集合', titleEn: 'Show Up Empty-Handed',
     desc: '集合場所でご挨拶と撮影イメージの確認をしたら、そのまま撮影へ。ポーズや表情はカメラマンがリードするので、緊張していても大丈夫です。',
+    descEn: "Say hello at the meeting point, confirm the look you're going for, and start shooting. The photographer leads your pose and expression, so nerves are no problem.",
     note: '所要45分／着替えたい服が1〜2着あると印象違いのカットが撮れます',
+    noteEn: '45 minutes total — bring an extra outfit or two for some variety',
   },
   {
     step: '03',
-    title: 'レタッチ済みデータをお届け',
+    title: 'レタッチ済みデータをお届け', titleEn: 'Retouched Photos, Delivered',
     desc: '撮影後は解散。最短翌日〜3営業日以内に、レタッチ済みのデータをメールでお届けします。',
+    descEn: "That's it for the day — retouched photos arrive by email within 1–3 business days.",
     note: 'そのままマッチングアプリのメイン写真に使えます',
+    noteEn: 'Ready to use as your main dating-app photo',
   },
 ];
 
 export const SAFETY_POINTS = [
-  { title: '本人確認済みのカメラマン', desc: '掲載カメラマンは運転免許証などによる本人確認と、ポートフォリオ・接客研修の審査を通過した方のみです。' },
-  { title: '公共の場所での撮影', desc: '撮影は原則として公園や街なかなど公共のロケーションで実施します。密室での撮影は行いません。' },
-  { title: 'サイト内で完結する連絡', desc: 'やり取りはサイト内チャットで記録されます。外部連絡先の交換やサイト外取引はお断りしています。' },
-  { title: '女性利用者への配慮', desc: '女性カメラマンの指名や、同伴者ありでの撮影のご相談も可能です。安心して撮影いただける体制を整えています。' },
-  { title: '運営によるサポート', desc: 'トラブル時は運営が間に入って対応します。マッチング数保証・再撮影補償もサイト経由の予約が対象です。' },
-  { title: '写真の取り扱い', desc: '納品データはご本人のもの。無断での二次利用や公開は行わず、掲載する場合は必ず事前に許諾を得ます。' },
+  { title: '本人確認済みのカメラマン', titleEn: 'ID-Verified Photographers', desc: '掲載カメラマンは運転免許証などによる本人確認と、ポートフォリオ・接客研修の審査を通過した方のみです。', descEn: "Every listed photographer has passed ID verification (e.g. driver's license) plus a portfolio and customer-service review." },
+  { title: '公共の場所での撮影', titleEn: 'Shoots in Public Places', desc: '撮影は原則として公園や街なかなど公共のロケーションで実施します。密室での撮影は行いません。', descEn: 'Sessions take place in public spots like parks and city streets — never in a private, closed room.' },
+  { title: 'サイト内で完結する連絡', titleEn: 'All Communication Stays On-Site', desc: 'やり取りはサイト内チャットで記録されます。外部連絡先の交換やサイト外取引はお断りしています。', descEn: 'Messages are logged in the site chat. Exchanging outside contact details or dealing off-platform is not allowed.' },
+  { title: '女性利用者への配慮', titleEn: 'For Women, By Choice', desc: '女性カメラマンの指名や、同伴者ありでの撮影のご相談も可能です。安心して撮影いただける体制を整えています。', descEn: "Request a female photographer or bring someone along to the shoot — whatever helps you feel comfortable." },
+  { title: '運営によるサポート', titleEn: 'Support From Our Team', desc: 'トラブル時は運営が間に入って対応します。マッチング数保証・再撮影補償もサイト経由の予約が対象です。', descEn: "If something goes wrong, our team steps in. The match-count guarantee and reshoot coverage also apply to bookings made through the site." },
+  { title: '写真の取り扱い', titleEn: 'Your Photos Stay Yours', desc: '納品データはご本人のもの。無断での二次利用や公開は行わず、掲載する場合は必ず事前に許諾を得ます。', descEn: 'Delivered photos belong to you. We never reuse or publish them without your prior consent.' },
 ];
 
 export const LEGAL_PAGES = {
@@ -130,16 +151,36 @@ export const LEGAL_PAGES = {
 };
 
 export const FAQS = [
-  { q: '予約はどのくらい前からできますか？', a: 'ご予約は撮影日の3日前から承っています。空き枠カレンダーから、ご希望の日時をお選びください。' },
-  { q: '支払い方法を教えてください。', a: 'サイト上でのクレジットカード決済に対応しています。表示価格はすべて税込です。当日の追加料金は発生しません。' },
-  { q: '天候が悪いときはどうなりますか？', a: 'カレンダーに週間天気予報を表示しています。雨天が見込まれる場合は日程変更が可能なほか、屋内・アーケードなどのロケーションもご提案します。' },
-  { q: 'マッチング数保証とは何ですか？', a: '事前申請のうえ納品写真をメインに設定し、1ヶ月運用してもマッチング数が増えなかった場合、同じプランで無料で撮り直します。サイト経由のご予約が対象です。' },
-  { q: '撮影データはいつ受け取れますか？', a: '撮影後、最短翌日〜3営業日以内にメールにてGoogleフォトのURLを共有してのお渡しになります。' },
-  { q: 'キャンセルはできますか？', a: '撮影日の3日前まで無料、2日前は料金の50%、前日・当日は料金の100%をキャンセル料として申し受けます。マイページからお手続きいただけます。なお、集合時間に15分以上遅れた場合はキャンセル扱いとなることがあり、その際の返金はできません。' },
-  { q: '撮影場所の許可は自分で取る必要がありますか？', a: 'ロケーション撮影に必要な許可取得は運営・カメラマン側で対応します。お客様のお手間はかかりません。' },
-  { q: '当日の流れを教えてください。', a: '集合場所で簡単なご挨拶・撮影イメージの確認をした後、撮影スタートです。撮影中はカメラマンがポーズや表情もリードします。終了後はその場で解散、レタッチ済みデータは後日メールでお届けします。' },
-  { q: '持ち物は何が必要ですか？', a: '特別な持ち物は不要です。着替えたい服がある場合は他1〜2着、リップやヘアアイテムなど身だしなみを整えるものがあると安心です。' },
-  { q: '服装はどうすればいいですか？', a: '清潔感のある普段着がおすすめです。白・ネイビー・ベージュなど明るめの無地は写真映えします。過度な柄物や暗い色は避けると仕上がりが良くなります。' },
+  { q: '予約はどのくらい前からできますか？', qEn: 'How far in advance can I book?',
+    a: 'ご予約は撮影日の3日前から承っています。空き枠カレンダーから、ご希望の日時をお選びください。',
+    aEn: 'Bookings open starting 3 days before the shoot date. Pick a date and time from the availability calendar.' },
+  { q: '支払い方法を教えてください。', qEn: 'What payment methods are accepted?',
+    a: 'サイト上でのクレジットカード決済に対応しています。表示価格はすべて税込です。当日の追加料金は発生しません。',
+    aEn: 'Credit card, paid through the site. All prices shown include tax, and there are no additional charges on the day.' },
+  { q: '天候が悪いときはどうなりますか？', qEn: "What if the weather is bad?",
+    a: 'カレンダーに週間天気予報を表示しています。雨天が見込まれる場合は日程変更が可能なほか、屋内・アーケードなどのロケーションもご提案します。',
+    aEn: 'The calendar shows a weekly forecast. If rain looks likely, you can reschedule, or we can suggest a covered location like an arcade.' },
+  { q: 'マッチング数保証とは何ですか？', qEn: 'What is the match-count guarantee?',
+    a: '事前申請のうえ納品写真をメインに設定し、1ヶ月運用してもマッチング数が増えなかった場合、同じプランで無料で撮り直します。サイト経由のご予約が対象です。',
+    aEn: "Apply in advance, set your new photo as your main picture, and if your match count hasn't improved after a month of use, we'll reshoot the same plan for free. Only bookings made through the site qualify." },
+  { q: '撮影データはいつ受け取れますか？', qEn: 'When will I receive my photos?',
+    a: '撮影後、最短翌日〜3営業日以内にメールにてGoogleフォトのURLを共有してのお渡しになります。',
+    aEn: 'Within 1–3 business days after the shoot, by email with a shared Google Photos link.' },
+  { q: 'キャンセルはできますか？', qEn: 'Can I cancel my booking?',
+    a: '撮影日の3日前まで無料、2日前は料金の50%、前日・当日は料金の100%をキャンセル料として申し受けます。マイページからお手続きいただけます。なお、集合時間に15分以上遅れた場合はキャンセル扱いとなることがあり、その際の返金はできません。',
+    aEn: "Free up to 3 days before the shoot; 50% of the fee at 2 days before; 100% the day before or on the day. Cancel from My Page. Arriving more than 15 minutes late may be treated as a same-day cancellation, which is non-refundable." },
+  { q: '撮影場所の許可は自分で取る必要がありますか？', qEn: 'Do I need to get permission for the shoot location myself?',
+    a: 'ロケーション撮影に必要な許可取得は運営・カメラマン側で対応します。お客様のお手間はかかりません。',
+    aEn: "No — we and the photographer handle any permits the location needs, so it's no extra work for you." },
+  { q: '当日の流れを教えてください。', qEn: 'What happens on the day of the shoot?',
+    a: '集合場所で簡単なご挨拶・撮影イメージの確認をした後、撮影スタートです。撮影中はカメラマンがポーズや表情もリードします。終了後はその場で解散、レタッチ済みデータは後日メールでお届けします。',
+    aEn: "Meet at the pickup point, quickly go over the look you want, then start shooting — the photographer leads your poses and expressions. You're free to go once it wraps, and retouched photos follow by email." },
+  { q: '持ち物は何が必要ですか？', qEn: 'What should I bring?',
+    a: '特別な持ち物は不要です。着替えたい服がある場合は他1〜2着、リップやヘアアイテムなど身だしなみを整えるものがあると安心です。',
+    aEn: "Nothing special. An extra outfit or two is nice to have, along with any touch-up items like lip balm or a hairbrush." },
+  { q: '服装はどうすればいいですか？', qEn: 'What should I wear?',
+    a: '清潔感のある普段着がおすすめです。白・ネイビー・ベージュなど明るめの無地は写真映えします。過度な柄物や暗い色は避けると仕上がりが良くなります。',
+    aEn: "Clean, everyday clothes work best. Light, plain colors like white, navy, or beige photograph well — busy patterns and dark colors tend to work less well." },
 ];
 
 // label は AREAS 定数（名古屋／岐阜／一宮）と揃える。駅名としての
@@ -239,19 +280,28 @@ export const COLUMN_ARTICLES = [
   },
 ];
 
+// name/desc here are the marketing table's own copy (top.js only, no server
+// import) — planNameText()/planDescText() in js/i18n.js separately translate
+// the same wording where it's echoed back from the `plans` DB table (profile
+// / booking), since those come from a different source at runtime.
 export const PRICING_PLANS = [
-  { name: 'スマホプラン', price: '6,800', originalPrice: '7,800', discountLabel: '10%OFF', desc: '45分・10枚納品・スマホ撮影' },
-  { name: 'スタンダード', price: '9,800', originalPrice: '10,800', discountLabel: '10%OFF', desc: '45分・20枚納品' },
-  { name: 'スタンダードプラス', price: '12,800', originalPrice: '14,100', discountLabel: '10%OFF', desc: '45分・20枚納品＋スマホ用5枚' },
-  { name: '結婚相談所', price: '9,800', originalPrice: '10,800', discountLabel: '10%OFF', desc: '45分・10枚納品' },
+  { name: 'スマホプラン', nameEn: 'Smartphone Plan', price: '6,800', originalPrice: '7,800', discountLabel: '10%OFF', desc: '45分・10枚納品・スマホ撮影', descEn: '45 min · 10 photos delivered · shot on smartphone' },
+  { name: 'スタンダード', nameEn: 'Standard', price: '9,800', originalPrice: '10,800', discountLabel: '10%OFF', desc: '45分・20枚納品', descEn: '45 min · 20 photos delivered' },
+  { name: 'スタンダードプラス', nameEn: 'Standard Plus', price: '12,800', originalPrice: '14,100', discountLabel: '10%OFF', desc: '45分・20枚納品＋スマホ用5枚', descEn: '45 min · 20 photos delivered + 5 smartphone crops' },
+  { name: '結婚相談所', nameEn: 'Matchmaking Agency', price: '9,800', originalPrice: '10,800', discountLabel: '10%OFF', desc: '45分・10枚納品', descEn: '45 min · 10 photos delivered' },
 ];
 
+// labelEn/descEn are additive display-only translations for the English
+// toggle — .label/.desc/.price themselves must stay untouched: functions/
+// _lib/pricing.js and functions/_lib/notifications.js (server-side) import
+// this array directly and read those fields (pricing, and the Japanese
+// confirmation email text).
 export const EXTRA_OPTIONS = [
-  { key: 'fullData', label: '全データ納品', desc: '撮影した全カットをまとめてお渡し', price: 3800 },
-  { key: 'retouch', label: 'スキンレタッチ（美肌補正）', desc: '肌の質感・くすみを自然に補正（20枚まで）', price: 3800 },
-  { key: 'speed', label: 'スピード納品', desc: '撮影日から原則3営業日以内の通常納期を、撮影日の翌営業日（土日祝を除く）に早めるオプションです。', price: 3800 },
-  { key: 'reschedule', label: 'あんしん振替プラン', desc: '当日の突然の不調や急用でも無料で日程変更が可能です（1回まで）', price: 4800 },
-  { key: 'oppositeSexPick', label: '異性スタッフ写真セレクト', desc: '異性のスタッフ目線でマッチングアプリ受けの良い一枚を選び、おすすめとしてご提案します', price: 3800 },
+  { key: 'fullData', label: '全データ納品', labelEn: 'All Photos Delivered', desc: '撮影した全カットをまとめてお渡し', descEn: 'Every shot from the session, delivered together', price: 3800 },
+  { key: 'retouch', label: 'スキンレタッチ（美肌補正）', labelEn: 'Skin Retouching', desc: '肌の質感・くすみを自然に補正（20枚まで）', descEn: 'Natural-looking skin smoothing and tone correction (up to 20 photos)', price: 3800 },
+  { key: 'speed', label: 'スピード納品', labelEn: 'Speed Delivery', desc: '撮影日から原則3営業日以内の通常納期を、撮影日の翌営業日（土日祝を除く）に早めるオプションです。', descEn: 'Moves the usual 1–3 business day turnaround up to the next business day after your shoot (excluding weekends/holidays).', price: 3800 },
+  { key: 'reschedule', label: 'あんしん振替プラン', labelEn: 'Peace-of-Mind Reschedule Plan', desc: '当日の突然の不調や急用でも無料で日程変更が可能です（1回まで）', descEn: 'Free rescheduling if something comes up on the day — sudden illness, an urgent conflict (once).', price: 4800 },
+  { key: 'oppositeSexPick', label: '異性スタッフ写真セレクト', labelEn: 'Opposite-Gender Staff Pick', desc: '異性のスタッフ目線でマッチングアプリ受けの良い一枚を選び、おすすめとしてご提案します', descEn: "A staff member of the opposite gender picks the shot they think will land best on dating apps, and suggests it to you.", price: 3800 },
 ];
 
 export const COUNSELING_QUESTIONS = [

@@ -1,5 +1,6 @@
 import { mountLayout } from '../layout.js';
 import { getPhotographer, getPlans, getReviews } from '../repo.js';
+import { t, areaText, availabilityText, localizedField, planNameText, planDescText, reviewsCountLabel, taxIncludedSuffix } from '../i18n.js';
 
 mountLayout();
 
@@ -37,37 +38,38 @@ function instagramLinkHtml(raw) {
       <div style="min-width:0">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap">
           <h1 style="font:700 28px var(--pm-font-body);margin:0">${photographer.name}</h1>
-          <span class="pm-badge">審査済カメラマン</span>
+          <span class="pm-badge">${t('profile.badge.verified')}</span>
+          ${photographer.speaks_english ? `<span class="pm-badge" style="background:oklch(0.94 0.05 245);color:oklch(0.42 0.14 250)">${t('profile.badge.english')}</span>` : ''}
         </div>
-        <div style="font:14px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${photographer.area || ''}</div>
+        <div style="font:14px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${areaText(photographer.area) || ''}</div>
         <div style="display:flex;align-items:center;gap:6px;font:14px var(--pm-font-body);color:oklch(0.4 0.02 235)">
-          <span style="color:var(--pm-star)">★</span>${photographer.rating ?? '-'}<span style="color:var(--pm-text-muted)">（${photographer.reviews_count ?? 0}件）</span>
+          <span style="color:var(--pm-star)">★</span>${photographer.rating ?? '-'}<span style="color:var(--pm-text-muted)">${reviewsCountLabel(photographer.reviews_count)}</span>
         </div>
         ${instagramLinkHtml(photographer.instagram)}
       </div>`;
 
-    document.getElementById('pm-bio').textContent = photographer.bio || '';
-    document.getElementById('pm-price-comment').textContent = photographer.price_comment || '';
-    document.getElementById('pm-availability').textContent = photographer.availability_label || '';
-    document.getElementById('pm-rating-line').innerHTML = `<span style="color:var(--pm-star)">★</span>${photographer.rating ?? '-'}（${photographer.reviews_count ?? 0}件のレビュー）`;
+    document.getElementById('pm-bio').textContent = localizedField(photographer, 'bio', 'bio_en') || '';
+    document.getElementById('pm-price-comment').textContent = localizedField(photographer, 'price_comment', 'price_comment_en') || '';
+    document.getElementById('pm-availability').textContent = availabilityText(photographer.availability_label) || '';
+    document.getElementById('pm-rating-line').innerHTML = `<span style="color:var(--pm-star)">★</span>${photographer.rating ?? '-'}${reviewsCountLabel(photographer.reviews_count, true)}`;
 
     if (photographer.is_visible === false) {
       const bookBtn = document.getElementById('pm-book-btn');
-      bookBtn.outerHTML = '<div class="pm-note-box" style="margin-bottom:10px">現在、こちらのカメラマンは新規のご予約受付を休止しています。</div>';
-      document.getElementById('pm-plans').innerHTML = '<div class="pm-empty">現在、こちらのカメラマンは新規のご予約受付を休止しています。</div>';
+      bookBtn.outerHTML = `<div class="pm-note-box" style="margin-bottom:10px">${t('profile.paused')}</div>`;
+      document.getElementById('pm-plans').innerHTML = `<div class="pm-empty">${t('profile.paused')}</div>`;
     } else {
       document.getElementById('pm-book-btn').href = `booking.html?id=${photographer.id}`;
       document.getElementById('pm-plans').innerHTML = plans.map((plan, idx) => `
         <a href="booking.html?id=${photographer.id}&plan=${idx}" class="pm-card" style="display:block;border-radius:14px;padding:16px;text-decoration:none;color:inherit">
-          <div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:6px">${plan.name}</div>
+          <div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:6px">${planNameText(plan.name)}</div>
           ${plan.original_price ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
             <span style="font:600 12px var(--pm-font-num);color:var(--pm-text-muted);text-decoration:line-through">¥${plan.original_price.toLocaleString()}</span>
             <span style="font:700 10px var(--pm-font-body);color:#fff;background:var(--pm-warn);padding:2px 7px;border-radius:100px">${plan.discount_label || ''}</span>
           </div>` : ''}
-          <div style="font:700 18px var(--pm-font-body);margin-bottom:2px">¥${plan.price.toLocaleString()}<span style="font:11px var(--pm-font-body);color:var(--pm-text-3)">（税込）</span></div>
-          <div style="font:12px/1.6 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:12px">${plan.description || ''}</div>
-          <div style="text-align:center;background:var(--pm-bg-mint);color:oklch(0.42 0.13 210);border-radius:8px;padding:9px;font:700 12px var(--pm-font-body)">このプランで予約</div>
-        </a>`).join('') || '<div class="pm-empty">プラン情報がありません。</div>';
+          <div style="font:700 18px var(--pm-font-body);margin-bottom:2px">¥${plan.price.toLocaleString()}<span style="font:11px var(--pm-font-body);color:var(--pm-text-3)">${taxIncludedSuffix()}</span></div>
+          <div style="font:12px/1.6 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:12px">${planDescText(plan.description) || ''}</div>
+          <div style="text-align:center;background:var(--pm-bg-mint);color:oklch(0.42 0.13 210);border-radius:8px;padding:9px;font:700 12px var(--pm-font-body)">${t('profile.bookThisPlan')}</div>
+        </a>`).join('') || `<div class="pm-empty">${t('profile.plansEmpty')}</div>`;
     }
 
     document.getElementById('pm-reviews').innerHTML = reviews.map((rv) => `
@@ -77,9 +79,9 @@ function instagramLinkHtml(raw) {
           <span style="font:13px var(--pm-font-body);color:var(--pm-star)">${starsLabel(rv.stars)}</span>
         </div>
         <div style="font:13px/1.7 var(--pm-font-body);color:oklch(0.45 0.02 235)">${rv.comment || ''}</div>
-      </div>`).join('') || '<div class="pm-empty">まだレビューはありません。</div>';
+      </div>`).join('') || `<div class="pm-empty">${t('profile.reviewsEmpty')}</div>`;
   } catch (err) {
-    document.getElementById('pm-loading').textContent = 'カメラマン情報の取得に失敗しました。';
+    document.getElementById('pm-loading').textContent = t('profile.loadError');
     console.error(err);
   }
 })();

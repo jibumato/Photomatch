@@ -91,6 +91,13 @@ alter table photographers add column if not exists is_visible boolean not null d
 -- Instagramのユーザー名（@なし）。設定されているカメラマンのみプロフィールにリンクを表示。
 alter table photographers add column if not exists instagram text;
 
+-- 英語対応可否（検索の「英語対応カメラマンのみ」絞り込みで使用）。デフォルトは
+-- 非対応。bio_en/price_comment_en は英語サイト表示用の任意の翻訳文で、
+-- 未設定の場合はクライアント側で日本語の bio/price_comment にフォールバックする。
+alter table photographers add column if not exists speaks_english boolean not null default false;
+alter table photographers add column if not exists bio_en text;
+alter table photographers add column if not exists price_comment_en text;
+
 -- Note: the gender/is_visible backfills for the seeded listings (p1〜p6) run
 -- further down, after `insert into photographers` — on a genuinely fresh
 -- database these rows don't exist yet at this point in the file, so an
@@ -406,6 +413,18 @@ update photographers set is_visible = false where id in ('p3', 'p4');
 
 -- `instagram is null` so a value later changed in the dashboard isn't overwritten on re-run.
 update photographers set instagram = 'ooo.neige' where id = 'p2' and instagram is null;
+
+-- 同様に、photo_url が追加される前に作成された既存行を埋める
+-- （`photo_url is null` なので、後からダッシュボードで変更した値は上書きしない）。
+update photographers set photo_url = 'assets/cameraman-asano.jpg' where id = 'p2' and photo_url is null;
+
+-- TAKUMI（p1）のみ英語対応。bio_en/price_comment_en は `is null` の場合だけ
+-- 埋めるので、後からダッシュボードで手を入れた文面は上書きしない。
+update photographers set speaks_english = true where id = 'p1';
+update photographers set bio_en = 'Specializing in photos for dating apps. I keep the conversation relaxed and natural throughout the shoot, so your expression never looks stiff. Most sessions take place in central Nagoya.'
+  where id = 'p1' and bio_en is null;
+update photographers set price_comment_en = 'If you tend to get nervous in front of the camera, that''s exactly why I''d love to hear from you — feel free to reach out!'
+  where id = 'p1' and price_comment_en is null;
 
 -- 上の insert は既存インストールでは何もしないため、ひとこと（price_comment）
 -- の変更を既存行にも当てる。
