@@ -13,8 +13,10 @@
   .pm-header { position: static; }
 }
 .pm-logo { display: flex; align-items: center; gap: 9px; cursor: pointer; flex-shrink: 0; }
-.pm-logo img { width: 30px; height: 30px; object-fit: contain; }
-.pm-logo span { font: 700 21px Georgia, 'Times New Roman', serif; letter-spacing: -0.01em; color: oklch(0.22 0.02 240); }
+/* The wordmark is cropped from the official logo (assets/photomatch-logo-full-*.png)
+   rather than typeset, so the header always matches the brand logotype exactly. */
+.pm-logo .pm-logo-icon { width: 30px; height: 30px; object-fit: contain; }
+.pm-logo .pm-logo-type { height: 22px; width: auto; display: block; }
 .pm-nav-desktop { display: flex; align-items: center; gap: 32px; }
 .pm-nav-desktop nav { display: flex; gap: 26px; }
 .pm-nav-link { cursor: pointer; font: 500 14px var(--pm-font-body); color: var(--pm-text-2); white-space: nowrap; }

@@ -12,8 +12,8 @@ function headerHtml(loginLabel, loginHref) {
   return `
   <div class="pm-header-inner">
     <a class="pm-logo" href="index.html">
-      <img src="assets/photomatch-icon-transparent.png" alt="">
-      <span>Photo match</span>
+      <img class="pm-logo-icon" src="assets/photomatch-icon-transparent.png" alt="">
+      <img class="pm-logo-type" src="assets/photomatch-wordmark.png" alt="Photo match" width="176" height="22">
     </a>
     <div class="pm-nav-desktop pm-desktop-only">
       <nav>${nav}</nav>
