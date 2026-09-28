@@ -6,7 +6,7 @@ mountLayout();
 
 const STRIPE_BG = 'repeating-linear-gradient(135deg, oklch(0.9 0.05 200) 0px, oklch(0.9 0.05 200) 12px, oklch(0.96 0.03 210) 12px, oklch(0.96 0.03 210) 24px)';
 
-const state = { all: [], area: '', femaleOnly: false, sort: 'recommended' };
+const state = { all: [], area: '', femaleOnly: false, englishOnly: false, sort: 'recommended' };
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -24,7 +24,10 @@ function cardHtml(p) {
     <div style="padding:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
         <span style="font:700 15px var(--pm-font-body)">${escapeHtml(p.name)}</span>
-        <span class="pm-badge">審査済</span>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          ${p.speaks_english ? '<span class="pm-badge" style="background:oklch(0.94 0.05 245);color:oklch(0.42 0.14 250)">英語対応</span>' : ''}
+          <span class="pm-badge">審査済</span>
+        </div>
       </div>
       <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${escapeHtml(p.area || '')}</div>
       <div style="display:flex;align-items:center;gap:6px;font:13px var(--pm-font-body);color:oklch(0.4 0.02 235);margin-bottom:8px">
@@ -58,6 +61,7 @@ function applyFilters() {
   let list = state.all;
   if (state.area) list = list.filter((p) => p.area === state.area);
   if (state.femaleOnly) list = list.filter((p) => p.gender === 'female');
+  if (state.englishOnly) list = list.filter((p) => p.speaks_english);
   if (state.sort === 'rating') list = [...list].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
   else if (state.sort === 'reviews') list = [...list].sort((a, b) => (b.reviews_count ?? 0) - (a.reviews_count ?? 0));
   return list;
@@ -67,6 +71,7 @@ function syncUrl() {
   const params = new URLSearchParams();
   if (state.area) params.set('area', state.area);
   if (state.femaleOnly) params.set('female', '1');
+  if (state.englishOnly) params.set('english', '1');
   if (state.sort !== 'recommended') params.set('sort', state.sort);
   const qs = params.toString();
   history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
@@ -92,6 +97,7 @@ function render() {
   const conditions = [];
   if (state.area) conditions.push(state.area);
   if (state.femaleOnly) conditions.push('女性カメラマン');
+  if (state.englishOnly) conditions.push('英語対応');
   const suffix = conditions.length ? `（${conditions.join('・')}）` : '';
   document.getElementById('pm-result-count').textContent = `${list.length}件のカメラマンが見つかりました${suffix}`;
   // Shown next to the collapsed toggle on mobile, so an active filter is still
@@ -108,8 +114,9 @@ function render() {
   const reset = document.getElementById('pm-reset');
   if (reset) {
     reset.addEventListener('click', () => {
-      state.area = ''; state.femaleOnly = false; state.sort = 'recommended';
+      state.area = ''; state.femaleOnly = false; state.englishOnly = false; state.sort = 'recommended';
       document.getElementById('pm-female-only').checked = false;
+      document.getElementById('pm-english-only').checked = false;
       document.getElementById('pm-sort').value = 'recommended';
       renderChips();
       render();
@@ -127,12 +134,13 @@ function render() {
     const areaParam = params.get('area');
     if (areaParam && state.all.some((p) => p.area === areaParam)) state.area = areaParam;
     state.femaleOnly = params.get('female') === '1';
+    state.englishOnly = params.get('english') === '1';
     const sortParam = params.get('sort');
     if (['rating', 'reviews'].includes(sortParam)) state.sort = sortParam;
 
     // A shared/bookmarked link with a filter applied should show it open on
     // mobile too, rather than hiding the active condition behind the toggle.
-    if (state.area || state.femaleOnly) document.querySelector('.pm-filter-details').open = true;
+    if (state.area || state.femaleOnly || state.englishOnly) document.querySelector('.pm-filter-details').open = true;
 
     // The gender column ships in a later schema revision; if an install hasn't
     // run it yet every value is undefined, so hide the filter rather than
@@ -143,11 +151,25 @@ function render() {
       state.femaleOnly = false;
     }
 
+    // speaks_english ships in a later schema revision; on an install that
+    // hasn't run it yet every value is undefined (not `false`), so hide the
+    // filter rather than offering one that always returns zero results.
+    const hasEnglishData = state.all.some((p) => p.speaks_english !== undefined);
+    if (!hasEnglishData) {
+      document.getElementById('pm-english-toggle').style.display = 'none';
+      state.englishOnly = false;
+    }
+
     document.getElementById('pm-female-only').checked = state.femaleOnly;
+    document.getElementById('pm-english-only').checked = state.englishOnly;
     document.getElementById('pm-sort').value = state.sort;
 
     document.getElementById('pm-female-only').addEventListener('change', (e) => {
       state.femaleOnly = e.target.checked;
+      render();
+    });
+    document.getElementById('pm-english-only').addEventListener('change', (e) => {
+      state.englishOnly = e.target.checked;
       render();
     });
     document.getElementById('pm-sort').addEventListener('change', (e) => {
