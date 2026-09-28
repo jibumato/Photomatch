@@ -34,7 +34,7 @@ export const TARGET_PAINS = [
   '友達に撮ってもらった写真、なんか決まらない',
 ];
 
-export const SUPPORTED_APPS = ['Pairs', 'with', 'Omiai', 'タップル', 'Tinder', 'Bumble', '東カレデート', 'Dine'];
+export const SUPPORTED_APPS = ['Pairs', 'with', 'Omiai', 'タップル', 'Tinder', 'Bumble', '東カレデート', 'D³'];
 
 export const HOW_IT_WORKS = [
   {
