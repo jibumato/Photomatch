@@ -9,7 +9,7 @@ export const AREAS = [
 
 export const SHOT_TYPES = [
   { label: '一眼×正面笑顔', image: 'assets/shot-front-smile.jpg' },
-  { label: 'スマホ×自然体', image: 'assets/shot-natural-snap.jpg' },
+  { label: '一眼×フォーマル', image: 'assets/shot-natural-snap.jpg' },
   { label: '全身×私服', image: 'assets/shot-casual-fullbody.jpg' },
   { label: '趣味・アウトドア', image: 'assets/shot-outdoor-hobby.jpg' },
 ];
