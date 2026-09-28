@@ -12,8 +12,8 @@ function headerHtml(loginLabel, loginHref) {
   return `
   <div class="pm-header-inner">
     <a class="pm-logo" href="index.html">
-      <img src="assets/photomatch-icon-transparent.png" alt="">
-      <span>Photo match</span>
+      <img class="pm-logo-icon" src="assets/photomatch-icon-transparent.png" alt="">
+      <img class="pm-logo-type" src="assets/photomatch-wordmark.png" alt="Photo match" width="176" height="22">
     </a>
     <div class="pm-nav-desktop pm-desktop-only">
       <nav>${nav}</nav>
@@ -38,7 +38,7 @@ function footerHtml() {
   <div class="pm-footer-inner">
     <div>
       <img src="assets/photomatch-logo-full-transparent.png" alt="PhotoMatch" style="height:120px;width:auto;object-fit:contain;margin-bottom:10px">
-      <div style="font:13px/1.9 var(--pm-font-body);color:var(--pm-text-3)">名古屋発、マッチングアプリ写真専門サービス。<br>© 2026 PhotoMatch</div>
+      <div style="font:13px/1.9 var(--pm-font-body);color:var(--pm-text-3)">名古屋発、マッチングアプリ写真専門サービス<br>© 2026 PhotoMatch</div>
     </div>
     <div class="pm-footer-links">
       <div class="pm-h">サービス情報</div>

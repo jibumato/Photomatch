@@ -23,8 +23,8 @@
   <h1 style="font:700 24px var(--pm-font-body);margin:16px 0 6px">撮影プランを選ぶ</h1>
   <p id="plan-intro" style="font:14px var(--pm-font-body);color:var(--pm-text-3);margin:0 0 20px"></p>
   <div class="pm-note-box pm-login-hint" style="display:none;margin-bottom:24px">
-    <span class="pm-note-title">ログインについて</span>
-    空き枠の確認はログインなしでご覧いただけます。ログイン（かんたん新規登録）が必要になるのは、お支払いに進む直前の1回だけです。
+    <span class="pm-note-title">会員登録について</span>
+    事前の会員登録は不要です。ご連絡先の入力画面でメールアドレスとパスワードを入れるだけで、そのまま登録・ご予約いただけます。
   </div>
   <div id="plan-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px"></div>
 </section>
@@ -47,8 +47,8 @@
   </div>
   <div class="pm-cal-scroll"><div id="slot-grid" class="pm-cal-grid"></div></div>
   <div class="pm-note-box pm-login-hint" style="display:none;margin-top:16px">
-    <span class="pm-note-title">ログインについて</span>
-    ログイン（かんたん新規登録）が必要になるのは、お支払いに進む直前の1回だけです。入力中の内容は引き継がれます。
+    <span class="pm-note-title">会員登録について</span>
+    事前の会員登録は不要です。次の画面でメールアドレスとパスワードを入れるだけで、そのまま登録・ご予約いただけます。
   </div>
 </section>
 
@@ -57,20 +57,29 @@
   <a class="pm-back-link" href="#" id="contact-back-link">← 枠選択に戻る</a>
   <h1 style="font:700 24px var(--pm-font-body);margin:16px 0 6px">ご連絡先を入力</h1>
   <div id="contact-summary" style="background:var(--pm-bg-mint);border-radius:14px;padding:18px;margin-bottom:24px;font:13px/1.8 var(--pm-font-body);color:oklch(0.35 0.03 220)"></div>
-  <div id="auth-gate" class="pm-card" style="display:none;padding:20px;margin-bottom:20px;font:13px/1.8 var(--pm-font-body);color:var(--pm-text-2)">
-    ご予約にはログインが必要です。<a href="#" id="auth-gate-link" style="color:oklch(0.45 0.14 210);font-weight:700">ログイン / 新規登録はこちら</a>
-  </div>
   <div class="pm-card" style="padding:24px;display:flex;flex-direction:column;gap:18px">
     <div class="pm-field">
-      <label>お名前 <span class="pm-req">必須</span></label>
-      <input class="pm-input" type="text" id="f-name" placeholder="例）山田 太郎">
+      <label for="f-name">お名前 <span class="pm-req">必須</span></label>
+      <input class="pm-input" type="text" id="f-name" autocomplete="name" placeholder="例）山田 太郎">
       <div class="pm-error-text" id="err-name" style="display:none">お名前をご記入ください</div>
     </div>
     <div class="pm-field">
-      <label>連絡先（メールまたは電話番号） <span class="pm-req">必須</span></label>
-      <input class="pm-input" type="text" id="f-contact" placeholder="サイト内チャット・連絡に使用します">
-      <div class="pm-error-text" id="err-contact" style="display:none">連絡先をご記入ください</div>
+      <label for="f-email">メールアドレス <span class="pm-req">必須</span></label>
+      <input class="pm-input" type="email" id="f-email" autocomplete="email" inputmode="email" placeholder="例）guest@example.com">
+      <div style="font:11px/1.6 var(--pm-font-body);color:var(--pm-text-3);margin-top:6px" id="email-hint">予約確定メールをお送りします。</div>
+      <div class="pm-error-text" id="err-email" style="display:none">メールアドレスを正しくご記入ください</div>
     </div>
+    <div class="pm-field" id="password-field" style="display:none">
+      <label for="f-password">パスワード <span class="pm-req">必須</span></label>
+      <input class="pm-input" type="password" id="f-password" autocomplete="current-password" placeholder="6文字以上">
+      <div style="font:11px/1.6 var(--pm-font-body);color:var(--pm-text-3);margin-top:6px">初めての方はこのまま会員登録、登録済みの方はログインします（別ページへの移動はありません）。マイページでの予約確認・カメラマンとのメッセージに使います。</div>
+      <div class="pm-error-text" id="err-password" style="display:none"></div>
+    </div>
+    <div class="pm-field">
+      <label for="f-phone">電話番号 <span style="font:400 11px var(--pm-font-body);color:var(--pm-text-3)">任意</span></label>
+      <input class="pm-input" type="tel" id="f-phone" autocomplete="tel" inputmode="tel" placeholder="当日の緊急連絡用（例）090-1234-5678">
+    </div>
+    <div id="auth-notice" class="pm-note-box" style="display:none"></div>
     <div class="pm-field">
       <label>オプション（追加料金・任意）</label>
       <div id="option-tiles" style="display:flex;flex-direction:column;gap:10px"></div>

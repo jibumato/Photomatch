@@ -8,6 +8,7 @@ Disallow: /booking.html
 Disallow: /pro-login.html
 Disallow: /admin.html
 Disallow: /ops-login.html
+Disallow: /reset-password.html
 Disallow: /ops.html
 
 # コラムの旧URL。記事ごとの個別ページ（/column-<id>.html）へ転送するだけのページ。
