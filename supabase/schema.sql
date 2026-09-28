@@ -407,6 +407,10 @@ update photographers set is_visible = false where id in ('p3', 'p4');
 -- `instagram is null` so a value later changed in the dashboard isn't overwritten on re-run.
 update photographers set instagram = 'ooo.neige' where id = 'p2' and instagram is null;
 
+-- 同様に、photo_url が追加される前に作成された既存行を埋める
+-- （`photo_url is null` なので、後からダッシュボードで変更した値は上書きしない）。
+update photographers set photo_url = 'assets/cameraman-asano.jpg' where id = 'p2' and photo_url is null;
+
 -- 上の insert は既存インストールでは何もしないため、ひとこと（price_comment）
 -- の変更を既存行にも当てる。
 update photographers set price_comment = 'アプリやSNSアイコン、結婚相談所のお写真まで。魅力が伝わる、自然な瞬間をお写真に残します。' where id = 'p2';
