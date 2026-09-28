@@ -28,14 +28,16 @@ function headerHtml(loginKey, loginHref) {
         <a class="pm-btn pm-btn-primary" href="search.html" data-i18n="nav.cta">${t('nav.cta')}</a>
       </div>
     </div>
-    <button class="pm-menu-btn pm-mobile-only" id="pm-menu-toggle" aria-controls="pm-mobile-panel" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
+    <div class="pm-mobile-actions pm-mobile-only">
+      <button type="button" class="pm-lang-toggle" id="pm-lang-toggle-mobile" data-i18n="lang.toggle.label">${t('lang.toggle.label')}</button>
+      <button class="pm-menu-btn" id="pm-menu-toggle" aria-controls="pm-mobile-panel" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </div>
   <div class="pm-mobile-panel pm-mobile-only" id="pm-mobile-panel" hidden>
     ${nav}
     ${loginLink}
-    <button type="button" class="pm-lang-toggle pm-lang-toggle-mobile" id="pm-lang-toggle-mobile" data-i18n="lang.toggle.label">${t('lang.toggle.label')}</button>
     <a class="pm-btn pm-btn-primary" style="margin-top:10px;justify-content:center" href="search.html" data-i18n="nav.cta">${t('nav.cta')}</a>
   </div>`;
 }
