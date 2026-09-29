@@ -43,6 +43,7 @@ document.getElementById('pm-testimonials').innerHTML = TESTIMONIALS.map((item) =
 
 document.getElementById('pm-steps').innerHTML = HOW_IT_WORKS.map((s) => `
   <div class="pm-card" style="padding:26px 24px;position:relative">
+    ${s.img ? `<img src="${s.img}" alt="" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;margin-bottom:16px">` : ''}
     <div style="display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:38px;border-radius:50%;background:var(--pm-brand-grad);color:#fff;font:800 15px var(--pm-font-num);margin-bottom:14px">${s.step}</div>
     <div style="font:700 16px var(--pm-font-body);margin-bottom:8px">${L(s, 'title')}</div>
     <div style="font:14px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:14px">${L(s, 'desc')}</div>

@@ -59,6 +59,7 @@ export const HOW_IT_WORKS = [
     descEn: 'Choose a photographer and plan, then tap a time on the calendar. Pay on the spot and your booking is confirmed instantly.',
     note: '天気予報つきカレンダーで、3日後〜30日先まで選べます',
     noteEn: 'The calendar shows the forecast and lets you book 3 to 30 days out',
+    img: 'assets/how-it-works-01-booking.jpg',
   },
   {
     step: '02',
@@ -67,6 +68,7 @@ export const HOW_IT_WORKS = [
     descEn: "Say hello at the meeting point, confirm the look you're going for, and start shooting. The photographer leads your pose and expression, so nerves are no problem.",
     note: '所要45分／着替えたい服が1〜2着あると印象違いのカットが撮れます',
     noteEn: '45 minutes total — bring an extra outfit or two for some variety',
+    img: 'assets/how-it-works-02-meet.jpg',
   },
   {
     step: '03',
@@ -75,6 +77,7 @@ export const HOW_IT_WORKS = [
     descEn: "That's it for the day — retouched photos arrive by email within 1–3 business days.",
     note: 'そのままマッチングアプリのメイン写真に使えます',
     noteEn: 'Ready to use as your main dating-app photo',
+    img: 'assets/how-it-works-03-delivery.jpg',
   },
 ];
 
