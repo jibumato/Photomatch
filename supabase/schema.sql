@@ -438,7 +438,7 @@ insert into plans (photographer_id, name, price, original_price, discount_label,
 select p.id, v.name, v.price, v.original_price, v.discount_label, v.description, v.duration_min, v.sort_order
 from photographers p
 cross join (values
-  ('スマホプラン', 6800, 7800, '10%OFF', '45分・10枚納品・スマホ撮影', 45, 0),
+  ('スマホプラン', 6800, 7800, '10%OFF', '45分・20枚納品・スマホ撮影', 45, 0),
   ('スタンダード', 9800, 10800, '10%OFF', '45分・20枚納品', 45, 1),
   ('スタンダードプラス', 12800, 14100, '10%OFF', '45分・20枚納品＋スマホ用5枚', 45, 2),
   ('結婚相談所', 9800, 10800, '10%OFF', '45分・10枚納品', 45, 3)
@@ -452,6 +452,9 @@ where p.id in ('p1','p2','p3','p4','p5','p6')
 
 -- 上の insert は既存の行には触れないため、価格改定を既存インストールにも当てる。
 update plans set price = 6800, original_price = 7800, discount_label = '10%OFF', duration_min = 45
+  where name = 'スマホプラン' and photographer_id in ('p1','p2','p3','p4','p5','p6');
+-- 納品枚数を10枚→20枚に変更したため、既存インストールの description も揃える。
+update plans set description = '45分・20枚納品・スマホ撮影'
   where name = 'スマホプラン' and photographer_id in ('p1','p2','p3','p4','p5','p6');
 update plans set price = 9800, original_price = 10800, discount_label = '10%OFF'
   where name in ('スタンダード', '結婚相談所') and photographer_id in ('p1','p2','p3','p4','p5','p6');

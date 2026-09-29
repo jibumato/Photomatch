@@ -285,7 +285,7 @@ export const COLUMN_ARTICLES = [
 // the same wording where it's echoed back from the `plans` DB table (profile
 // / booking), since those come from a different source at runtime.
 export const PRICING_PLANS = [
-  { name: 'スマホプラン', nameEn: 'Smartphone Plan', price: '6,800', originalPrice: '7,800', discountLabel: '10%OFF', desc: '45分・10枚納品・スマホ撮影', descEn: '45 min · 10 photos delivered · shot on smartphone' },
+  { name: 'スマホプラン', nameEn: 'Smartphone Plan', price: '6,800', originalPrice: '7,800', discountLabel: '10%OFF', desc: '45分・20枚納品・スマホ撮影', descEn: '45 min · 20 photos delivered · shot on smartphone' },
   { name: 'スタンダード', nameEn: 'Standard', price: '9,800', originalPrice: '10,800', discountLabel: '10%OFF', desc: '45分・20枚納品', descEn: '45 min · 20 photos delivered' },
   { name: 'スタンダードプラス', nameEn: 'Standard Plus', price: '12,800', originalPrice: '14,100', discountLabel: '10%OFF', desc: '45分・20枚納品＋スマホ用5枚', descEn: '45 min · 20 photos delivered + 5 smartphone crops' },
   { name: '結婚相談所', nameEn: 'Matchmaking Agency', price: '9,800', originalPrice: '10,800', discountLabel: '10%OFF', desc: '45分・10枚納品', descEn: '45 min · 10 photos delivered' },
