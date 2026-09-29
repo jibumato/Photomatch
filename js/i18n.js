@@ -355,7 +355,7 @@ const PLAN_NAME_EN = {
 };
 
 const PLAN_DESC_EN = {
-  '45分・10枚納品・スマホ撮影': '45 min · 10 photos delivered · shot on smartphone',
+  '45分・20枚納品・スマホ撮影': '45 min · 20 photos delivered · shot on smartphone',
   '45分・20枚納品': '45 min · 20 photos delivered',
   '45分・20枚納品＋スマホ用5枚': '45 min · 20 photos delivered + 5 smartphone crops',
   '45分・10枚納品': '45 min · 10 photos delivered',
