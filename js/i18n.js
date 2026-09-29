@@ -278,7 +278,7 @@ const DICT = {
   'top.pricing.ourPrice': { ja: 'PhotoMatchなら ¥6,800〜', en: 'With PhotoMatch, from ¥6,800' },
   'top.pricing.ctaNote': { ja: 'プランは予約画面でも選べます', en: "You can also choose a plan on the booking screen" },
   'top.monitor.badge': { ja: '先着10名', en: 'First 10' },
-  'top.monitor.banner': { ja: 'モニター価格プラン募集中：スタンダードが半額¥4,900（税込）', en: 'Now recruiting monitors: Standard plan at half price, ¥4,900 (tax incl.)' },
+  'top.monitor.banner': { ja: 'モニター価格プラン募集中：スタンダードが半額¥4,900、スマホが半額¥3,400（税込）', en: 'Now recruiting monitors: Standard plan at half price ¥4,900, Smartphone plan at half price ¥3,400 (tax incl.)' },
   'top.monitor.link': { ja: '詳細を見る →', en: 'See details →' },
   'top.safety.title': { ja: '安心・安全への取り組み', en: 'Built for Peace of Mind' },
   'top.safety.desc': { ja: '初めての方も安心してご利用いただけるよう、運営が体制を整えています。', en: "We've put safeguards in place so first-time users can book with confidence." },
