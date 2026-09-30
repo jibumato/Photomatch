@@ -439,9 +439,9 @@ select p.id, v.name, v.price, v.original_price, v.discount_label, v.description,
 from photographers p
 cross join (values
   ('スマホプラン', 6800, 7800, '10%OFF', '45分・20枚納品・スマホ撮影', 45, 0),
-  ('スタンダード', 9800, 10800, '10%OFF', '45分・20枚納品', 45, 1),
-  ('スタンダードプラス', 12800, 14100, '10%OFF', '45分・20枚納品＋スマホ用5枚', 45, 2),
-  ('結婚相談所', 9800, 10800, '10%OFF', '45分・10枚納品', 45, 3)
+  ('スタンダード', 8800, 9800, '10%OFF', '45分・20枚納品', 45, 1),
+  ('スタンダードプラス', 11800, 13100, '10%OFF', '45分・20枚納品＋スマホ用5枚', 45, 2),
+  ('結婚相談所', 8800, 9800, '10%OFF', '45分・10枚納品', 45, 3)
 ) as v(name, price, original_price, discount_label, description, duration_min, sort_order)
 where p.id in ('p1','p2','p3','p4','p5','p6')
   -- plans has no unique key besides id, so on conflict can't dedupe; check
@@ -456,9 +456,9 @@ update plans set price = 6800, original_price = 7800, discount_label = '10%OFF',
 -- 納品枚数を10枚→20枚に変更したため、既存インストールの description も揃える。
 update plans set description = '45分・20枚納品・スマホ撮影'
   where name = 'スマホプラン' and photographer_id in ('p1','p2','p3','p4','p5','p6');
-update plans set price = 9800, original_price = 10800, discount_label = '10%OFF'
+update plans set price = 8800, original_price = 9800, discount_label = '10%OFF'
   where name in ('スタンダード', '結婚相談所') and photographer_id in ('p1','p2','p3','p4','p5','p6');
-update plans set price = 12800, original_price = 14100, discount_label = '10%OFF'
+update plans set price = 11800, original_price = 13100, discount_label = '10%OFF'
   where name = 'スタンダードプラス' and photographer_id in ('p1','p2','p3','p4','p5','p6');
 
 insert into reviews (photographer_id, reviewer_name, stars, comment)
