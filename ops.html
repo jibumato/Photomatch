@@ -54,6 +54,23 @@
         </div>
       </div>
 
+      <div class="pm-card" style="padding:22px;margin-bottom:48px">
+        <div style="font:700 15px var(--pm-font-body);margin-bottom:6px">仮パスワードの再発行</div>
+        <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 14px;max-width:520px">仮パスワードを紛失した・入力してもログインできない場合に、登録済みのカメラマンへ新しい仮パスワードを発行します。以前のパスワードは使えなくなります。</p>
+        <div style="display:flex;flex-direction:column;gap:14px;max-width:420px">
+          <div class="pm-field">
+            <label>カメラマンのメールアドレス</label>
+            <input class="pm-input" type="email" id="f-reset-email" placeholder="example@photomatch.jp">
+          </div>
+          <div class="pm-error-text" id="photographer-reset-error" style="display:none"></div>
+          <button class="pm-btn pm-btn-primary" id="photographer-reset-btn" style="align-self:flex-start">新しい仮パスワードを発行</button>
+        </div>
+        <div id="photographer-reset-result" style="display:none;margin-top:18px;padding:16px;border-radius:12px;background:var(--pm-bg-mint)">
+          <div style="font:700 13px var(--pm-font-body);color:oklch(0.4 0.02 235);margin-bottom:8px">再発行しました。このパスワードは二度と表示されません。コピーしてカメラマン本人にお伝えください。</div>
+          <div style="font:13px/1.9 var(--pm-font-body);color:oklch(0.35 0.02 235)" id="photographer-reset-creds"></div>
+        </div>
+      </div>
+
       <div style="margin-bottom:20px">
         <span style="background:var(--pm-pro-navy);color:#fff;font:700 11px var(--pm-font-body);padding:4px 12px;border-radius:100px;display:inline-block;margin-bottom:10px">運営管理</span>
         <h1 style="font:700 22px var(--pm-font-body);margin:0 0 6px">カメラマンの掲載管理</h1>

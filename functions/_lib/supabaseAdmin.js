@@ -85,3 +85,21 @@ export async function adminCreateUser(env, { email, password, metadata }) {
   }
   return data; // { id, email, ... }
 }
+
+// Sets a new password on an existing auth user via the GoTrue Admin API
+// (service_role only). email_confirm is forced on so an account that was
+// never confirmed can still be handed over with the new password.
+export async function adminSetPassword(env, userId, password) {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+    method: 'PUT',
+    headers: serviceHeaders(env, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ password, email_confirm: true }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(data.msg || data.error_description || data.error || 'パスワードの更新に失敗しました。');
+    err.status = res.status;
+    throw err;
+  }
+  return data;
+}

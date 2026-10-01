@@ -432,6 +432,11 @@ export async function createPhotographerAccount(name, email) {
   return callApi('/api/photographers/create', { name, email }, 'アカウント作成に失敗しました。');
 }
 
+// Ops only: issues a fresh temp password for an existing photographer account.
+export async function resetPhotographerPassword(email) {
+  return callApi('/api/photographers/reset-password', { email }, 'パスワードの再発行に失敗しました。');
+}
+
 // ---- monitor applications (モニター価格プログラム) ----
 
 export async function submitMonitorApplication({ hasExistingPhotos, currentApps, motivation, followUpOptIn }) {
