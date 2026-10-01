@@ -6,7 +6,8 @@ import {
   getBankAccount, saveBankAccount,
 } from '../repo.js';
 import { mountChatModal } from '../chat.js';
-import { SLOT_TIMES, buildBookingDays } from '../data.js';
+import { loadDailyWeather } from '../weather.js';
+import { AREAS, SLOT_TIMES, buildBookingDays, weatherIconFor } from '../data.js';
 
 mountLayout();
 
@@ -28,7 +29,18 @@ const state = {
   takenIntervals: {}, // iso -> [[startMin,endMin], ...]
   closedSet: new Set(), // `${iso}|${time}`
   bookings: [],
+  area: AREAS[0],
+  weather: null, // per-day { code, pop } aligned with `days`, or null if unavailable
 };
+
+// The forecast follows the photographer's own area (falling back to Nagoya
+// while it's still 未設定), since the grid has no per-booking area.
+async function loadWeather() {
+  state.weather = await loadDailyWeather(state.area, state.days);
+  document.getElementById('shift-weather-line').textContent = state.weather
+    ? `天気予報は「${state.area.label}」の予報です。`
+    : '天気予報を取得できませんでした。';
+}
 
 async function loadShifts() {
   const fromIso = state.days[0].iso;
@@ -60,8 +72,11 @@ function renderGrid() {
   grid.style.minWidth = (48 + state.days.length * 46) + 'px';
 
   let html = '<div></div>';
-  state.days.forEach((d) => {
-    html += `<div class="pm-cal-daylabel" style="color:${d.labelColor}">${d.label}<br><span style="font:400 11px var(--pm-font-num);color:var(--pm-text-3)">${d.dateLabel}</span></div>`;
+  state.days.forEach((d, i) => {
+    const w = state.weather && state.weather[i];
+    const wi = weatherIconFor(w ? w.code : null);
+    const pop = w && w.pop != null ? w.pop + '%' : '';
+    html += `<div class="pm-cal-daylabel" style="color:${d.labelColor}">${d.label}<br><span style="font:400 11px var(--pm-font-num);color:var(--pm-text-3)">${d.dateLabel}</span><br><span style="font:700 17px var(--pm-font-body);color:${wi.color}">${wi.icon}</span> <span style="font:600 11px var(--pm-font-body);color:var(--pm-text-3)">${pop}</span></div>`;
   });
 
   let openCount = 0;
@@ -284,10 +299,11 @@ async function init() {
   }
 
   state.photographerId = photographer.id;
+  state.area = AREAS.find((a) => a.label === photographer.area) || AREAS[0];
   document.getElementById('pm-admin').style.display = 'block';
   renderBankAccountSection(photographer);
 
-  const [bookings] = await Promise.all([getPhotographerBookings(state.photographerId), loadShifts()]);
+  const [bookings] = await Promise.all([getPhotographerBookings(state.photographerId), loadShifts(), loadWeather()]);
   state.bookings = bookings;
   computeTakenIntervals();
   renderGrid();
