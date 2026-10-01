@@ -4,6 +4,7 @@ import {
   getGuaranteeClaimsForReview, reviewGuaranteeClaim,
   getMonitorApplicationsForReview, reviewMonitorApplication,
   getPayoutCandidates, getGuaranteeClaimsForBookings, releasePayout, getBankAccountsForPhotographers,
+  createPhotographerAccount,
 } from '../repo.js';
 import { PHOTOGRAPHER_PAYOUT_RATE } from '../data.js';
 
@@ -298,6 +299,37 @@ async function load() {
 document.getElementById('logout-btn').addEventListener('click', async () => {
   await signOut();
   location.href = 'index.html';
+});
+
+document.getElementById('photographer-create-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('photographer-create-btn');
+  const errorEl = document.getElementById('photographer-create-error');
+  const resultEl = document.getElementById('photographer-create-result');
+  const credsEl = document.getElementById('photographer-create-creds');
+  const nameEl = document.getElementById('f-photographer-name');
+  const emailEl = document.getElementById('f-photographer-email');
+  const name = nameEl.value.trim();
+  const email = emailEl.value.trim();
+  errorEl.style.display = 'none';
+  resultEl.style.display = 'none';
+  if (!name || !email) {
+    errorEl.textContent = '名前とメールアドレスを入力してください。';
+    errorEl.style.display = 'block';
+    return;
+  }
+  btn.disabled = true;
+  try {
+    const data = await createPhotographerAccount(name, email);
+    credsEl.innerHTML = `メール：${escapeHtml(data.email)}<br>仮パスワード：${escapeHtml(data.password)}`;
+    resultEl.style.display = 'block';
+    nameEl.value = '';
+    emailEl.value = '';
+  } catch (err) {
+    errorEl.textContent = err.message || 'アカウント作成に失敗しました。';
+    errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 load().catch((err) => {

@@ -66,3 +66,22 @@ export async function getProfile(env, userId) {
   const rows = await restSelect(env, 'profiles', { id: `eq.${userId}`, select: '*' });
   return rows[0] || null;
 }
+
+// Creates a confirmed auth user via the GoTrue Admin API (service_role only).
+// `handle_new_user` (see schema.sql) picks up raw_user_meta_data on insert
+// and auto-creates the matching profiles/photographers rows, same as a
+// self-service sign-up through pro-login.html.
+export async function adminCreateUser(env, { email, password, metadata }) {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+    method: 'POST',
+    headers: serviceHeaders(env, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ email, password, email_confirm: true, user_metadata: metadata }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.msg || data.error_description || data.error || 'ユーザー作成に失敗しました。');
+    err.status = res.status;
+    throw err;
+  }
+  return data; // { id, email, ... }
+}

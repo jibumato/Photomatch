@@ -60,9 +60,11 @@ submitBtn.addEventListener('click', async () => {
   submitBtn.disabled = true;
   try {
     if (mode === 'signup') {
+      const confirmUrl = new URL('email-confirmed.html', location.href);
+      if (next) confirmUrl.searchParams.set('next', next);
       const data = await signUp({
         email, password, name, role: 'client',
-        redirectTo: new URL(next || 'mypage.html', location.href).href,
+        redirectTo: confirmUrl.href,
       });
       // With Supabase "Confirm email" on, there's no session until the emailed
       // link is opened — redirecting now would just bounce back to login.

@@ -43,9 +43,11 @@ begin
     new.email
   );
 
+  -- The stub starts hidden: area/photo/bio/plans are still empty, so it
+  -- shouldn't show up in search until ops fills it in and flips is_visible.
   if coalesce(new.raw_user_meta_data->>'role', 'client') = 'photographer' then
-    insert into public.photographers (id, profile_id, name, area, availability_label)
-    values (new.id::text, new.id, coalesce(new.raw_user_meta_data->>'name', '新規カメラマン'), '未設定', '');
+    insert into public.photographers (id, profile_id, name, area, availability_label, is_visible)
+    values (new.id::text, new.id, coalesce(new.raw_user_meta_data->>'name', '新規カメラマン'), '未設定', '', false);
   end if;
 
   return new;
@@ -410,6 +412,10 @@ update photographers set gender = 'female' where id in ('p2', 'p4', 'p6') and ge
 -- 伊藤 啓志（p3）・早川 ゆかり（p4）は参加未定のため一時的に非表示。
 -- 参加が決まったら update photographers set is_visible = true where id in ('p3','p4'); で戻す。
 update photographers set is_visible = false where id in ('p3', 'p4');
+
+-- セルフ登録で作られたまま未整備のカメラマン（エリア「未設定」）を非表示に。
+-- トリガーが非表示で作るようになる前に登録された分の後始末。
+update photographers set is_visible = false where area = '未設定' and profile_id is not null;
 
 -- `instagram is null` so a value later changed in the dashboard isn't overwritten on re-run.
 update photographers set instagram = 'ooo.neige' where id = 'p2' and instagram is null;

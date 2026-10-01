@@ -108,6 +108,21 @@ const DICT = {
   'reset.done.linkText': { ja: 'こちら', en: 'click here' },
   'reset.backToBooking': { ja: '← ご予約に戻る', en: '← Back to Your Booking' },
 
+  // ---------- email-confirmed.html ----------
+  'confirm.title': { ja: 'メールアドレスの確認が完了しました', en: 'Your email address is confirmed' },
+  'confirm.lead.client': { ja: 'ご登録ありがとうございます。ログインした状態になっています。', en: "Thanks for signing up. You're now logged in." },
+  'confirm.lead.pro': { ja: 'カメラマンアカウントの登録が完了し、ログインした状態になっています。', en: "Your photographer account is set up and you're now logged in." },
+  'confirm.pro.stepsTitle': { ja: 'はじめに設定すること', en: 'First steps' },
+  'confirm.pro.step1': { ja: '撮影を受け付ける時間枠を設定する', en: 'Set the time slots you can take bookings' },
+  'confirm.pro.step2': { ja: '報酬の振込先口座を登録する', en: 'Register the bank account for your payouts' },
+  'confirm.pro.note': { ja: '写真・紹介文・料金プランなどのプロフィールは運営が整えたあと、検索ページに公開されます。', en: 'Your profile (photo, bio and plans) goes live in search once our team has set it up.' },
+  'confirm.cta.pro': { ja: '管理画面へ進む', en: 'Go to Dashboard' },
+  'confirm.cta.mypage': { ja: 'マイページへ進む', en: 'Go to My Page' },
+  'confirm.cta.continue': { ja: '続ける', en: 'Continue' },
+  'confirm.error.title': { ja: '確認リンクが無効か、有効期限が切れています', en: 'This confirmation link is invalid or has expired' },
+  'confirm.error.body': { ja: 'このリンクはすでに使用済みの可能性があります。確認が済んでいれば、そのままログインできます。ログインできない場合は、お手数ですがもう一度ご登録ください。', en: "The link may already have been used. If your email is already confirmed, you can simply log in. If you can't, please sign up again." },
+  'confirm.error.cta': { ja: 'ログイン画面へ', en: 'Go to Log In' },
+
   // -- search.html --
   'search.back': { ja: '← トップに戻る', en: '← Back to Top' },
   'search.title': { ja: 'カメラマンを探す', en: 'Find a Photographer' },
