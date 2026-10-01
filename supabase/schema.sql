@@ -93,6 +93,12 @@ alter table photographers add constraint photographers_gender_check check (gende
 -- false にする（データは消さず、公開範囲だけ絞る）。デフォルトは表示。
 alter table photographers add column if not exists is_visible boolean not null default true;
 
+-- 公開は2つのフラグの組み合わせ。is_visible は運営の承認（運営のみ変更可。
+-- ops.html「カメラマンの掲載管理」、/api/photographers/visibility 経由）、
+-- is_paused は本人による一時休止（admin.html から本人が切り替え）。
+-- 検索・予約に出るのは is_visible = true かつ is_paused = false のときだけ。
+alter table photographers add column if not exists is_paused boolean not null default false;
+
 -- Instagramのユーザー名（@なし）。設定されているカメラマンのみプロフィールにリンクを表示。
 alter table photographers add column if not exists instagram text;
 
@@ -130,7 +136,7 @@ revoke insert, update, delete on photographers from anon, authenticated;
 create policy "photographers: owner update" on photographers
   for update using (profile_id = auth.uid()) with check (profile_id = auth.uid());
 
-grant update (name, area, gender, bio, price_comment, instagram, speaks_english, bio_en, price_comment_en, photo_url)
+grant update (name, area, gender, bio, price_comment, instagram, speaks_english, bio_en, price_comment_en, photo_url, is_paused)
   on photographers to authenticated;
 
 -- These columns are now written by the photographers themselves and rendered

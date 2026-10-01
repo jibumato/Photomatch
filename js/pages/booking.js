@@ -1,6 +1,6 @@
 import { mountLayout } from '../layout.js';
 import { getSession, getProfile, signInOrSignUp, resendSignupEmail } from '../auth.js';
-import { getPhotographer, getPlans, getBooking, getTakenSlots, getClosedShifts } from '../repo.js';
+import { getPhotographer, getPlans, getBooking, getTakenSlots, getClosedShifts, isBookable } from '../repo.js';
 import { mountSheetModal } from '../sheet.js';
 import { loadDailyWeather } from '../weather.js';
 import { escapeHtml } from '../util.js';
@@ -508,7 +508,7 @@ function showConfirmForBooking(booking) {
       return;
     }
 
-    if (photographer.is_visible === false) {
+    if (!isBookable(photographer)) {
       document.getElementById('pm-loading').textContent = t('booking.paused');
       return;
     }

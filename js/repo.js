@@ -2,10 +2,17 @@
 import { supabase } from './supabaseClient.js';
 import { getSession } from './auth.js';
 
+// Listed = approved by ops (is_visible) and not paused by the photographer.
+// is_paused is filtered here rather than in the query so the page keeps
+// working on a database that doesn't have the column yet.
 export async function listPhotographers() {
   const { data, error } = await supabase.from('photographers').select('*').eq('is_visible', true).order('id');
   if (error) throw error;
-  return data;
+  return data.filter((p) => p.is_paused !== true);
+}
+
+export function isBookable(photographer) {
+  return photographer.is_visible !== false && photographer.is_paused !== true;
 }
 
 export async function getPhotographer(id) {
@@ -330,6 +337,36 @@ export async function releasePayout(bookingId, note) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
     body: JSON.stringify({ booking_id: bookingId, note }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || '更新に失敗しました。');
+  return data;
+}
+
+// ops: every photographer (listed or not) with how many plans each has, for
+// the 掲載管理 screen. Both tables are publicly readable.
+export async function getPhotographersForReview() {
+  const [{ data: photographers, error: e1 }, { data: plans, error: e2 }] = await Promise.all([
+    supabase.from('photographers').select('*').order('created_at', { ascending: false }),
+    supabase.from('plans').select('photographer_id'),
+  ]);
+  if (e1) throw e1;
+  if (e2) throw e2;
+  const planCounts = {};
+  for (const p of plans) planCounts[p.photographer_id] = (planCounts[p.photographer_id] || 0) + 1;
+  return photographers.map((p) => ({ ...p, planCount: planCounts[p.id] || 0 }));
+}
+
+// ops: approve (visible = true) or take down a listing. Goes through a
+// Function: a browser role can't be given is_visible without also letting
+// photographers flip it on their own row.
+export async function setPhotographerVisibility(photographerId, visible) {
+  const session = await getSession();
+  if (!session) throw new Error('not signed in');
+  const res = await fetch('/api/photographers/visibility', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ photographer_id: photographerId, visible }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || '更新に失敗しました。');

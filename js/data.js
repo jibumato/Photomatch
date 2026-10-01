@@ -283,10 +283,11 @@ export const COLUMN_ARTICLES = [
   },
 ];
 
-// name/desc here are the marketing table's own copy (top.js only, no server
-// import) — planNameText()/planDescText() in js/i18n.js separately translate
-// the same wording where it's echoed back from the `plans` DB table (profile
-// / booking), since those come from a different source at runtime.
+// The top page's pricing table, and also the standard plan set that ops
+// approval (functions/api/photographers/visibility.js) registers for a
+// photographer who has no plans yet — so keep name/price/desc in step with
+// the `plans` rows in supabase/schema.sql. planNameText()/planDescText() in
+// js/i18n.js translate the same wording where it's echoed back from the DB.
 export const PRICING_PLANS = [
   { name: 'スマホプラン', nameEn: 'Smartphone Plan', price: '6,800', originalPrice: '7,800', discountLabel: '10%OFF', desc: '45分・20枚納品・スマホ撮影', descEn: '45 min · 20 photos delivered · shot on smartphone' },
   { name: 'スタンダード', nameEn: 'Standard', price: '8,800', originalPrice: '9,800', discountLabel: '10%OFF', desc: '45分・20枚納品', descEn: '45 min · 20 photos delivered' },
