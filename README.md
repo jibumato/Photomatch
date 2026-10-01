@@ -46,3 +46,11 @@ update profiles set role = 'ops' where email = 'info.photomatch@gmail.com';
 運営が掲載を停止（`is_visible = false`）した場合、本人は再開できない。本人の休止中も、すでに入っている予約はそのまま。
 
 本人が編集できるのは `name / area / gender / bio / price_comment / instagram / speaks_english / bio_en / price_comment_en / photo_url / is_paused` だけ（`supabase/schema.sql` の列単位の grant）。承認・評価・レビュー数などは運営のみ。写真は公開バケット `photographer-photos` の自分のフォルダに置かれる。
+
+### 口コミ（撮影後レビュー）
+
+- お客様がマイページの予約カードから投稿する（星1〜5・コメント・表示名。表示名は任意で、未入力は「匿名のお客様」）。投稿後も編集・削除できる
+- 投稿できるのは、**自分の予約**で、**撮影の終了時刻（JST）を過ぎた**、キャンセルされていない予約に限り、**1予約につき1件**。この条件は画面ではなく DB（`reviews` の RLS）で強制している
+- カメラマンの評価・レビュー数は、投稿・編集・削除・非表示のたびに DB のトリガー（`reviews_refresh_rating`）が `reviews` から自動で計算する。手で書き換えない
+- 不適切な口コミは、運営画面の「口コミの管理」で非表示にできる（`/api/reviews/moderate` 経由）。非表示にすると、公開ページから消え、評価の集計にも入らない。投稿者本人には「運営により非表示」と表示される
+- トップページの「利用者の口コミ」（`js/data.js` の `TESTIMONIALS`）は、実在のお客様の許可を得た口コミだけを手で入れる。空の間は欄ごと非表示になる

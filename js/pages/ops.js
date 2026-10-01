@@ -5,6 +5,7 @@ import {
   getMonitorApplicationsForReview, reviewMonitorApplication,
   getPayoutCandidates, getGuaranteeClaimsForBookings, releasePayout, getBankAccountsForPhotographers,
   createPhotographerAccount, getPhotographersForReview, setPhotographerVisibility,
+  getReviewsForModeration, setReviewHidden,
 } from '../repo.js';
 import { AREAS, PHOTOGRAPHER_PAYOUT_RATE } from '../data.js';
 import { safePhotoUrl } from '../util.js';
@@ -215,6 +216,53 @@ async function loadListings() {
   bind('.btn-listing-hide', false, (name) => `${name}さんの掲載を停止します。検索ページに表示されなくなり、新規の予約を受け付けなくなります（本人は再開できません）。よろしいですか？`);
 }
 
+// ---------- 口コミの管理 ----------
+function reviewCardHtml(rv) {
+  const stars = '★'.repeat(rv.stars) + '☆'.repeat(5 - rv.stars);
+  return `
+  <div class="pm-card" style="padding:16px 20px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font:700 14px var(--pm-font-body)">${escapeHtml(rv.photographers?.name || rv.photographer_id)}</span>
+        <span style="color:var(--pm-star);font:13px var(--pm-font-body)">${stars}</span>
+        ${rv.is_hidden ? `<span style="${PILL};background:oklch(0.93 0.01 220);color:oklch(0.45 0.02 235)">非表示中</span>` : ''}
+      </div>
+      <span style="font:12px var(--pm-font-num);color:var(--pm-text-muted)">${escapeHtml(String(rv.created_at || '').slice(0, 10))}</span>
+    </div>
+    <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:6px">投稿者の表示名：${escapeHtml(rv.reviewer_name)}</div>
+    ${rv.comment ? `<div style="font:13px/1.7 var(--pm-font-body);color:oklch(0.35 0.02 235);background:var(--pm-bg-mint);border-radius:10px;padding:10px 12px;white-space:pre-wrap">${escapeHtml(rv.comment)}</div>` : '<div style="font:12px var(--pm-font-body);color:var(--pm-text-muted)">（コメントなし）</div>'}
+    <div style="margin-top:10px">
+      ${rv.is_hidden
+        ? `<button data-id="${rv.id}" class="btn-review-show pm-btn-outline">再表示する</button>`
+        : `<button data-id="${rv.id}" class="btn-review-hide pm-btn-danger-outline">非表示にする</button>`}
+    </div>
+  </div>`;
+}
+
+async function loadReviews() {
+  const reviews = await getReviewsForModeration(50);
+  const el = document.getElementById('pm-reviews-admin');
+  el.innerHTML = reviews.length ? reviews.map(reviewCardHtml).join('') : '<div class="pm-empty">投稿された口コミはまだありません。</div>';
+  const bind = (selector, hidden, confirmText) => {
+    el.querySelectorAll(selector).forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm(confirmText)) return;
+        btn.disabled = true;
+        try {
+          await setReviewHidden(btn.dataset.id, hidden);
+          await loadReviews();
+        } catch (err) {
+          alert(err.message || '更新に失敗しました。');
+          console.error(err);
+          btn.disabled = false;
+        }
+      });
+    });
+  };
+  bind('.btn-review-hide', true, 'この口コミを非表示にします。カメラマンのページから消え、評価の集計にも入らなくなります。よろしいですか？');
+  bind('.btn-review-show', false, 'この口コミを再表示します。よろしいですか？');
+}
+
 function eligiblePayoutDate(bookingDate) {
   const d = new Date(`${bookingDate}T00:00:00`);
   d.setDate(d.getDate() + GUARANTEE_WINDOW_DAYS);
@@ -331,6 +379,7 @@ async function load() {
   document.getElementById('pm-ops').style.display = 'block';
 
   await loadListings();
+  await loadReviews();
   await loadMonitorApplications();
   await loadPayouts();
 

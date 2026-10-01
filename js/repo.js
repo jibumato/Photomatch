@@ -75,9 +75,75 @@ export async function getPlans(photographerId) {
   return data;
 }
 
+// Public reviews only: the author and ops can also *read* a hidden review (RLS),
+// but it must never show up on the photographer's page.
 export async function getReviews(photographerId) {
-  const { data, error } = await supabase.from('reviews').select('*').eq('photographer_id', photographerId).order('created_at', { ascending: false });
+  const { data, error } = await supabase.from('reviews').select('*').eq('photographer_id', photographerId).eq('is_hidden', false).order('created_at', { ascending: false });
   if (error) throw error;
+  return data;
+}
+
+// ---- post-shoot reviews (customer side) ----
+
+// The signed-in customer's own reviews, keyed by booking id.
+export async function getMyReviewsByBooking(bookingIds) {
+  if (!bookingIds.length) return {};
+  const { data, error } = await supabase.from('reviews').select('*').in('booking_id', bookingIds);
+  if (error) throw error;
+  const map = {};
+  for (const row of data) map[row.booking_id] = row;
+  return map;
+}
+
+// Creates or edits the review for a booking. The database is what enforces who
+// may write (own booking, shoot already over, one per booking — see schema.sql);
+// this only sends the editable fields.
+export async function saveReview({ existing, booking, reviewerName, stars, comment }) {
+  const fields = { reviewer_name: reviewerName, stars, comment: comment || null };
+  if (existing) {
+    const { data, error } = await supabase.from('reviews').update(fields).eq('id', existing.id).select().single();
+    if (error) throw error;
+    return data;
+  }
+  const session = await getSession();
+  if (!session) throw new Error('not signed in');
+  const { data, error } = await supabase.from('reviews')
+    .insert({ ...fields, photographer_id: booking.photographer_id, booking_id: booking.id, client_id: session.user.id })
+    .select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteReview(reviewId) {
+  const { error } = await supabase.from('reviews').delete().eq('id', reviewId);
+  if (error) throw error;
+}
+
+// ---- reviews (ops moderation) ----
+
+// ops: latest reviews including hidden ones (RLS lets ops read all).
+export async function getReviewsForModeration(limit = 50) {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*, photographers(name)')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data;
+}
+
+// Goes through a Function (ops-role check + service_role): a browser role can't
+// be granted is_hidden without letting reviewers un-hide their own review.
+export async function setReviewHidden(reviewId, hidden) {
+  const session = await getSession();
+  if (!session) throw new Error('not signed in');
+  const res = await fetch('/api/reviews/moderate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ review_id: reviewId, hidden }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || '更新に失敗しました。');
   return data;
 }
 

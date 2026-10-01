@@ -139,6 +139,7 @@ function formHtml(p) {
 export function mountProfileEditor(el, current, userId) {
   let photographer = current;
   let pendingBlob = null;
+  let resizeTask = null; // in-flight resize, so a quick 「保存する」 still includes the photo
   el.innerHTML = formHtml(photographer);
 
   const $ = (id) => document.getElementById(id);
@@ -171,22 +172,27 @@ export function mountProfileEditor(el, current, userId) {
     $('pf-english-fields').style.display = e.target.checked ? 'flex' : 'none';
   });
 
-  $('pf-photo').addEventListener('change', async (e) => {
+  $('pf-photo').addEventListener('change', (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     errorEl.style.display = 'none';
     $('pf-saved-note').style.display = 'none';
     if (file.size > MAX_SOURCE_BYTES) { showError('写真のサイズが大きすぎます（20MBまで）。'); return; }
-    try {
-      pendingBlob = await resizeToJpeg(file);
-      const previewUrl = URL.createObjectURL(pendingBlob);
-      $('pf-photo-preview').setAttribute('style', `aspect-ratio:4/3;max-width:320px;border-radius:12px;border:1px solid var(--pm-border);${previewStyle(previewUrl)}`);
-      $('pf-photo-note').textContent = '「保存する」を押すと反映されます';
-    } catch (err) {
-      pendingBlob = null;
-      showError('この写真は読み込めませんでした。JPEG・PNG・WebPの画像を選んでください。');
-      console.error(err);
-    }
+    pendingBlob = null;
+    $('pf-photo-note').textContent = '写真を処理しています…';
+    resizeTask = (async () => {
+      try {
+        pendingBlob = await resizeToJpeg(file);
+        const previewUrl = URL.createObjectURL(pendingBlob);
+        $('pf-photo-preview').setAttribute('style', `aspect-ratio:4/3;max-width:320px;border-radius:12px;border:1px solid var(--pm-border);${previewStyle(previewUrl)}`);
+        $('pf-photo-note').textContent = '「保存する」を押すと反映されます';
+      } catch (err) {
+        pendingBlob = null;
+        $('pf-photo-note').textContent = '保存すると反映されます';
+        showError('この写真は読み込めませんでした。JPEG・PNG・WebPの画像を選んでください。');
+        console.error(err);
+      }
+    })();
   });
 
   $('pf-save').addEventListener('click', async () => {
@@ -222,6 +228,8 @@ export function mountProfileEditor(el, current, userId) {
     btn.disabled = true;
     let uploadedUrl = null;
     try {
+      if (resizeTask) await resizeTask;
+      if (errorEl.style.display === 'block') return; // the chosen photo couldn't be read
       if (pendingBlob) {
         uploadedUrl = await uploadProfilePhoto(userId, pendingBlob);
         patch.photo_url = uploadedUrl;

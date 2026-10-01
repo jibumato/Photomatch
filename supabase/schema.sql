@@ -231,11 +231,25 @@ create table if not exists reviews (
   created_at timestamptz not null default now()
 );
 
+-- 運営が不適切な口コミを非表示にするためのフラグ（運営のみ変更可。
+-- /api/reviews/moderate 経由）。非表示の口コミは公開されず、評価の集計にも入らない。
+alter table reviews add column if not exists is_hidden boolean not null default false;
+
+-- 撮影後レビュー: 投稿したお客様（本人だけが編集・削除できる）。アカウントを
+-- 削除したら口コミも消える。booking_id は bookings の作成後（このファイルの末尾）に追加。
+alter table reviews add column if not exists client_id uuid references profiles(id) on delete cascade;
+
 alter table reviews enable row level security;
 
+-- 公開されるのは非表示でない口コミだけ。投稿者本人と運営には、非表示の口コミも見える。
 drop policy if exists "reviews: public read" on reviews;
-create policy "reviews: public read" on reviews
-  for select using (true);
+drop policy if exists "reviews: read" on reviews;
+create policy "reviews: read" on reviews
+  for select using (
+    not is_hidden
+    or client_id = auth.uid()
+    or exists (select 1 from public.profiles where id = auth.uid() and role = 'ops')
+  );
 
 -- ============================================================
 -- bookings
@@ -555,11 +569,12 @@ where (photographer_id, reviewer_name, comment) in (
 );
 
 -- 評価・レビュー数は reviews の実データから求める（レビューが無ければ評価も無し・0件）。
+-- 以降の更新は、ファイル末尾のトリガー（reviews_refresh_rating）が行う。
 update photographers p set
-  rating = (select round(avg(r.stars), 1) from reviews r where r.photographer_id = p.id),
-  reviews_count = (select count(*) from reviews r where r.photographer_id = p.id)
-where p.rating is distinct from (select round(avg(r.stars), 1) from reviews r where r.photographer_id = p.id)
-   or p.reviews_count is distinct from (select count(*) from reviews r where r.photographer_id = p.id);
+  rating = (select round(avg(r.stars), 1) from reviews r where r.photographer_id = p.id and not r.is_hidden),
+  reviews_count = (select count(*) from reviews r where r.photographer_id = p.id and not r.is_hidden)
+where p.rating is distinct from (select round(avg(r.stars), 1) from reviews r where r.photographer_id = p.id and not r.is_hidden)
+   or p.reviews_count is distinct from (select count(*) from reviews r where r.photographer_id = p.id and not r.is_hidden);
 
 -- ============================================================
 -- ============================================================
@@ -760,3 +775,71 @@ create policy "bank accounts: ops read" on photographer_bank_accounts
 -- only). Create the staff account normally as a 'client' via the site or the
 -- dashboard, then promote it:
 --   update profiles set role = 'ops' where email = 'ops@photomatch.example.jp';
+
+-- ============================================================
+-- reviews: 撮影後レビュー（お客様が予約ごとに1件、撮影終了後に投稿）
+-- ============================================================
+alter table reviews add column if not exists booking_id uuid references bookings(id) on delete cascade;
+
+-- 1予約につき1件。booking_id が無い行（以前のデータ）は対象外。
+create unique index if not exists reviews_booking_id_key on reviews (booking_id) where booking_id is not null;
+
+-- 公開ページに出る文章なので、長さをDBでも縛る（既存の行は検証せず、追加・更新時に確認）。
+alter table reviews drop constraint if exists reviews_length_check;
+alter table reviews add constraint reviews_length_check
+  check (char_length(reviewer_name) between 1 and 20 and char_length(coalesce(comment, '')) <= 1000) not valid;
+
+-- 書き込めるのは、投稿者本人が、自分の予約について、撮影終了後に行う場合だけ。
+-- 編集できるのは表示名・星・本文のみ（予約・カメラマン・投稿者・非表示フラグは変更不可）。
+-- Supabase は API ロールに全権限を付けるため、先に外してから必要な列だけ付ける。
+revoke insert, update, delete on reviews from anon, authenticated;
+grant insert (photographer_id, booking_id, client_id, reviewer_name, stars, comment) on reviews to authenticated;
+grant update (reviewer_name, stars, comment) on reviews to authenticated;
+grant delete on reviews to authenticated;
+
+drop policy if exists "reviews: client insert after shoot" on reviews;
+create policy "reviews: client insert after shoot" on reviews
+  for insert to authenticated
+  with check (
+    client_id = auth.uid()
+    and booking_id is not null
+    and exists (
+      select 1 from public.bookings b
+      where b.id = reviews.booking_id
+        and b.client_id = auth.uid()
+        and b.photographer_id = reviews.photographer_id
+        and b.status in ('paid', 'confirmed', 'completed')
+        and ((b.booking_date + b.end_time) at time zone 'Asia/Tokyo') <= now()
+    )
+  );
+
+drop policy if exists "reviews: client update own" on reviews;
+create policy "reviews: client update own" on reviews
+  for update to authenticated using (client_id = auth.uid()) with check (client_id = auth.uid());
+
+drop policy if exists "reviews: client delete own" on reviews;
+create policy "reviews: client delete own" on reviews
+  for delete to authenticated using (client_id = auth.uid());
+
+-- 評価・レビュー数は reviews から自動で求める（投稿・編集・削除・運営の非表示のたびに更新）。
+-- photographers の rating / reviews_count は運営のみ書き込み可なので、定義者権限で更新する。
+create or replace function refresh_photographer_rating()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  pid text := coalesce(new.photographer_id, old.photographer_id);
+begin
+  update public.photographers set
+    rating = (select round(avg(stars), 1) from public.reviews where photographer_id = pid and not is_hidden),
+    reviews_count = (select count(*) from public.reviews where photographer_id = pid and not is_hidden)
+  where id = pid;
+  return null;
+end;
+$$;
+
+drop trigger if exists reviews_refresh_rating on reviews;
+create trigger reviews_refresh_rating
+  after insert or update or delete on reviews
+  for each row execute function refresh_photographer_rating();
