@@ -4,7 +4,7 @@ import {
   getGuaranteeClaimsForReview, reviewGuaranteeClaim,
   getMonitorApplicationsForReview, reviewMonitorApplication,
   getPayoutCandidates, getGuaranteeClaimsForBookings, releasePayout, getBankAccountsForPhotographers,
-  createPhotographerAccount, getPhotographersForReview, setPhotographerVisibility,
+  createPhotographerAccount, resetPhotographerPassword, getPhotographersForReview, setPhotographerVisibility,
   getReviewsForModeration, setReviewHidden,
 } from '../repo.js';
 import { AREAS, PHOTOGRAPHER_PAYOUT_RATE } from '../data.js';
@@ -512,6 +512,34 @@ document.getElementById('photographer-create-btn').addEventListener('click', asy
     emailEl.value = '';
   } catch (err) {
     errorEl.textContent = err.message || 'アカウント作成に失敗しました。';
+    errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('photographer-reset-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('photographer-reset-btn');
+  const errorEl = document.getElementById('photographer-reset-error');
+  const resultEl = document.getElementById('photographer-reset-result');
+  const credsEl = document.getElementById('photographer-reset-creds');
+  const emailEl = document.getElementById('f-reset-email');
+  const email = emailEl.value.trim();
+  errorEl.style.display = 'none';
+  resultEl.style.display = 'none';
+  if (!email) {
+    errorEl.textContent = 'メールアドレスを入力してください。';
+    errorEl.style.display = 'block';
+    return;
+  }
+  btn.disabled = true;
+  try {
+    const data = await resetPhotographerPassword(email);
+    credsEl.innerHTML = `メール：${escapeHtml(data.email)}<br>新しい仮パスワード：${escapeHtml(data.password)}`;
+    resultEl.style.display = 'block';
+    emailEl.value = '';
+  } catch (err) {
+    errorEl.textContent = err.message || 'パスワードの再発行に失敗しました。';
     errorEl.style.display = 'block';
   } finally {
     btn.disabled = false;

@@ -9,14 +9,10 @@
 // (area/photo/bio/plans) are still empty — ops flips is_visible back on once
 // the listing is filled in, same as the "参加未定で一時非表示" pattern.
 import { verifyUser, getProfile, adminCreateUser, restUpdate } from '../../_lib/supabaseAdmin.js';
+import { generatePassword } from '../../_lib/tempPassword.js';
 
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
-}
-
-function generatePassword() {
-  const bytes = crypto.getRandomValues(new Uint8Array(16));
-  return btoa(String.fromCharCode(...bytes)).replace(/[+/=]/g, '').slice(0, 14);
 }
 
 export async function onRequestPost({ request, env }) {
