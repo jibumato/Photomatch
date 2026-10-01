@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>メールアドレスの確認 | PhotoMatch</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/photomatch-icon-transparent.png">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<script>
+  // Captured before the Supabase client loads: it consumes the tokens (or
+  // the error) from the URL fragment and clears it.
+  window.__pmAuthHash = location.hash;
+</script>
+</head>
+<body>
+
+<header class="pm-header" id="pm-header"></header>
+
+<main>
+  <section style="max-width:460px;margin:0 auto;padding:56px 32px 100px">
+    <div id="pm-loading" class="pm-loading" style="padding:24px 0" data-i18n="common.loading">読み込み中…</div>
+
+    <div id="success-view" style="display:none">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--pm-brand-grad);color:#fff;display:inline-flex;align-items:center;justify-content:center;font:800 30px var(--pm-font-num);margin-bottom:18px" aria-hidden="true">✓</div>
+        <h1 style="font:700 22px/1.5 var(--pm-font-body);margin:0 0 10px;text-wrap:balance" data-i18n="confirm.title">メールアドレスの確認が完了しました</h1>
+        <p id="success-lead" style="font:14px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0"></p>
+      </div>
+
+      <div id="pro-steps" class="pm-card" style="display:none;padding:22px 24px;margin-bottom:24px">
+        <div style="font:700 14px var(--pm-font-body);margin-bottom:12px" data-i18n="confirm.pro.stepsTitle">はじめに設定すること</div>
+        <ol style="margin:0;padding-left:20px;font:13px/1.9 var(--pm-font-body);color:oklch(0.35 0.02 235)">
+          <li data-i18n="confirm.pro.step1">撮影を受け付ける時間枠を設定する</li>
+          <li data-i18n="confirm.pro.step2">報酬の振込先口座を登録する</li>
+        </ol>
+        <p style="font:12px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:12px 0 0" data-i18n="confirm.pro.note">写真・紹介文・料金プランなどのプロフィールは運営が整えたあと、検索ページに公開されます。</p>
+      </div>
+
+      <a class="pm-btn pm-btn-primary pm-btn-block" id="continue-btn" href="mypage.html"></a>
+    </div>
+
+    <div id="error-view" style="display:none">
+      <h1 style="font:700 22px/1.5 var(--pm-font-body);margin:0 0 12px;text-wrap:balance" data-i18n="confirm.error.title">確認リンクが無効か、有効期限が切れています</h1>
+      <p style="font:14px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 24px" data-i18n="confirm.error.body">このリンクはすでに使用済みの可能性があります。確認が済んでいれば、そのままログインできます。ログインできない場合は、お手数ですがもう一度ご登録ください。</p>
+      <a class="pm-btn pm-btn-primary pm-btn-block" id="login-btn" href="login.html" data-i18n="confirm.error.cta">ログイン画面へ</a>
+    </div>
+  </section>
+</main>
+
+<footer class="pm-footer" id="pm-footer"></footer>
+
+<script type="module" src="js/pages/email-confirmed.js"></script>
+</body>
+</html>
