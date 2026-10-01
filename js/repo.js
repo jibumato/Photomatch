@@ -303,6 +303,22 @@ export async function releasePayout(bookingId, note) {
   return data;
 }
 
+// ops: creates a login account for a new photographer (goes through a
+// Function since it needs the service_role key to call Supabase's Admin
+// Auth API — not something the browser's anon key can do).
+export async function createPhotographerAccount(name, email) {
+  const session = await getSession();
+  if (!session) throw new Error('not signed in');
+  const res = await fetch('/api/photographers/create', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ name, email }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'アカウント作成に失敗しました。');
+  return data;
+}
+
 // ---- monitor applications (モニター価格プログラム) ----
 
 export async function submitMonitorApplication({ hasExistingPhotos, currentApps, motivation, followUpOptIn }) {
