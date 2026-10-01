@@ -1,6 +1,7 @@
 import { mountLayout } from '../layout.js';
 import { getPhotographer, getPlans, getReviews } from '../repo.js';
 import { t, areaText, availabilityText, localizedField, planNameText, planDescText, reviewsCountLabel, taxIncludedSuffix } from '../i18n.js';
+import { escapeHtml, safePhotoUrl } from '../util.js';
 
 mountLayout();
 
@@ -31,17 +32,18 @@ function instagramLinkHtml(raw) {
     const profileEl = document.getElementById('pm-profile');
     profileEl.style.display = 'flex';
 
+    const photoUrl = safePhotoUrl(photographer.photo_url);
     document.getElementById('pm-header-block').innerHTML = `
-      ${photographer.photo_url
-        ? `<div style="width:120px;height:120px;flex-shrink:0;border-radius:50%;background-image:url(${photographer.photo_url});background-size:cover;background-position:center;box-shadow:0 10px 26px oklch(0.7 0.06 220 / 0.18)"></div>`
+      ${photoUrl
+        ? `<div style="width:120px;height:120px;flex-shrink:0;border-radius:50%;background-image:url(${photoUrl});background-size:cover;background-position:center;box-shadow:0 10px 26px oklch(0.7 0.06 220 / 0.18)"></div>`
         : `<div style="width:120px;height:120px;flex-shrink:0;border-radius:50%;background:repeating-linear-gradient(135deg, oklch(0.9 0.05 200) 0px, oklch(0.9 0.05 200) 10px, oklch(0.96 0.03 210) 10px, oklch(0.96 0.03 210) 20px);display:flex;align-items:center;justify-content:center"><span style="font:10px ui-monospace,monospace;color:oklch(0.4 0.08 210)">PHOTO</span></div>`}
       <div style="min-width:0">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap">
-          <h1 style="font:700 28px var(--pm-font-body);margin:0">${photographer.name}</h1>
+          <h1 style="font:700 28px var(--pm-font-body);margin:0">${escapeHtml(photographer.name)}</h1>
           <span class="pm-badge">${t('profile.badge.verified')}</span>
           ${photographer.speaks_english ? `<span class="pm-badge" style="background:oklch(0.94 0.05 245);color:oklch(0.42 0.14 250)">${t('profile.badge.english')}</span>` : ''}
         </div>
-        <div style="font:14px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${areaText(photographer.area) || ''}</div>
+        <div style="font:14px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${escapeHtml(areaText(photographer.area) || '')}</div>
         <div style="display:flex;align-items:center;gap:6px;font:14px var(--pm-font-body);color:oklch(0.4 0.02 235)">
           <span style="color:var(--pm-star)">★</span>${photographer.rating ?? '-'}<span style="color:var(--pm-text-muted)">${reviewsCountLabel(photographer.reviews_count)}</span>
         </div>

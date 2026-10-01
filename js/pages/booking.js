@@ -2,6 +2,8 @@ import { mountLayout } from '../layout.js';
 import { getSession, getProfile, signInOrSignUp, resendSignupEmail } from '../auth.js';
 import { getPhotographer, getPlans, getBooking, getTakenSlots, getClosedShifts } from '../repo.js';
 import { mountSheetModal } from '../sheet.js';
+import { loadDailyWeather } from '../weather.js';
+import { escapeHtml } from '../util.js';
 import {
   AREAS, EXTRA_OPTIONS, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
 } from '../data.js';
@@ -142,30 +144,7 @@ function cellTaken(iso, slotTime) {
 async function loadWeather() {
   state.weather = null;
   const area = AREAS.find((a) => a.key === state.selectedArea) || AREAS[0];
-  // Let Open-Meteo decide the window (forecast_days) instead of sending explicit
-  // start/end dates computed from the visitor's clock: its allowed range is
-  // judged on its side, so a client-computed end date can land one day past it
-  // (e.g. JST mornings, when Japan is already on the next UTC date) and the
-  // whole request is rejected. Days are matched by date string; days beyond
-  // the forecast simply get no icon.
-  try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${area.lat}&longitude=${area.lon}&daily=weather_code,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=16`;
-    const res = await fetch(url);
-    if (!res.ok) {
-      console.warn('weather fetch failed', res.status, await res.text().catch(() => ''));
-      return;
-    }
-    const data = await res.json();
-    const daily = data.daily || {};
-    const dates = daily.time || [];
-    const codes = daily.weather_code || daily.weathercode || [];
-    const pops = daily.precipitation_probability_max || [];
-    const byDate = {};
-    dates.forEach((iso, i) => { byDate[iso] = { code: codes[i], pop: pops[i] }; });
-    state.weather = state.days.map((d) => byDate[d.iso] || null);
-  } catch (err) {
-    console.warn('weather fetch failed', err);
-  }
+  state.weather = await loadDailyWeather(area, state.days);
 }
 
 // ---------- render: plan select ----------
@@ -438,7 +417,7 @@ function goPaymentStep() {
       <span style="font:700 13px var(--pm-font-body);color:oklch(0.35 0.03 220)">${t('booking.contact.total')}</span>
       <span style="font:700 22px var(--pm-font-num);color:oklch(0.3 0.03 240)">¥${s.grandTotal.toLocaleString()}</span>
     </div>
-    <div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${tf('booking.payment.locationLine', { name: state.photographer.name, area: areaText(s.areaLabel), date: s.d.dateLabel, day: s.d.label, start: s.startTime, end: s.endTime })}</div>`;
+    <div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${tf('booking.payment.locationLine', { name: escapeHtml(state.photographer.name), area: areaText(s.areaLabel), date: s.d.dateLabel, day: s.d.label, start: s.startTime, end: s.endTime })}</div>`;
   document.getElementById('payment-submit-label').textContent = tf('booking.payment.submitLabel', { total: `¥${s.grandTotal.toLocaleString()}` });
 }
 
@@ -493,7 +472,7 @@ function showConfirmForBooking(booking) {
   const optionsHtml = options.map((o) => `<div>${tf('booking.confirm.optionLine', { label: L(o, 'label'), price: o.price.toLocaleString() })}</div>`).join('');
   const dateLabel = `${Number(booking.booking_date.slice(5, 7))}/${Number(booking.booking_date.slice(8, 10))}`;
   document.getElementById('confirm-details').innerHTML = `
-    <div>${tf('booking.confirm.photographer', { name: state.photographer.name })}</div>
+    <div>${tf('booking.confirm.photographer', { name: escapeHtml(state.photographer.name) })}</div>
     <div>${tf('booking.confirm.area', { area: areaText(booking.area) })}</div>
     <div>${tf('booking.confirm.datetime', { date: dateLabel, start: booking.start_time.slice(0, 5), end: booking.end_time.slice(0, 5) })}</div>
     <div>${tf('booking.confirm.plan', { plan: planNameText(booking.plan_name), price: booking.plan_price.toLocaleString() })}</div>

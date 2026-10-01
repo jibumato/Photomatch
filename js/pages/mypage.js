@@ -89,7 +89,7 @@ function bookingCardHtml(b, meta, { history }) {
     <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
       <div style="min-width:0">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-          <span style="font:700 15px var(--pm-font-body)">${b.photographer_name}</span>
+          <span style="font:700 15px var(--pm-font-body)">${escapeHtml(b.photographer_name)}</span>
           <span style="padding:3px 10px;border-radius:100px;font:700 11px var(--pm-font-body);white-space:nowrap;${STATUS_STYLE[statusLabel] || ''}">${statusLabel}</span>
         </div>
         <div style="font:13px var(--pm-font-body);color:oklch(0.45 0.02 235)">${b.booking_date}（${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}）</div>
