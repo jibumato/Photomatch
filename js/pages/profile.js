@@ -1,5 +1,5 @@
 import { mountLayout } from '../layout.js';
-import { getPhotographer, getPlans, getReviews } from '../repo.js';
+import { getPhotographer, getPlans, getReviews, isBookable } from '../repo.js';
 import { t, areaText, availabilityText, localizedField, planNameText, planDescText, reviewsCountLabel, taxIncludedSuffix } from '../i18n.js';
 import { escapeHtml, safePhotoUrl } from '../util.js';
 
@@ -55,7 +55,7 @@ function instagramLinkHtml(raw) {
     document.getElementById('pm-availability').textContent = availabilityText(photographer.availability_label) || '';
     document.getElementById('pm-rating-line').innerHTML = `<span style="color:var(--pm-star)">★</span>${photographer.rating ?? '-'}${reviewsCountLabel(photographer.reviews_count, true)}`;
 
-    if (photographer.is_visible === false) {
+    if (!isBookable(photographer)) {
       const bookBtn = document.getElementById('pm-book-btn');
       bookBtn.outerHTML = `<div class="pm-note-box" style="margin-bottom:10px">${t('profile.paused')}</div>`;
       document.getElementById('pm-plans').innerHTML = `<div class="pm-empty">${t('profile.paused')}</div>`;

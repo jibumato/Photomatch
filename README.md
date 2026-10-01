@@ -30,11 +30,19 @@ update profiles set role = 'ops' where email = 'info.photomatch@gmail.com';
 
 1. 運営が `ops.html` の「カメラマン登録」でアカウントを作り、メールアドレスと仮パスワードを本人に渡す（作成直後のプロフィールは非公開）
 2. 本人が `pro-login.html` からログインし、管理画面（`admin.html`）の「プロフィール設定」で、写真・表示名・エリア・性別・ひとこと・紹介文・Instagram・英語対応を入力する。時間枠と振込先口座もここで設定する
-3. 運営が内容を確認し、SQL Editor で公開する
-4. 料金プラン（`plans`）は運営が SQL Editor で登録する。プロフィール設定では編集できない
+3. 運営が `ops.html` の「カメラマンの掲載管理」で内容を確認し、「承認して公開する」を押す
+   - 写真・表示名・エリア・性別・紹介文がそろっていないと公開できない（サーバー側でも確認）
+   - 料金プランが未登録なら、公開時に標準の4プラン（`js/data.js` の `PRICING_PLANS`）を登録する。個別の料金にしたい場合は SQL Editor で `plans` を編集する
 
-```sql
-update photographers set is_visible = true where id = '<カメラマンのUID>';
-```
+### 公開・非公開の仕組み
 
-本人が編集できるのは `name / area / gender / bio / price_comment / instagram / speaks_english / bio_en / price_comment_en / photo_url` だけ（`supabase/schema.sql` の列単位の grant）。公開状態・評価・レビュー数などは運営のみ。写真は公開バケット `photographer-photos` の自分のフォルダに置かれる。
+検索・予約に出るのは、次の2つを両方満たすときだけ。
+
+| フラグ | 意味 | 変更できる人 |
+|---|---|---|
+| `is_visible` | 運営の承認（掲載の許可） | 運営のみ（掲載管理画面。`/api/photographers/visibility` 経由） |
+| `is_paused` | 本人による一時休止 | 本人（管理画面の「予約受付を一時休止する」） |
+
+運営が掲載を停止（`is_visible = false`）した場合、本人は再開できない。本人の休止中も、すでに入っている予約はそのまま。
+
+本人が編集できるのは `name / area / gender / bio / price_comment / instagram / speaks_english / bio_en / price_comment_en / photo_url / is_paused` だけ（`supabase/schema.sql` の列単位の grant）。承認・評価・レビュー数などは運営のみ。写真は公開バケット `photographer-photos` の自分のフォルダに置かれる。

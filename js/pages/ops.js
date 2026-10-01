@@ -4,9 +4,10 @@ import {
   getGuaranteeClaimsForReview, reviewGuaranteeClaim,
   getMonitorApplicationsForReview, reviewMonitorApplication,
   getPayoutCandidates, getGuaranteeClaimsForBookings, releasePayout, getBankAccountsForPhotographers,
-  createPhotographerAccount,
+  createPhotographerAccount, getPhotographersForReview, setPhotographerVisibility,
 } from '../repo.js';
-import { PHOTOGRAPHER_PAYOUT_RATE } from '../data.js';
+import { AREAS, PHOTOGRAPHER_PAYOUT_RATE } from '../data.js';
+import { safePhotoUrl } from '../util.js';
 
 const GUARANTEE_WINDOW_DAYS = 30;
 
@@ -132,6 +133,88 @@ async function loadMonitorApplications() {
   });
 }
 
+// ---------- カメラマンの掲載管理 ----------
+// Mirrors the server-side check in functions/api/photographers/visibility.js
+// (which is the one that actually enforces it).
+function missingForApproval(p) {
+  const missing = [];
+  if (!p.photo_url) missing.push('プロフィール写真');
+  if (!p.name || !p.name.trim()) missing.push('表示名');
+  if (!AREAS.some((a) => a.label === p.area)) missing.push('活動エリア');
+  if (!p.gender) missing.push('性別');
+  if (!p.bio || !p.bio.trim()) missing.push('紹介文');
+  return missing;
+}
+
+const PILL = 'padding:3px 10px;border-radius:100px;font:700 11px var(--pm-font-body);white-space:nowrap';
+
+function listingCardHtml(p) {
+  const live = p.is_visible !== false;
+  const missing = missingForApproval(p);
+  const photo = safePhotoUrl(p.photo_url);
+  const gender = p.gender === 'female' ? '女性' : p.gender === 'male' ? '男性' : '未設定';
+  const pills = [
+    live ? `<span style="${PILL};background:oklch(0.94 0.06 160);color:oklch(0.4 0.12 160)">公開中</span>`
+      : `<span style="${PILL};background:oklch(0.95 0.05 85);color:oklch(0.5 0.13 75)">非公開</span>`,
+    p.is_paused ? `<span style="${PILL};background:oklch(0.93 0.01 220);color:oklch(0.45 0.02 235)">本人が休止中</span>` : '',
+    p.speaks_english ? `<span style="${PILL};background:oklch(0.94 0.05 245);color:oklch(0.42 0.14 250)">英語対応</span>` : '',
+  ].join('');
+  const action = live
+    ? `<button data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.name || '')}" class="btn-listing-hide pm-btn-danger-outline">掲載を停止する</button>`
+    : `<button data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.name || '')}" class="btn-listing-approve" ${missing.length ? 'disabled' : ''} style="background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 18px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer;${missing.length ? 'opacity:0.45;cursor:not-allowed' : ''}">承認して公開する</button>`;
+  return `
+  <div class="pm-card" style="padding:18px 20px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+    <div style="width:96px;aspect-ratio:4/3;border-radius:10px;flex-shrink:0;${photo
+      ? `background-image:url(${photo});background-size:cover;background-position:center`
+      : 'background:var(--pm-bg-mint);display:flex;align-items:center;justify-content:center;font:11px var(--pm-font-body);color:var(--pm-text-3)'}">${photo ? '' : '写真なし'}</div>
+    <div style="flex:1;min-width:220px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+        <span style="font:700 15px var(--pm-font-body)">${escapeHtml(p.name || '（未設定）')}</span>${pills}
+      </div>
+      <div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${escapeHtml(p.area || '未設定')} ・ ${gender} ・ 料金プラン ${p.planCount}件${p.instagram ? ` ・ Instagram @${escapeHtml(p.instagram)}` : ''}</div>
+      ${p.price_comment ? `<div style="font:12px/1.7 var(--pm-font-body);color:oklch(0.4 0.02 235);margin-top:6px">ひとこと：${escapeHtml(p.price_comment)}</div>` : ''}
+      ${p.bio ? `<div style="font:12px/1.7 var(--pm-font-body);color:oklch(0.4 0.02 235);background:var(--pm-bg-mint);border-radius:10px;padding:10px 12px;margin-top:8px;white-space:pre-wrap">${escapeHtml(p.bio)}</div>` : ''}
+      ${!live && missing.length ? `<div class="pm-error-text" style="margin-top:8px">未入力：${missing.join('・')}（本人に入力を依頼してください）</div>` : ''}
+      ${!live && !missing.length && !p.planCount ? '<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:8px">公開すると、標準の4プランを登録します。</div>' : ''}
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        ${action}
+        <a href="profile.html?id=${encodeURIComponent(p.id)}" target="_blank" rel="noopener" class="pm-btn-outline" style="text-decoration:none;display:inline-block">プロフィールを見る</a>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function loadListings() {
+  const all = await getPhotographersForReview();
+  const pending = all.filter((p) => p.is_visible === false);
+  const live = all.filter((p) => p.is_visible !== false);
+
+  const pendingEl = document.getElementById('pm-listing-pending');
+  pendingEl.innerHTML = pending.length ? pending.map(listingCardHtml).join('') : '<div class="pm-empty">公開待ちのカメラマンはいません。</div>';
+  const liveEl = document.getElementById('pm-listing-live');
+  liveEl.innerHTML = live.length ? live.map(listingCardHtml).join('') : '<div class="pm-empty">公開中のカメラマンはいません。</div>';
+
+  const bind = (selector, visible, confirmText) => {
+    document.querySelectorAll(selector).forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (btn.disabled || !confirm(confirmText(btn.dataset.name))) return;
+        btn.disabled = true;
+        try {
+          const res = await setPhotographerVisibility(btn.dataset.id, visible);
+          if (res.plansAdded) alert(`標準の料金プランを${res.plansAdded}件登録しました。`);
+          await loadListings();
+        } catch (err) {
+          alert(err.message || '更新に失敗しました。');
+          console.error(err);
+          btn.disabled = false;
+        }
+      });
+    });
+  };
+  bind('.btn-listing-approve', true, (name) => `${name}さんを公開します。検索ページ・プロフィールページに表示され、予約を受け付けるようになります。よろしいですか？`);
+  bind('.btn-listing-hide', false, (name) => `${name}さんの掲載を停止します。検索ページに表示されなくなり、新規の予約を受け付けなくなります（本人は再開できません）。よろしいですか？`);
+}
+
 function eligiblePayoutDate(bookingDate) {
   const d = new Date(`${bookingDate}T00:00:00`);
   d.setDate(d.getDate() + GUARANTEE_WINDOW_DAYS);
@@ -247,6 +330,7 @@ async function load() {
   document.getElementById('pm-loading').style.display = 'none';
   document.getElementById('pm-ops').style.display = 'block';
 
+  await loadListings();
   await loadMonitorApplications();
   await loadPayouts();
 
@@ -322,6 +406,7 @@ document.getElementById('photographer-create-btn').addEventListener('click', asy
     const data = await createPhotographerAccount(name, email);
     credsEl.innerHTML = `メール：${escapeHtml(data.email)}<br>仮パスワード：${escapeHtml(data.password)}`;
     resultEl.style.display = 'block';
+    loadListings().catch((err) => console.error(err));
     nameEl.value = '';
     emailEl.value = '';
   } catch (err) {

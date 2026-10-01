@@ -32,10 +32,35 @@ async function resizeToJpeg(file) {
   }
 }
 
-function statusHtml(visible) {
-  return visible
-    ? '<span style="background:oklch(0.94 0.06 160);color:oklch(0.4 0.12 160);font:700 11px var(--pm-font-body);padding:3px 10px;border-radius:100px">公開中</span>'
-    : '<span style="background:oklch(0.95 0.05 85);color:oklch(0.5 0.13 75);font:700 11px var(--pm-font-body);padding:3px 10px;border-radius:100px">非公開</span>';
+const PILL = 'font:700 11px var(--pm-font-body);padding:3px 10px;border-radius:100px';
+
+// Listing = ops approval (is_visible, ops-only) AND not paused by the
+// photographer (is_paused, editable here). Only the pause is offered once
+// approved; before that there's nothing to pause.
+function statusBlockHtml(p) {
+  if (p.is_visible === false) {
+    return `
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+        <div style="font:700 15px var(--pm-font-body)">プロフィール設定</div>
+        <span style="${PILL};background:oklch(0.95 0.05 85);color:oklch(0.5 0.13 75)">非公開</span>
+      </div>
+      <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 16px">いまは検索ページに表示されていません。写真・表示名・エリア・性別・紹介文を入力して保存すると、運営が内容を確認して公開します。</p>`;
+  }
+  const paused = p.is_paused === true;
+  return `
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+      <div style="font:700 15px var(--pm-font-body)">プロフィール設定</div>
+      ${paused
+        ? `<span style="${PILL};background:oklch(0.93 0.01 220);color:oklch(0.45 0.02 235)">予約受付を休止中</span>`
+        : `<span style="${PILL};background:oklch(0.94 0.06 160);color:oklch(0.4 0.12 160)">公開中</span>`}
+    </div>
+    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 10px">${paused
+      ? '検索ページに表示されず、新規の予約も入りません。すでに入っている予約はそのままです。'
+      : '検索ページ・プロフィールページに公開されています。保存した内容はすぐに反映されます。'}</p>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px">
+      <button class="pm-btn-outline" id="pf-pause-toggle">${paused ? '予約受付を再開する' : '予約受付を一時休止する'}</button>
+      <span id="pf-pause-error" class="pm-error-text" style="display:none"></span>
+    </div>`;
 }
 
 function previewStyle(url) {
@@ -48,13 +73,7 @@ function formHtml(p) {
   const areaOptions = ['<option value="" disabled' + (AREAS.some((a) => a.label === p.area) ? '' : ' selected') + '>選択してください</option>']
     .concat(AREAS.map((a) => `<option value="${escapeHtml(a.label)}" ${a.label === p.area ? 'selected' : ''}>${escapeHtml(a.label)}</option>`)).join('');
   return `
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
-      <div style="font:700 15px var(--pm-font-body)">プロフィール設定</div>
-      <span id="pf-status">${statusHtml(p.is_visible !== false)}</span>
-    </div>
-    <p id="pf-status-note" style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 16px">${p.is_visible !== false
-      ? '検索ページ・プロフィールページに公開されています。保存した内容はすぐに反映されます。'
-      : 'いまは検索ページに表示されていません。内容を保存したあと、運営が確認して公開します。'}</p>
+    <div id="pf-status-block">${statusBlockHtml(p)}</div>
     <div style="display:flex;flex-direction:column;gap:16px;max-width:520px">
       <div class="pm-field">
         <label>プロフィール写真</label>
@@ -125,6 +144,28 @@ export function mountProfileEditor(el, current, userId) {
   const $ = (id) => document.getElementById(id);
   const errorEl = $('pf-error');
   const showError = (msg) => { errorEl.textContent = msg; errorEl.style.display = 'block'; };
+
+  function renderStatus() {
+    $('pf-status-block').innerHTML = statusBlockHtml(photographer);
+    const toggle = $('pf-pause-toggle');
+    if (!toggle) return;
+    toggle.addEventListener('click', async () => {
+      const pausing = photographer.is_paused !== true;
+      if (pausing && !confirm('予約受付を一時休止します。検索ページに表示されなくなり、新規の予約が入らなくなります。よろしいですか？')) return;
+      toggle.disabled = true;
+      try {
+        photographer = await updateMyPhotographer(photographer.id, { is_paused: pausing });
+        renderStatus();
+      } catch (err) {
+        const errEl = $('pf-pause-error');
+        errEl.textContent = '切り替えに失敗しました。時間をおいて再度お試しください。';
+        errEl.style.display = 'inline';
+        toggle.disabled = false;
+        console.error(err);
+      }
+    });
+  }
+  renderStatus();
 
   $('pf-english').addEventListener('change', (e) => {
     $('pf-english-fields').style.display = e.target.checked ? 'flex' : 'none';
