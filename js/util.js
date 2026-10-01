@@ -5,6 +5,12 @@ export function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// Star rating is shown only once there are real reviews; with none, "★ - (0件)"
+// would just be noise.
+export function hasRating(p) {
+  return (p.reviews_count || 0) > 0 && p.rating != null;
+}
+
 // photographers.photo_url ends up inside `background-image:url(...)` in an
 // inline style, so only accept the two shapes the app itself produces (a file
 // under assets/, or an object in our public photo bucket). Both consist solely

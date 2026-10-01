@@ -1,7 +1,7 @@
 import { mountLayout } from '../layout.js';
 import { getPhotographer, getPlans, getReviews, isBookable } from '../repo.js';
 import { t, areaText, availabilityText, localizedField, planNameText, planDescText, reviewsCountLabel, taxIncludedSuffix } from '../i18n.js';
-import { escapeHtml, safePhotoUrl } from '../util.js';
+import { escapeHtml, safePhotoUrl, hasRating } from '../util.js';
 
 mountLayout();
 
@@ -44,16 +44,20 @@ function instagramLinkHtml(raw) {
           ${photographer.speaks_english ? `<span class="pm-badge" style="background:oklch(0.94 0.05 245);color:oklch(0.42 0.14 250)">${t('profile.badge.english')}</span>` : ''}
         </div>
         <div style="font:14px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${escapeHtml(areaText(photographer.area) || '')}</div>
-        <div style="display:flex;align-items:center;gap:6px;font:14px var(--pm-font-body);color:oklch(0.4 0.02 235)">
-          <span style="color:var(--pm-star)">★</span>${photographer.rating ?? '-'}<span style="color:var(--pm-text-muted)">${reviewsCountLabel(photographer.reviews_count)}</span>
-        </div>
+        ${hasRating(photographer) ? `<div style="display:flex;align-items:center;gap:6px;font:14px var(--pm-font-body);color:oklch(0.4 0.02 235)">
+          <span style="color:var(--pm-star)">★</span>${photographer.rating}<span style="color:var(--pm-text-muted)">${reviewsCountLabel(photographer.reviews_count)}</span>
+        </div>` : ''}
         ${instagramLinkHtml(photographer.instagram)}
       </div>`;
 
     document.getElementById('pm-bio').textContent = localizedField(photographer, 'bio', 'bio_en') || '';
     document.getElementById('pm-price-comment').textContent = localizedField(photographer, 'price_comment', 'price_comment_en') || '';
     document.getElementById('pm-availability').textContent = availabilityText(photographer.availability_label) || '';
-    document.getElementById('pm-rating-line').innerHTML = `<span style="color:var(--pm-star)">★</span>${photographer.rating ?? '-'}${reviewsCountLabel(photographer.reviews_count, true)}`;
+    if (hasRating(photographer)) {
+      document.getElementById('pm-rating-line').innerHTML = `<span style="color:var(--pm-star)">★</span>${photographer.rating}${reviewsCountLabel(photographer.reviews_count, true)}`;
+    } else {
+      document.getElementById('pm-rating-line').remove();
+    }
 
     if (!isBookable(photographer)) {
       const bookBtn = document.getElementById('pm-book-btn');
@@ -77,10 +81,10 @@ function instagramLinkHtml(raw) {
     document.getElementById('pm-reviews').innerHTML = reviews.map((rv) => `
       <div style="border:1px solid var(--pm-border-soft);border-radius:14px;padding:16px">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="font:600 13px var(--pm-font-body)">${rv.reviewer_name}</span>
+          <span style="font:600 13px var(--pm-font-body)">${escapeHtml(rv.reviewer_name)}</span>
           <span style="font:13px var(--pm-font-body);color:var(--pm-star)">${starsLabel(rv.stars)}</span>
         </div>
-        <div style="font:13px/1.7 var(--pm-font-body);color:oklch(0.45 0.02 235)">${rv.comment || ''}</div>
+        <div style="font:13px/1.7 var(--pm-font-body);color:oklch(0.45 0.02 235)">${escapeHtml(rv.comment || '')}</div>
       </div>`).join('') || `<div class="pm-empty">${t('profile.reviewsEmpty')}</div>`;
   } catch (err) {
     document.getElementById('pm-loading').textContent = t('profile.loadError');
