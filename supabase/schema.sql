@@ -114,15 +114,77 @@ drop policy if exists "photographers: public read" on photographers;
 create policy "photographers: public read" on photographers
   for select using (true);
 
--- No feature lets a photographer edit their own listing from the browser
--- today (bio/photo editing isn't built), so this policy had no legitimate
--- use — only value as an attack surface: any photographer could rewrite
--- their own rating, reviews_count, or flip is_visible back on after ops
--- hid them. Removed entirely; a future self-edit feature should add a
--- narrowly-scoped policy + column grant (see "bookings: client cancel own"
--- below for the pattern), not this blanket one.
+-- The old blanket "owner update" policy let a photographer rewrite their own
+-- rating, reviews_count, or flip is_visible back on after ops hid them. It's
+-- replaced by a narrow one: a photographer can update only their own row
+-- (profile_id = auth.uid()) and only the profile columns granted below
+-- (admin.html「プロフィール設定」). rating / reviews_count / is_visible /
+-- price_from / availability_label / instant_booking stay ops-only.
 drop policy if exists "photographers: owner update" on photographers;
+
+-- Supabase grants API roles full table privileges by default; a table-level
+-- revoke also removes any column-level grants left by earlier runs, so the
+-- column grant below must stay after it.
 revoke insert, update, delete on photographers from anon, authenticated;
+
+create policy "photographers: owner update" on photographers
+  for update using (profile_id = auth.uid()) with check (profile_id = auth.uid());
+
+grant update (name, area, gender, bio, price_comment, instagram, speaks_english, bio_en, price_comment_en, photo_url)
+  on photographers to authenticated;
+
+-- These columns are now written by the photographers themselves and rendered
+-- on public pages, so pin their shape in the DB too (the pages escape output
+-- as well). `not valid` keeps the file re-runnable on data that predates the
+-- constraint; rows are checked whenever they're inserted or updated.
+alter table photographers drop constraint if exists photographers_area_check;
+alter table photographers add constraint photographers_area_check
+  check (area is null or area in ('名古屋エリア', '岐阜エリア', '一宮エリア', '未設定')) not valid;
+
+alter table photographers drop constraint if exists photographers_instagram_check;
+alter table photographers add constraint photographers_instagram_check
+  check (instagram is null or instagram ~ '^[A-Za-z0-9._]{1,30}$') not valid;
+
+-- photo_url is either a file shipped under assets/ or an object in the public
+-- photographer-photos bucket below — nothing else, so it can't carry markup
+-- or an arbitrary external URL into the pages.
+alter table photographers drop constraint if exists photographers_photo_url_check;
+alter table photographers add constraint photographers_photo_url_check
+  check (photo_url is null or photo_url ~ '^(assets/[A-Za-z0-9._-]+|https://hnknxfejotertwdvkhvk\.supabase\.co/storage/v1/object/public/photographer-photos/[A-Za-z0-9._/-]+)$') not valid;
+
+alter table photographers drop constraint if exists photographers_text_length_check;
+alter table photographers add constraint photographers_text_length_check
+  check (char_length(name) <= 40 and char_length(coalesce(bio, '')) <= 600 and char_length(coalesce(bio_en, '')) <= 1200
+    and char_length(coalesce(price_comment, '')) <= 120 and char_length(coalesce(price_comment_en, '')) <= 240) not valid;
+
+-- ============================================================
+-- photographer-photos (プロフィール写真。公開バケット)
+-- ============================================================
+-- Public read (the profile/search pages show them). Only a photographer can
+-- write, and only under their own <uid>/ folder.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('photographer-photos', 'photographer-photos', true, 2097152, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do update
+  set public = excluded.public, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "photographer photos: public read" on storage.objects;
+create policy "photographer photos: public read" on storage.objects
+  for select using (bucket_id = 'photographer-photos');
+
+drop policy if exists "photographer photos: owner insert" on storage.objects;
+create policy "photographer photos: owner insert" on storage.objects
+  for insert with check (
+    bucket_id = 'photographer-photos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+    and exists (select 1 from public.profiles where id = auth.uid() and role = 'photographer')
+  );
+
+drop policy if exists "photographer photos: owner delete" on storage.objects;
+create policy "photographer photos: owner delete" on storage.objects
+  for delete using (
+    bucket_id = 'photographer-photos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
 
 -- ============================================================
 -- plans (per photographer pricing plans)

@@ -3,6 +3,7 @@ import { getSession, getProfile, signInOrSignUp, resendSignupEmail } from '../au
 import { getPhotographer, getPlans, getBooking, getTakenSlots, getClosedShifts } from '../repo.js';
 import { mountSheetModal } from '../sheet.js';
 import { loadDailyWeather } from '../weather.js';
+import { escapeHtml } from '../util.js';
 import {
   AREAS, EXTRA_OPTIONS, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
 } from '../data.js';
@@ -416,7 +417,7 @@ function goPaymentStep() {
       <span style="font:700 13px var(--pm-font-body);color:oklch(0.35 0.03 220)">${t('booking.contact.total')}</span>
       <span style="font:700 22px var(--pm-font-num);color:oklch(0.3 0.03 240)">¥${s.grandTotal.toLocaleString()}</span>
     </div>
-    <div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${tf('booking.payment.locationLine', { name: state.photographer.name, area: areaText(s.areaLabel), date: s.d.dateLabel, day: s.d.label, start: s.startTime, end: s.endTime })}</div>`;
+    <div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${tf('booking.payment.locationLine', { name: escapeHtml(state.photographer.name), area: areaText(s.areaLabel), date: s.d.dateLabel, day: s.d.label, start: s.startTime, end: s.endTime })}</div>`;
   document.getElementById('payment-submit-label').textContent = tf('booking.payment.submitLabel', { total: `¥${s.grandTotal.toLocaleString()}` });
 }
 
@@ -471,7 +472,7 @@ function showConfirmForBooking(booking) {
   const optionsHtml = options.map((o) => `<div>${tf('booking.confirm.optionLine', { label: L(o, 'label'), price: o.price.toLocaleString() })}</div>`).join('');
   const dateLabel = `${Number(booking.booking_date.slice(5, 7))}/${Number(booking.booking_date.slice(8, 10))}`;
   document.getElementById('confirm-details').innerHTML = `
-    <div>${tf('booking.confirm.photographer', { name: state.photographer.name })}</div>
+    <div>${tf('booking.confirm.photographer', { name: escapeHtml(state.photographer.name) })}</div>
     <div>${tf('booking.confirm.area', { area: areaText(booking.area) })}</div>
     <div>${tf('booking.confirm.datetime', { date: dateLabel, start: booking.start_time.slice(0, 5), end: booking.end_time.slice(0, 5) })}</div>
     <div>${tf('booking.confirm.plan', { plan: planNameText(booking.plan_name), price: booking.plan_price.toLocaleString() })}</div>

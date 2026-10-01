@@ -25,3 +25,16 @@ update profiles set role = 'ops' where email = 'info.photomatch@gmail.com';
 ```
 
 `profiles` はブラウザ（anon / authenticated）から更新できない設計。権限の変更は、SQL Editor または service_role からのみ行う。
+
+### カメラマンの登録から公開まで
+
+1. 運営が `ops.html` の「カメラマン登録」でアカウントを作り、メールアドレスと仮パスワードを本人に渡す（作成直後のプロフィールは非公開）
+2. 本人が `pro-login.html` からログインし、管理画面（`admin.html`）の「プロフィール設定」で、写真・表示名・エリア・性別・ひとこと・紹介文・Instagram・英語対応を入力する。時間枠と振込先口座もここで設定する
+3. 運営が内容を確認し、SQL Editor で公開する
+4. 料金プラン（`plans`）は運営が SQL Editor で登録する。プロフィール設定では編集できない
+
+```sql
+update photographers set is_visible = true where id = '<カメラマンのUID>';
+```
+
+本人が編集できるのは `name / area / gender / bio / price_comment / instagram / speaks_english / bio_en / price_comment_en / photo_url` だけ（`supabase/schema.sql` の列単位の grant）。公開状態・評価・レビュー数などは運営のみ。写真は公開バケット `photographer-photos` の自分のフォルダに置かれる。

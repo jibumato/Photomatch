@@ -2,6 +2,7 @@ import { mountLayout } from '../layout.js';
 import { listPhotographers } from '../repo.js';
 import { AREAS } from '../data.js';
 import { getLang, t, areaText, availabilityText, localizedField, reviewsCountLabel } from '../i18n.js';
+import { escapeHtml, safePhotoUrl } from '../util.js';
 
 mountLayout();
 
@@ -9,18 +10,15 @@ const STRIPE_BG = 'repeating-linear-gradient(135deg, oklch(0.9 0.05 200) 0px, ok
 
 const state = { all: [], area: '', femaleOnly: false, englishOnly: false, sort: 'recommended' };
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-
 function cardHtml(p) {
-  const photoStyle = p.photo_url
-    ? `aspect-ratio:4/3;background-image:url(${p.photo_url});background-size:cover;background-position:center`
+  const photoUrl = safePhotoUrl(p.photo_url);
+  const photoStyle = photoUrl
+    ? `aspect-ratio:4/3;background-image:url(${photoUrl});background-size:cover;background-position:center`
     : `aspect-ratio:4/3;background:${STRIPE_BG};display:flex;align-items:center;justify-content:center;text-align:center;padding:10px`;
   return `
   <a href="profile.html?id=${encodeURIComponent(p.id)}" class="pm-card" style="display:block;overflow:hidden;text-decoration:none;color:inherit">
     <div style="${photoStyle}">
-      ${p.photo_url ? '' : `<span style="font:11px ui-monospace,monospace;color:oklch(0.4 0.08 210)">PHOTO — ${escapeHtml(p.name)}</span>`}
+      ${photoUrl ? '' : `<span style="font:11px ui-monospace,monospace;color:oklch(0.4 0.08 210)">PHOTO — ${escapeHtml(p.name)}</span>`}
     </div>
     <div style="padding:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">

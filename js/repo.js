@@ -29,6 +29,39 @@ export async function getMyPhotographerRow() {
   return data;
 }
 
+// photographer: saves the profile columns granted in supabase/schema.sql
+// (RLS limits the update to the signed-in user's own row).
+export async function updateMyPhotographer(photographerId, patch) {
+  const { data, error } = await supabase.from('photographers').update(patch).eq('id', photographerId).select().single();
+  if (error) throw error;
+  return data;
+}
+
+const PHOTO_BUCKET = 'photographer-photos';
+
+// Photos live under <auth uid>/ in the public bucket (storage policies only
+// allow that folder). The file name is unique per upload, so a replaced photo
+// never shows a stale cached copy.
+export async function uploadProfilePhoto(userId, blob) {
+  const path = `${userId}/profile-${Date.now()}.jpg`;
+  const { error } = await supabase.storage.from(PHOTO_BUCKET).upload(path, blob, { contentType: 'image/jpeg', cacheControl: '31536000' });
+  if (error) throw error;
+  return supabase.storage.from(PHOTO_BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+// Best effort: cleans up a replaced/abandoned upload. URLs that aren't in the
+// bucket (e.g. a file under assets/) are left alone.
+export async function removeProfilePhoto(url) {
+  const marker = `/object/public/${PHOTO_BUCKET}/`;
+  const i = url ? url.indexOf(marker) : -1;
+  if (i < 0) return;
+  try {
+    await supabase.storage.from(PHOTO_BUCKET).remove([url.slice(i + marker.length)]);
+  } catch (err) {
+    console.warn('could not remove old profile photo', err);
+  }
+}
+
 export async function getPlans(photographerId) {
   const { data, error } = await supabase.from('plans').select('*').eq('photographer_id', photographerId).order('sort_order');
   if (error) throw error;

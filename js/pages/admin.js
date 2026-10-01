@@ -7,6 +7,7 @@ import {
 } from '../repo.js';
 import { mountChatModal } from '../chat.js';
 import { loadDailyWeather } from '../weather.js';
+import { mountProfileEditor } from '../profileEditor.js';
 import { AREAS, SLOT_TIMES, buildBookingDays, weatherIconFor } from '../data.js';
 
 mountLayout();
@@ -301,6 +302,7 @@ async function init() {
   state.photographerId = photographer.id;
   state.area = AREAS.find((a) => a.label === photographer.area) || AREAS[0];
   document.getElementById('pm-admin').style.display = 'block';
+  mountProfileEditor(document.getElementById('pm-profile-section'), photographer, profile.id);
   renderBankAccountSection(photographer);
 
   const [bookings] = await Promise.all([getPhotographerBookings(state.photographerId), loadShifts(), loadWeather()]);
