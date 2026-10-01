@@ -24,9 +24,12 @@ drop policy if exists "profiles: read own" on profiles;
 create policy "profiles: read own" on profiles
   for select using (auth.uid() = id);
 
+-- 以前はここに「自分の行なら更新できる」ポリシーがあったが、列の制限が無く、
+-- ログイン済みなら誰でもブラウザから自分の role を 'ops' に書き換えられた。
+-- サイト側に profiles を更新する処理は無いため、ポリシーごと外す。権限(role)の
+-- 変更は SQL Editor（または service_role）からのみ行う。
 drop policy if exists "profiles: update own" on profiles;
-create policy "profiles: update own" on profiles
-  for update using (auth.uid() = id);
+revoke insert, update, delete on profiles from anon, authenticated;
 
 -- Auto-create a profile row (and a stub photographers row for pros) on sign-up.
 create or replace function handle_new_user()
@@ -491,6 +494,10 @@ where not exists (
 -- Postgres names an unnamed inline check constraint "<table>_<column>_check".
 alter table profiles drop constraint if exists profiles_role_check;
 alter table profiles add constraint profiles_role_check check (role in ('client', 'photographer', 'ops'));
+
+-- 運営アカウントの作り方: 先に通常どおりログイン用アカウントを作り（login.html などで
+-- 新規登録してメール確認を済ませる）、SQL Editor で次を実行する。
+--   update profiles set role = 'ops' where email = '運営メンバーのメールアドレス';
 
 create table if not exists guarantee_claims (
   id uuid primary key default gen_random_uuid(),
