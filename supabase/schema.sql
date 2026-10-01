@@ -529,10 +529,10 @@ insert into plans (photographer_id, name, price, original_price, discount_label,
 select p.id, v.name, v.price, v.original_price, v.discount_label, v.description, v.duration_min, v.sort_order
 from photographers p
 cross join (values
-  ('スマホプラン', 6800, 7800, '10%OFF', '45分・20枚納品・スマホ撮影', 45, 0),
-  ('スタンダード', 8800, 9800, '10%OFF', '45分・20枚納品', 45, 1),
-  ('スタンダードプラス', 11800, 13100, '10%OFF', '45分・20枚納品＋スマホ用5枚', 45, 2),
-  ('結婚相談所', 8800, 9800, '10%OFF', '45分・10枚納品', 45, 3)
+  ('スマホプラン', 6800, 7800, '1,000円OFF', '45分・20枚納品・スマホ撮影', 45, 0),
+  ('スタンダード', 8800, 9800, '1,000円OFF', '45分・20枚納品', 45, 1),
+  ('スタンダードプラス', 11800, 12800, '1,000円OFF', '45分・20枚納品＋スマホ用5枚', 45, 2),
+  ('結婚相談所', 8800, 9800, '1,000円OFF', '45分・10枚納品', 45, 3)
 ) as v(name, price, original_price, discount_label, description, duration_min, sort_order)
 where p.id in ('p1','p2','p3','p4','p5','p6')
   -- plans has no unique key besides id, so on conflict can't dedupe; check
@@ -542,14 +542,14 @@ where p.id in ('p1','p2','p3','p4','p5','p6')
   );
 
 -- 上の insert は既存の行には触れないため、価格改定を既存インストールにも当てる。
-update plans set price = 6800, original_price = 7800, discount_label = '10%OFF', duration_min = 45
+update plans set price = 6800, original_price = 7800, discount_label = '1,000円OFF', duration_min = 45
   where name = 'スマホプラン' and photographer_id in ('p1','p2','p3','p4','p5','p6');
 -- 納品枚数を10枚→20枚に変更したため、既存インストールの description も揃える。
 update plans set description = '45分・20枚納品・スマホ撮影'
   where name = 'スマホプラン' and photographer_id in ('p1','p2','p3','p4','p5','p6');
-update plans set price = 8800, original_price = 9800, discount_label = '10%OFF'
+update plans set price = 8800, original_price = 9800, discount_label = '1,000円OFF'
   where name in ('スタンダード', '結婚相談所') and photographer_id in ('p1','p2','p3','p4','p5','p6');
-update plans set price = 11800, original_price = 13100, discount_label = '10%OFF'
+update plans set price = 11800, original_price = 12800, discount_label = '1,000円OFF'
   where name = 'スタンダードプラス' and photographer_id in ('p1','p2','p3','p4','p5','p6');
 
 -- 以前はここに、ダミーの口コミ8件と、ダミーの評価・レビュー数を種まきしていた。

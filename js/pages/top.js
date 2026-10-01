@@ -3,7 +3,7 @@ import {
   STATS, TARGET_PAINS, TARGET_PAINS_EN, SUPPORTED_APPS, SUPPORTED_APPS_EN, SHOT_TYPES,
   TESTIMONIALS, PRICING_PLANS, SAFETY_POINTS, FAQS, HOW_IT_WORKS,
 } from '../data.js';
-import { getLang, L, t } from '../i18n.js';
+import { getLang, L, t, discountLabelText } from '../i18n.js';
 
 mountLayout();
 
@@ -60,7 +60,7 @@ document.getElementById('pm-pricing').innerHTML = PRICING_PLANS.map((pl) => `
     <div style="font:700 15px var(--pm-font-body);margin-bottom:6px">${L(pl, 'name')}</div>
     ${pl.originalPrice ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
       <span style="font:600 14px var(--pm-font-num);color:var(--pm-text-muted);text-decoration:line-through">¥${pl.originalPrice}</span>
-      <span style="font:700 11px var(--pm-font-body);color:#fff;background:var(--pm-warn);padding:2px 8px;border-radius:100px">${pl.discountLabel}</span>
+      <span style="font:700 11px var(--pm-font-body);color:#fff;background:var(--pm-warn);padding:2px 8px;border-radius:100px">${discountLabelText(pl.discountLabel)}</span>
     </div>` : ''}
     <div style="font:800 26px var(--pm-font-num);margin-bottom:4px">¥${pl.price}</div>
     <div style="font:11px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${t('profile.taxIncluded')}</div>

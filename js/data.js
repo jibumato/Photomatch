@@ -288,10 +288,10 @@ export const COLUMN_ARTICLES = [
 // the `plans` rows in supabase/schema.sql. planNameText()/planDescText() in
 // js/i18n.js translate the same wording where it's echoed back from the DB.
 export const PRICING_PLANS = [
-  { name: 'スマホプラン', nameEn: 'Smartphone Plan', price: '6,800', originalPrice: '7,800', discountLabel: '10%OFF', desc: '45分・20枚納品・スマホ撮影', descEn: '45 min · 20 photos delivered · shot on smartphone' },
-  { name: 'スタンダード', nameEn: 'Standard', price: '8,800', originalPrice: '9,800', discountLabel: '10%OFF', desc: '45分・20枚納品', descEn: '45 min · 20 photos delivered' },
-  { name: 'スタンダードプラス', nameEn: 'Standard Plus', price: '11,800', originalPrice: '13,100', discountLabel: '10%OFF', desc: '45分・20枚納品＋スマホ用5枚', descEn: '45 min · 20 photos delivered + 5 smartphone crops' },
-  { name: '結婚相談所', nameEn: 'Matchmaking Agency', price: '8,800', originalPrice: '9,800', discountLabel: '10%OFF', desc: '45分・10枚納品', descEn: '45 min · 10 photos delivered' },
+  { name: 'スマホプラン', nameEn: 'Smartphone Plan', price: '6,800', originalPrice: '7,800', discountLabel: '1,000円OFF', desc: '45分・20枚納品・スマホ撮影', descEn: '45 min · 20 photos delivered · shot on smartphone' },
+  { name: 'スタンダード', nameEn: 'Standard', price: '8,800', originalPrice: '9,800', discountLabel: '1,000円OFF', desc: '45分・20枚納品', descEn: '45 min · 20 photos delivered' },
+  { name: 'スタンダードプラス', nameEn: 'Standard Plus', price: '11,800', originalPrice: '12,800', discountLabel: '1,000円OFF', desc: '45分・20枚納品＋スマホ用5枚', descEn: '45 min · 20 photos delivered + 5 smartphone crops' },
+  { name: '結婚相談所', nameEn: 'Matchmaking Agency', price: '8,800', originalPrice: '9,800', discountLabel: '1,000円OFF', desc: '45分・10枚納品', descEn: '45 min · 10 photos delivered' },
 ];
 
 // labelEn/descEn are additive display-only translations for the English

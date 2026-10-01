@@ -7,7 +7,7 @@ import { escapeHtml } from '../util.js';
 import {
   AREAS, EXTRA_OPTIONS, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
 } from '../data.js';
-import { t, tf, L, getLang, areaText, planNameText, planDescText, taxIncludedSuffix } from '../i18n.js';
+import { t, tf, L, getLang, areaText, planNameText, planDescText, discountLabelText, taxIncludedSuffix } from '../i18n.js';
 
 mountLayout();
 
@@ -156,7 +156,7 @@ function renderPlanStep() {
       <div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:6px">${planNameText(plan.name)}</div>
       ${plan.original_price ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
         <span style="font:600 12px var(--pm-font-num);color:var(--pm-text-muted);text-decoration:line-through">¥${plan.original_price.toLocaleString()}</span>
-        <span style="font:700 10px var(--pm-font-body);color:#fff;background:var(--pm-warn);padding:2px 7px;border-radius:100px">${plan.discount_label || ''}</span>
+        <span style="font:700 10px var(--pm-font-body);color:#fff;background:var(--pm-warn);padding:2px 7px;border-radius:100px">${discountLabelText(plan.discount_label) || ''}</span>
       </div>` : ''}
       <div style="font:700 20px var(--pm-font-body);margin-bottom:2px">¥${plan.price.toLocaleString()}<span style="font:11px var(--pm-font-body);color:var(--pm-text-3)">${taxIncludedSuffix()}</span></div>
       <div style="font:12px/1.6 var(--pm-font-body);color:var(--pm-text-3)">${planDescText(plan.description) || ''}</div>

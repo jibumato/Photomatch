@@ -369,6 +369,11 @@ const PLAN_NAME_EN = {
   '結婚相談所': 'Matchmaking Agency',
 };
 
+// Discount badge text (plans.discount_label / PRICING_PLANS.discountLabel).
+const DISCOUNT_LABEL_EN = {
+  '1,000円OFF': '¥1,000 OFF',
+};
+
 const PLAN_DESC_EN = {
   '45分・20枚納品・スマホ撮影': '45 min · 20 photos delivered · shot on smartphone',
   '45分・20枚納品': '45 min · 20 photos delivered',
@@ -406,6 +411,7 @@ export const areaText = (ja) => localize(AREA_EN, ja);
 export const availabilityText = (ja) => localize(AVAILABILITY_EN, ja);
 export const planNameText = (ja) => localize(PLAN_NAME_EN, ja);
 export const planDescText = (ja) => localize(PLAN_DESC_EN, ja);
+export const discountLabelText = (ja) => localize(DISCOUNT_LABEL_EN, ja);
 
 // A photographer's bio/price_comment are free text the photographer wrote
 // themselves — never machine-translated on their behalf. If they (or ops)
