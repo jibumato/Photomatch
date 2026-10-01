@@ -1,5 +1,5 @@
 import { mountLayout } from '../layout.js';
-import { requireRole, signOut } from '../auth.js';
+import { requireRole, signOut, getSession } from '../auth.js';
 import {
   getGuaranteeClaimsForReview, reviewGuaranteeClaim,
   getMonitorApplicationsForReview, reviewMonitorApplication,
@@ -132,6 +132,57 @@ async function loadMonitorApplications() {
       }
     });
   });
+}
+
+// ---------- システム状態 ----------
+// Asks /api/status what the deployed Functions can see. If the request itself
+// fails (empty 404/405, HTML error page), the API isn't being served at all —
+// typically because the domain still points at a static-only deployment.
+const STATUS_OK = 'color:oklch(0.45 0.13 160)';
+const STATUS_NG = 'color:oklch(0.5 0.17 25)';
+
+function statusRow(label, ok, text, hint) {
+  return `<div style="display:flex;gap:10px;align-items:baseline;padding:4px 0">
+    <span style="${ok ? STATUS_OK : STATUS_NG};font:700 13px var(--pm-font-body);width:16px">${ok ? '✓' : '✗'}</span>
+    <div style="font:13px/1.7 var(--pm-font-body);flex:1;min-width:0"><b>${label}</b>：<span style="${ok ? STATUS_OK : STATUS_NG}">${text}</span>${!ok && hint ? `<div style="font:12px/1.7 var(--pm-font-body);color:var(--pm-text-3)">${hint}</div>` : ''}</div>
+  </div>`;
+}
+
+async function loadSystemStatus() {
+  const el = document.getElementById('pm-system-status');
+  const title = '<div style="font:700 15px var(--pm-font-body);margin-bottom:6px">システム状態</div>';
+  el.innerHTML = `${title}<div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">確認しています…</div>`;
+  let res = null;
+  let data = null;
+  try {
+    const session = await getSession();
+    res = await fetch('/api/status', { headers: { Authorization: `Bearer ${session.access_token}` } });
+    data = await res.json();
+  } catch (e) { /* handled below */ }
+
+  if (!data || !res || !res.ok || !data.ok) {
+    const code = res ? `HTTP ${res.status}` : '接続できません';
+    el.innerHTML = `${title}${statusRow('サイトのAPI', false, `応答がありません（${code}）`,
+      'カメラマン登録・決済・予約キャンセル・通知メールなどが動きません。ドメイン（photo-match.jp）が、APIに対応した Cloudflare Pages のプロジェクトに向いているか、確認してください（古い「Workers」のままだと、APIは動きません）。')}`;
+    return;
+  }
+  const rows = [
+    statusRow('サイトのAPI', true, '動作しています'),
+    data.supabase_service_role === 'ok'
+      ? statusRow('データベースの管理キー', true, '有効')
+      : statusRow('データベースの管理キー', false, data.supabase_service_role === 'missing' ? '未設定' : '無効（値が違う可能性）',
+        'Cloudflare Pages の「変数とシークレット」に、SUPABASE_SERVICE_ROLE_KEY（Supabase の service_role キー）を設定し、再デプロイしてください。'),
+    data.stripe_secret === 'test' || data.stripe_secret === 'live'
+      ? statusRow('Stripe（決済）', true, data.stripe_secret === 'live' ? '本番モード' : 'テストモード（テストカードのみ決済できます）')
+      : statusRow('Stripe（決済）', false, data.stripe_secret === 'missing' ? '未設定' : '無効（キーの値が違う可能性）', 'STRIPE_SECRET_KEY を設定してください。'),
+    statusRow('Stripe の署名シークレット', data.stripe_webhook_secret === 'set', data.stripe_webhook_secret === 'set' ? '設定済み' : '未設定',
+      'STRIPE_WEBHOOK_SECRET（whsec_…）を設定してください。未設定だと、決済しても予約が「支払い済み」になりません。'),
+    data.resend_key === 'ok'
+      ? statusRow('メール送信（Resend）', true, '有効')
+      : statusRow('メール送信（Resend）', false, data.resend_key === 'missing' ? '未設定' : '無効（キーの値が違う可能性）', 'RESEND_API_KEY を設定してください。未設定だと、予約通知メールは送られません。'),
+    statusRow('メールの送信元', data.email_from === 'set', data.email_from === 'set' ? '設定済み' : '未設定（初期値を使用）', 'EMAIL_FROM を「PhotoMatch &lt;no-reply@photo-match.jp&gt;」の形式で設定してください。'),
+  ];
+  el.innerHTML = title + rows.join('') + '<div style="font:11px var(--pm-font-body);color:var(--pm-text-muted);margin-top:6px">※設定の値は表示されません。変更した場合は、再デプロイ後に画面を再読み込みしてください。</div>';
 }
 
 // ---------- カメラマンの掲載管理 ----------
@@ -378,6 +429,7 @@ async function load() {
   document.getElementById('pm-loading').style.display = 'none';
   document.getElementById('pm-ops').style.display = 'block';
 
+  loadSystemStatus();
   await loadListings();
   await loadReviews();
   await loadMonitorApplications();
