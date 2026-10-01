@@ -20,16 +20,15 @@ export const SHOT_TYPES = [
 // 「撮影後マッチング数UP ◯%」は、モニター企画で実データを取得するまで掲出しない。
 // 効果を数値で断定する表示は、景品表示法上、根拠資料の提出を求められうるため
 // （不実証広告規制）。実証後に「※モニター◯名の実績」等の注記付きで戻す。
+// 平均評価は、実際のレビューが集まるまで掲出しない（以前の「4.8」はダミーだった）。
 export const STATS = [
   { value: '250+', label: '名古屋エリア撮影実績', labelEn: 'Nagoya-area shoots completed' },
-  { value: '4.8', label: '平均カメラマン評価', labelEn: 'Average photographer rating' },
 ];
 
-export const TESTIMONIALS = [
-  { name: 'K.Tさん（20代・会社員）', nameEn: 'K.T. (20s, office worker)', starsLabel: '★★★★★', comment: 'これまで自撮りだったのが嘘みたいに反応が変わりました。撮影も自然体で話しながらできて緊張しませんでした。', commentEn: "The response I'm getting compared to my old selfies is night and day. The shoot itself felt like a relaxed conversation, so I never got nervous." },
-  { name: 'R.Sさん（30代・営業職）', nameEn: 'R.S. (30s, sales)', starsLabel: '★★★★★', comment: '料金が事前に分かるので安心して予約できました。岐阜でのロケーションも雰囲気が良かったです。', commentEn: 'Knowing the price upfront made it easy to book with confidence, and the location in Gifu had a great atmosphere.' },
-  { name: 'Y.Mさん（20代・エンジニア）', nameEn: 'Y.M. (20s, engineer)', starsLabel: '★★★★☆', comment: 'マッチング数保証があったので思い切って依頼できました。仕上がりの写真も想像以上でした。', commentEn: 'The match-count guarantee is what convinced me to try it, and the finished photos exceeded what I expected.' },
-];
+// 実在のお客様の口コミだけを入れる。空の間は、トップの「利用者の口コミ」欄ごと
+// 非表示になる（以前入っていた3件はダミーだったため削除した）。形式:
+// { name, nameEn, starsLabel: '★★★★★', comment, commentEn }
+export const TESTIMONIALS = [];
 
 export const TARGET_PAINS = [
   'いいねは来るのに、マッチしてもすぐ途切れる',

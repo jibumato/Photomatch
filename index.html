@@ -228,10 +228,12 @@
     <!-- カード数が少ない（現状2枚）ため、1frではなく最大幅を決めて中央寄せに
          することで、デスクトップの広い横幅にカードが間延びして伸びるのを防ぐ -->
     <div id="pm-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,260px));gap:24px;justify-content:center;margin-bottom:48px"></div>
-    <div class="pm-eyebrow">VOICE</div>
-    <h2 class="pm-section-title" style="margin-bottom:40px" data-i18n="top.voice.title">利用者の口コミ</h2>
-    <div id="pm-testimonials" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px"></div>
-    <p style="font:11px/1.8 var(--pm-font-body);color:var(--pm-text-muted);margin:20px 0 0" data-i18n="top.results.sourceNote">※撮影実績・評価・口コミは、代表カメラマンTAKUMIのこれまでの撮影活動（PhotoMatch開始前を含む）によるものです。</p>
+    <div id="pm-voice">
+      <div class="pm-eyebrow">VOICE</div>
+      <h2 class="pm-section-title" style="margin-bottom:40px" data-i18n="top.voice.title">利用者の口コミ</h2>
+      <div id="pm-testimonials" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px"></div>
+    </div>
+    <p style="font:11px/1.8 var(--pm-font-body);color:var(--pm-text-muted);margin:20px 0 0" data-i18n="top.results.sourceNote">※撮影実績は、代表カメラマンTAKUMIのこれまでの撮影活動（PhotoMatch開始前を含む）によるものです。</p>
   </section>
 
   <!-- 料金 -->

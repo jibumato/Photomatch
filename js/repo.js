@@ -2,6 +2,27 @@
 import { supabase } from './supabaseClient.js';
 import { getSession } from './auth.js';
 
+// POST JSON to a Function with the signed-in user's token. A reply that isn't
+// JSON (e.g. an empty 404/405 from a host that isn't serving /functions, or an
+// HTML error page) is reported with its HTTP status instead of a cryptic
+// "Unexpected end of JSON input".
+export async function callApi(path, body, fallbackMessage, apiDownMessage) {
+  const session = await getSession();
+  if (!session) throw new Error('not signed in');
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify(body),
+  });
+  let data = null;
+  try { data = await res.json(); } catch (e) { /* not JSON */ }
+  if (!data) {
+    throw new Error(apiDownMessage || `サーバーが正しく応答しませんでした（HTTP ${res.status}）。サイトのAPI（Cloudflare Pages Functions）が動いていない可能性があります。運営画面の「システム状態」を確認してください。`);
+  }
+  if (!res.ok) throw new Error(data.error || fallbackMessage);
+  return data;
+}
+
 // Listed = approved by ops (is_visible) and not paused by the photographer.
 // is_paused is filtered here rather than in the query so the page keeps
 // working on a database that doesn't have the column yet.
@@ -75,10 +96,67 @@ export async function getPlans(photographerId) {
   return data;
 }
 
+// Public reviews only: the author and ops can also *read* a hidden review (RLS),
+// but it must never show up on the photographer's page.
 export async function getReviews(photographerId) {
-  const { data, error } = await supabase.from('reviews').select('*').eq('photographer_id', photographerId).order('created_at', { ascending: false });
+  const { data, error } = await supabase.from('reviews').select('*').eq('photographer_id', photographerId).eq('is_hidden', false).order('created_at', { ascending: false });
   if (error) throw error;
   return data;
+}
+
+// ---- post-shoot reviews (customer side) ----
+
+// The signed-in customer's own reviews, keyed by booking id.
+export async function getMyReviewsByBooking(bookingIds) {
+  if (!bookingIds.length) return {};
+  const { data, error } = await supabase.from('reviews').select('*').in('booking_id', bookingIds);
+  if (error) throw error;
+  const map = {};
+  for (const row of data) map[row.booking_id] = row;
+  return map;
+}
+
+// Creates or edits the review for a booking. The database is what enforces who
+// may write (own booking, shoot already over, one per booking — see schema.sql);
+// this only sends the editable fields.
+export async function saveReview({ existing, booking, reviewerName, stars, comment }) {
+  const fields = { reviewer_name: reviewerName, stars, comment: comment || null };
+  if (existing) {
+    const { data, error } = await supabase.from('reviews').update(fields).eq('id', existing.id).select().single();
+    if (error) throw error;
+    return data;
+  }
+  const session = await getSession();
+  if (!session) throw new Error('not signed in');
+  const { data, error } = await supabase.from('reviews')
+    .insert({ ...fields, photographer_id: booking.photographer_id, booking_id: booking.id, client_id: session.user.id })
+    .select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteReview(reviewId) {
+  const { error } = await supabase.from('reviews').delete().eq('id', reviewId);
+  if (error) throw error;
+}
+
+// ---- reviews (ops moderation) ----
+
+// ops: latest reviews including hidden ones (RLS lets ops read all).
+export async function getReviewsForModeration(limit = 50) {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*, photographers(name)')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data;
+}
+
+// Goes through a Function (ops-role check + service_role): a browser role can't
+// be granted is_hidden without letting reviewers un-hide their own review.
+export async function setReviewHidden(reviewId, hidden) {
+  return callApi('/api/reviews/moderate', { review_id: reviewId, hidden }, '更新に失敗しました。');
 }
 
 // ---- calendar / availability ----
@@ -168,15 +246,7 @@ export async function getPhotographerBookings(photographerId) {
 // Goes through a Function (not a direct table update) so the cancellation
 // emails to the customer and photographer are always sent.
 export async function cancelBooking(bookingId) {
-  const session = await getSession();
-  if (!session) throw new Error('not signed in');
-  const res = await fetch('/api/bookings/cancel', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-    body: JSON.stringify({ booking_id: bookingId }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'キャンセル処理に失敗しました。');
+  await callApi('/api/bookings/cancel', { booking_id: bookingId }, 'キャンセル処理に失敗しました。', '時間をおいて再度お試しください。');
 }
 
 // ---- chat ----
@@ -331,16 +401,7 @@ export async function getPayoutCandidates() {
 // still goes through a Function so ops-role authorization is enforced
 // server-side rather than relying on RLS alone for money-adjacent state.
 export async function releasePayout(bookingId, note) {
-  const session = await getSession();
-  if (!session) throw new Error('not signed in');
-  const res = await fetch('/api/payouts/release', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-    body: JSON.stringify({ booking_id: bookingId, note }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || '更新に失敗しました。');
-  return data;
+  return callApi('/api/payouts/release', { booking_id: bookingId, note }, '更新に失敗しました。');
 }
 
 // ops: every photographer (listed or not) with how many plans each has, for
@@ -361,32 +422,14 @@ export async function getPhotographersForReview() {
 // Function: a browser role can't be given is_visible without also letting
 // photographers flip it on their own row.
 export async function setPhotographerVisibility(photographerId, visible) {
-  const session = await getSession();
-  if (!session) throw new Error('not signed in');
-  const res = await fetch('/api/photographers/visibility', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-    body: JSON.stringify({ photographer_id: photographerId, visible }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || '更新に失敗しました。');
-  return data;
+  return callApi('/api/photographers/visibility', { photographer_id: photographerId, visible }, '更新に失敗しました。');
 }
 
 // ops: creates a login account for a new photographer (goes through a
 // Function since it needs the service_role key to call Supabase's Admin
 // Auth API — not something the browser's anon key can do).
 export async function createPhotographerAccount(name, email) {
-  const session = await getSession();
-  if (!session) throw new Error('not signed in');
-  const res = await fetch('/api/photographers/create', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-    body: JSON.stringify({ name, email }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'アカウント作成に失敗しました。');
-  return data;
+  return callApi('/api/photographers/create', { name, email }, 'アカウント作成に失敗しました。');
 }
 
 // ---- monitor applications (モニター価格プログラム) ----

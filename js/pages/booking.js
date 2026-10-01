@@ -1,6 +1,6 @@
 import { mountLayout } from '../layout.js';
 import { getSession, getProfile, signInOrSignUp, resendSignupEmail } from '../auth.js';
-import { getPhotographer, getPlans, getBooking, getTakenSlots, getClosedShifts, isBookable } from '../repo.js';
+import { getPhotographer, getPlans, getBooking, getTakenSlots, getClosedShifts, isBookable, callApi } from '../repo.js';
 import { mountSheetModal } from '../sheet.js';
 import { loadDailyWeather } from '../weather.js';
 import { escapeHtml } from '../util.js';
@@ -434,24 +434,18 @@ document.getElementById('payment-submit').addEventListener('click', async () => 
     // Saved so a canceled/abandoned Stripe Checkout can restore this exact
     // slot/contact selection instead of losing it on the redirect back.
     saveDraft();
-    const res = await fetch('/api/checkout/create-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-      body: JSON.stringify({
-        photographer_id: photographerId,
-        plan_name: s.plan.name,
-        booking_date: s.d.iso,
-        start_time: s.startTime,
-        area: state.selectedArea,
-        customer_name: state.name,
-        // Photographers see this in their booking list, so include the phone
-        // number when one was given — the email alone otherwise.
-        customer_contact: state.phone ? `${state.email} / ${state.phone}` : state.email,
-        option_keys: state.options,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || t('booking.payment.checkoutFailed'));
+    const data = await callApi('/api/checkout/create-session', {
+      photographer_id: photographerId,
+      plan_name: s.plan.name,
+      booking_date: s.d.iso,
+      start_time: s.startTime,
+      area: state.selectedArea,
+      customer_name: state.name,
+      // Photographers see this in their booking list, so include the phone
+      // number when one was given — the email alone otherwise.
+      customer_contact: state.phone ? `${state.email} / ${state.phone}` : state.email,
+      option_keys: state.options,
+    }, t('booking.payment.checkoutFailed'), t('booking.payment.checkoutFailedRetry'));
     location.href = data.url;
   } catch (err) {
     errorEl.textContent = err.message || t('booking.payment.checkoutFailedRetry');

@@ -2,7 +2,7 @@ import { mountLayout } from '../layout.js';
 import { listPhotographers } from '../repo.js';
 import { AREAS } from '../data.js';
 import { getLang, t, areaText, availabilityText, localizedField, reviewsCountLabel } from '../i18n.js';
-import { escapeHtml, safePhotoUrl } from '../util.js';
+import { escapeHtml, safePhotoUrl, hasRating } from '../util.js';
 
 mountLayout();
 
@@ -29,9 +29,9 @@ function cardHtml(p) {
         </div>
       </div>
       <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${escapeHtml(areaText(p.area) || '')}</div>
-      <div style="display:flex;align-items:center;gap:6px;font:13px var(--pm-font-body);color:oklch(0.4 0.02 235);margin-bottom:8px">
-        <span style="color:var(--pm-star)">★</span>${p.rating ?? '-'}<span style="color:var(--pm-text-muted)">${reviewsCountLabel(p.reviews_count)}</span>
-      </div>
+      ${hasRating(p) ? `<div style="display:flex;align-items:center;gap:6px;font:13px var(--pm-font-body);color:oklch(0.4 0.02 235);margin-bottom:8px">
+        <span style="color:var(--pm-star)">★</span>${p.rating}<span style="color:var(--pm-text-muted)">${reviewsCountLabel(p.reviews_count)}</span>
+      </div>` : ''}
       <div style="border-top:1px solid var(--pm-border-faint);padding-top:10px">
         <div style="font:13px/1.6 var(--pm-font-body);color:oklch(0.4 0.03 220);margin-bottom:6px">${escapeHtml(localizedField(p, 'price_comment', 'price_comment_en') || '')}</div>
         <span style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${escapeHtml(availabilityText(p.availability_label) || '')}</span>

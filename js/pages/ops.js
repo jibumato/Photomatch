@@ -1,10 +1,11 @@
 import { mountLayout } from '../layout.js';
-import { requireRole, signOut } from '../auth.js';
+import { requireRole, signOut, getSession } from '../auth.js';
 import {
   getGuaranteeClaimsForReview, reviewGuaranteeClaim,
   getMonitorApplicationsForReview, reviewMonitorApplication,
   getPayoutCandidates, getGuaranteeClaimsForBookings, releasePayout, getBankAccountsForPhotographers,
   createPhotographerAccount, getPhotographersForReview, setPhotographerVisibility,
+  getReviewsForModeration, setReviewHidden,
 } from '../repo.js';
 import { AREAS, PHOTOGRAPHER_PAYOUT_RATE } from '../data.js';
 import { safePhotoUrl } from '../util.js';
@@ -133,6 +134,57 @@ async function loadMonitorApplications() {
   });
 }
 
+// ---------- システム状態 ----------
+// Asks /api/status what the deployed Functions can see. If the request itself
+// fails (empty 404/405, HTML error page), the API isn't being served at all —
+// typically because the domain still points at a static-only deployment.
+const STATUS_OK = 'color:oklch(0.45 0.13 160)';
+const STATUS_NG = 'color:oklch(0.5 0.17 25)';
+
+function statusRow(label, ok, text, hint) {
+  return `<div style="display:flex;gap:10px;align-items:baseline;padding:4px 0">
+    <span style="${ok ? STATUS_OK : STATUS_NG};font:700 13px var(--pm-font-body);width:16px">${ok ? '✓' : '✗'}</span>
+    <div style="font:13px/1.7 var(--pm-font-body);flex:1;min-width:0"><b>${label}</b>：<span style="${ok ? STATUS_OK : STATUS_NG}">${text}</span>${!ok && hint ? `<div style="font:12px/1.7 var(--pm-font-body);color:var(--pm-text-3)">${hint}</div>` : ''}</div>
+  </div>`;
+}
+
+async function loadSystemStatus() {
+  const el = document.getElementById('pm-system-status');
+  const title = '<div style="font:700 15px var(--pm-font-body);margin-bottom:6px">システム状態</div>';
+  el.innerHTML = `${title}<div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">確認しています…</div>`;
+  let res = null;
+  let data = null;
+  try {
+    const session = await getSession();
+    res = await fetch('/api/status', { headers: { Authorization: `Bearer ${session.access_token}` } });
+    data = await res.json();
+  } catch (e) { /* handled below */ }
+
+  if (!data || !res || !res.ok || !data.ok) {
+    const code = res ? `HTTP ${res.status}` : '接続できません';
+    el.innerHTML = `${title}${statusRow('サイトのAPI', false, `応答がありません（${code}）`,
+      'カメラマン登録・決済・予約キャンセル・通知メールなどが動きません。ドメイン（photo-match.jp）が、APIに対応した Cloudflare Pages のプロジェクトに向いているか、確認してください（古い「Workers」のままだと、APIは動きません）。')}`;
+    return;
+  }
+  const rows = [
+    statusRow('サイトのAPI', true, '動作しています'),
+    data.supabase_service_role === 'ok'
+      ? statusRow('データベースの管理キー', true, '有効')
+      : statusRow('データベースの管理キー', false, data.supabase_service_role === 'missing' ? '未設定' : '無効（値が違う可能性）',
+        'Cloudflare Pages の「変数とシークレット」に、SUPABASE_SERVICE_ROLE_KEY（Supabase の service_role キー）を設定し、再デプロイしてください。'),
+    data.stripe_secret === 'test' || data.stripe_secret === 'live'
+      ? statusRow('Stripe（決済）', true, data.stripe_secret === 'live' ? '本番モード' : 'テストモード（テストカードのみ決済できます）')
+      : statusRow('Stripe（決済）', false, data.stripe_secret === 'missing' ? '未設定' : '無効（キーの値が違う可能性）', 'STRIPE_SECRET_KEY を設定してください。'),
+    statusRow('Stripe の署名シークレット', data.stripe_webhook_secret === 'set', data.stripe_webhook_secret === 'set' ? '設定済み' : '未設定',
+      'STRIPE_WEBHOOK_SECRET（whsec_…）を設定してください。未設定だと、決済しても予約が「支払い済み」になりません。'),
+    data.resend_key === 'ok'
+      ? statusRow('メール送信（Resend）', true, '有効')
+      : statusRow('メール送信（Resend）', false, data.resend_key === 'missing' ? '未設定' : '無効（キーの値が違う可能性）', 'RESEND_API_KEY を設定してください。未設定だと、予約通知メールは送られません。'),
+    statusRow('メールの送信元', data.email_from === 'set', data.email_from === 'set' ? '設定済み' : '未設定（初期値を使用）', 'EMAIL_FROM を「PhotoMatch &lt;no-reply@photo-match.jp&gt;」の形式で設定してください。'),
+  ];
+  el.innerHTML = title + rows.join('') + '<div style="font:11px var(--pm-font-body);color:var(--pm-text-muted);margin-top:6px">※設定の値は表示されません。変更した場合は、再デプロイ後に画面を再読み込みしてください。</div>';
+}
+
 // ---------- カメラマンの掲載管理 ----------
 // Mirrors the server-side check in functions/api/photographers/visibility.js
 // (which is the one that actually enforces it).
@@ -213,6 +265,53 @@ async function loadListings() {
   };
   bind('.btn-listing-approve', true, (name) => `${name}さんを公開します。検索ページ・プロフィールページに表示され、予約を受け付けるようになります。よろしいですか？`);
   bind('.btn-listing-hide', false, (name) => `${name}さんの掲載を停止します。検索ページに表示されなくなり、新規の予約を受け付けなくなります（本人は再開できません）。よろしいですか？`);
+}
+
+// ---------- 口コミの管理 ----------
+function reviewCardHtml(rv) {
+  const stars = '★'.repeat(rv.stars) + '☆'.repeat(5 - rv.stars);
+  return `
+  <div class="pm-card" style="padding:16px 20px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font:700 14px var(--pm-font-body)">${escapeHtml(rv.photographers?.name || rv.photographer_id)}</span>
+        <span style="color:var(--pm-star);font:13px var(--pm-font-body)">${stars}</span>
+        ${rv.is_hidden ? `<span style="${PILL};background:oklch(0.93 0.01 220);color:oklch(0.45 0.02 235)">非表示中</span>` : ''}
+      </div>
+      <span style="font:12px var(--pm-font-num);color:var(--pm-text-muted)">${escapeHtml(String(rv.created_at || '').slice(0, 10))}</span>
+    </div>
+    <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:6px">投稿者の表示名：${escapeHtml(rv.reviewer_name)}</div>
+    ${rv.comment ? `<div style="font:13px/1.7 var(--pm-font-body);color:oklch(0.35 0.02 235);background:var(--pm-bg-mint);border-radius:10px;padding:10px 12px;white-space:pre-wrap">${escapeHtml(rv.comment)}</div>` : '<div style="font:12px var(--pm-font-body);color:var(--pm-text-muted)">（コメントなし）</div>'}
+    <div style="margin-top:10px">
+      ${rv.is_hidden
+        ? `<button data-id="${rv.id}" class="btn-review-show pm-btn-outline">再表示する</button>`
+        : `<button data-id="${rv.id}" class="btn-review-hide pm-btn-danger-outline">非表示にする</button>`}
+    </div>
+  </div>`;
+}
+
+async function loadReviews() {
+  const reviews = await getReviewsForModeration(50);
+  const el = document.getElementById('pm-reviews-admin');
+  el.innerHTML = reviews.length ? reviews.map(reviewCardHtml).join('') : '<div class="pm-empty">投稿された口コミはまだありません。</div>';
+  const bind = (selector, hidden, confirmText) => {
+    el.querySelectorAll(selector).forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm(confirmText)) return;
+        btn.disabled = true;
+        try {
+          await setReviewHidden(btn.dataset.id, hidden);
+          await loadReviews();
+        } catch (err) {
+          alert(err.message || '更新に失敗しました。');
+          console.error(err);
+          btn.disabled = false;
+        }
+      });
+    });
+  };
+  bind('.btn-review-hide', true, 'この口コミを非表示にします。カメラマンのページから消え、評価の集計にも入らなくなります。よろしいですか？');
+  bind('.btn-review-show', false, 'この口コミを再表示します。よろしいですか？');
 }
 
 function eligiblePayoutDate(bookingDate) {
@@ -330,7 +429,9 @@ async function load() {
   document.getElementById('pm-loading').style.display = 'none';
   document.getElementById('pm-ops').style.display = 'block';
 
+  loadSystemStatus();
   await loadListings();
+  await loadReviews();
   await loadMonitorApplications();
   await loadPayouts();
 

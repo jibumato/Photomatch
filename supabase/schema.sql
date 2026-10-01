@@ -231,11 +231,25 @@ create table if not exists reviews (
   created_at timestamptz not null default now()
 );
 
+-- 運営が不適切な口コミを非表示にするためのフラグ（運営のみ変更可。
+-- /api/reviews/moderate 経由）。非表示の口コミは公開されず、評価の集計にも入らない。
+alter table reviews add column if not exists is_hidden boolean not null default false;
+
+-- 撮影後レビュー: 投稿したお客様（本人だけが編集・削除できる）。アカウントを
+-- 削除したら口コミも消える。booking_id は bookings の作成後（このファイルの末尾）に追加。
+alter table reviews add column if not exists client_id uuid references profiles(id) on delete cascade;
+
 alter table reviews enable row level security;
 
+-- 公開されるのは非表示でない口コミだけ。投稿者本人と運営には、非表示の口コミも見える。
 drop policy if exists "reviews: public read" on reviews;
-create policy "reviews: public read" on reviews
-  for select using (true);
+drop policy if exists "reviews: read" on reviews;
+create policy "reviews: read" on reviews
+  for select using (
+    not is_hidden
+    or client_id = auth.uid()
+    or exists (select 1 from public.profiles where id = auth.uid() and role = 'ops')
+  );
 
 -- ============================================================
 -- bookings
@@ -459,12 +473,12 @@ create policy "counseling_sheets: client update" on counseling_sheets
 -- なので全員同額。現在どの画面にも表示していないが、実価格と食い違ったまま
 -- 残すと将来表示したときに誤表示になるため実額に揃える（最安値はスマホプラン）。
 insert into photographers (id, name, area, price_from, rating, reviews_count, availability_label, photo_url, price_comment, bio, gender, instant_booking) values
-  ('p1', 'Takumi', '名古屋エリア', '6,800', 4.9, 58, '今週末 空きあり', 'assets/photographer-p1.jpg', '緊張しやすい方こそ、まずは気軽にご相談ください！', 'マッチングアプリ用の写真に特化。自然な会話をしながら緊張をほぐし、表情が硬くならない一枚に仕上げます。名古屋中心部での撮影が中心です。', 'male', true),
-  ('p2', '夏目むぎ', '岐阜エリア', '6,800', 4.8, 46, '来週 空きあり', 'assets/cameraman-asano.jpg', 'アプリやSNSアイコン、結婚相談所のお写真まで。魅力が伝わる、自然な瞬間をお写真に残します。', '岐阜の路地やレトロな街並みを活かしたカジュアルな一枚が得意です。私服の相談やポーズが苦手な方にも丁寧にディレクションします。', 'female', true),
-  ('p3', '伊藤 啓志', '名古屋エリア', '6,800', 4.9, 39, '今週末 空きあり', null, '「量産型」にならない一枚、一緒に探しましょう。', '岐阜の自然や街並みを背景に、趣味やアクティブな雰囲気を伝える写真を撮影します。よくある構図を避けた「量産型にならない」一枚が得意です。', 'male', true),
-  ('p4', '早川 ゆかり', '一宮エリア', '6,800', 4.7, 31, '来週 空きあり', null, '短時間でもしっかり結果にこだわります！', '短時間・低価格のライトプランを中心に、自然光を活かしたメイン写真を撮影しています。かしこまらないカジュアルな撮影が得意です。', 'female', true),
-  ('p5', '伊藤 大輔（仮名）', '岐阜エリア', '6,800', 4.8, 42, '今月 空きあり', null, '季節ごとのおすすめロケーションもご提案します。', '街歩き風の自然なスナップが得意です。季節ごとのロケーションを提案し、撮影後の納品スピードにも定評があります。', 'male', true),
-  ('p6', '渡辺 さくら（仮名）', '一宮エリア', '6,800', 4.9, 50, '来週 空きあり', null, 'プロフィール文の相談も一緒に受け付けています。', 'メイン写真から趣味系の写真まで幅広く対応。事前の料金説明とプロフィール文へのアドバイスにも定評があります。', 'female', true)
+  ('p1', 'Takumi', '名古屋エリア', '6,800', null, 0, '今週末 空きあり', 'assets/photographer-p1.jpg', '緊張しやすい方こそ、まずは気軽にご相談ください！', 'マッチングアプリ用の写真に特化。自然な会話をしながら緊張をほぐし、表情が硬くならない一枚に仕上げます。名古屋中心部での撮影が中心です。', 'male', true),
+  ('p2', '夏目むぎ', '岐阜エリア', '6,800', null, 0, '来週 空きあり', 'assets/cameraman-asano.jpg', 'アプリやSNSアイコン、結婚相談所のお写真まで。魅力が伝わる、自然な瞬間をお写真に残します。', '岐阜の路地やレトロな街並みを活かしたカジュアルな一枚が得意です。私服の相談やポーズが苦手な方にも丁寧にディレクションします。', 'female', true),
+  ('p3', '伊藤 啓志', '名古屋エリア', '6,800', null, 0, '今週末 空きあり', null, '「量産型」にならない一枚、一緒に探しましょう。', '岐阜の自然や街並みを背景に、趣味やアクティブな雰囲気を伝える写真を撮影します。よくある構図を避けた「量産型にならない」一枚が得意です。', 'male', true),
+  ('p4', '早川 ゆかり', '一宮エリア', '6,800', null, 0, '来週 空きあり', null, '短時間でもしっかり結果にこだわります！', '短時間・低価格のライトプランを中心に、自然光を活かしたメイン写真を撮影しています。かしこまらないカジュアルな撮影が得意です。', 'female', true),
+  ('p5', '伊藤 大輔（仮名）', '岐阜エリア', '6,800', null, 0, '今月 空きあり', null, '季節ごとのおすすめロケーションもご提案します。', '街歩き風の自然なスナップが得意です。季節ごとのロケーションを提案し、撮影後の納品スピードにも定評があります。', 'male', true),
+  ('p6', '渡辺 さくら（仮名）', '一宮エリア', '6,800', null, 0, '来週 空きあり', null, 'プロフィール文の相談も一緒に受け付けています。', 'メイン写真から趣味系の写真まで幅広く対応。事前の料金説明とプロフィール文へのアドバイスにも定評があります。', 'female', true)
 on conflict (id) do nothing;
 
 -- 上の insert は既存インストールでは何もしないため、同じ修正を既存行にも当てる。
@@ -538,21 +552,29 @@ update plans set price = 8800, original_price = 9800, discount_label = '10%OFF'
 update plans set price = 11800, original_price = 13100, discount_label = '10%OFF'
   where name = 'スタンダードプラス' and photographer_id in ('p1','p2','p3','p4','p5','p6');
 
-insert into reviews (photographer_id, reviewer_name, stars, comment)
-select v.photographer_id, v.reviewer_name, v.stars, v.comment
-from (values
-  ('p1', 'K.T様', 5, '緊張していましたが自然な表情を引き出してもらえました。マッチング数も明らかに増えました。'),
-  ('p1', 'M.S様', 5, '料金が事前に明確だったので安心して依頼できました。'),
-  ('p2', 'A.N様', 5, '普段の自分らしい写真が撮れて、プロフィールの反応が良くなりました。'),
-  ('p2', 'Y.H様', 4, '納品も期日通りで安心でした。'),
-  ('p3', 'R.I様', 5, '事前チャットでイメージをすり合わせられたので、他の人と被らない写真になりました。'),
-  ('p4', 'K.M様', 5, '短時間でも希望のカットをたくさん撮ってもらえました。'),
-  ('p5', 'T.O様', 5, '安心して任せられる進行でした。'),
-  ('p6', 'H.S様', 5, '事前の料金説明が丁寧でわかりやすかったです。')
-) as v(photographer_id, reviewer_name, stars, comment)
-where not exists (
-  select 1 from reviews r where r.photographer_id = v.photographer_id and r.reviewer_name = v.reviewer_name
+-- 以前はここに、ダミーの口コミ8件と、ダミーの評価・レビュー数を種まきしていた。
+-- 実在のお客様のものではないため廃止した（口コミ・評価は実際のレビューが集まるまで
+-- 出さない）。既存のDBに残っている分は、種まきと同じ内容の行だけを消すので、
+-- 実際の口コミには触れず、何度実行しても安全。
+delete from reviews
+where (photographer_id, reviewer_name, comment) in (
+  ('p1', 'K.T様', '緊張していましたが自然な表情を引き出してもらえました。マッチング数も明らかに増えました。'),
+  ('p1', 'M.S様', '料金が事前に明確だったので安心して依頼できました。'),
+  ('p2', 'A.N様', '普段の自分らしい写真が撮れて、プロフィールの反応が良くなりました。'),
+  ('p2', 'Y.H様', '納品も期日通りで安心でした。'),
+  ('p3', 'R.I様', '事前チャットでイメージをすり合わせられたので、他の人と被らない写真になりました。'),
+  ('p4', 'K.M様', '短時間でも希望のカットをたくさん撮ってもらえました。'),
+  ('p5', 'T.O様', '安心して任せられる進行でした。'),
+  ('p6', 'H.S様', '事前の料金説明が丁寧でわかりやすかったです。')
 );
+
+-- 評価・レビュー数は reviews の実データから求める（レビューが無ければ評価も無し・0件）。
+-- 以降の更新は、ファイル末尾のトリガー（reviews_refresh_rating）が行う。
+update photographers p set
+  rating = (select round(avg(r.stars), 1) from reviews r where r.photographer_id = p.id and not r.is_hidden),
+  reviews_count = (select count(*) from reviews r where r.photographer_id = p.id and not r.is_hidden)
+where p.rating is distinct from (select round(avg(r.stars), 1) from reviews r where r.photographer_id = p.id and not r.is_hidden)
+   or p.reviews_count is distinct from (select count(*) from reviews r where r.photographer_id = p.id and not r.is_hidden);
 
 -- ============================================================
 -- ============================================================
@@ -753,3 +775,71 @@ create policy "bank accounts: ops read" on photographer_bank_accounts
 -- only). Create the staff account normally as a 'client' via the site or the
 -- dashboard, then promote it:
 --   update profiles set role = 'ops' where email = 'ops@photomatch.example.jp';
+
+-- ============================================================
+-- reviews: 撮影後レビュー（お客様が予約ごとに1件、撮影終了後に投稿）
+-- ============================================================
+alter table reviews add column if not exists booking_id uuid references bookings(id) on delete cascade;
+
+-- 1予約につき1件。booking_id が無い行（以前のデータ）は対象外。
+create unique index if not exists reviews_booking_id_key on reviews (booking_id) where booking_id is not null;
+
+-- 公開ページに出る文章なので、長さをDBでも縛る（既存の行は検証せず、追加・更新時に確認）。
+alter table reviews drop constraint if exists reviews_length_check;
+alter table reviews add constraint reviews_length_check
+  check (char_length(reviewer_name) between 1 and 20 and char_length(coalesce(comment, '')) <= 1000) not valid;
+
+-- 書き込めるのは、投稿者本人が、自分の予約について、撮影終了後に行う場合だけ。
+-- 編集できるのは表示名・星・本文のみ（予約・カメラマン・投稿者・非表示フラグは変更不可）。
+-- Supabase は API ロールに全権限を付けるため、先に外してから必要な列だけ付ける。
+revoke insert, update, delete on reviews from anon, authenticated;
+grant insert (photographer_id, booking_id, client_id, reviewer_name, stars, comment) on reviews to authenticated;
+grant update (reviewer_name, stars, comment) on reviews to authenticated;
+grant delete on reviews to authenticated;
+
+drop policy if exists "reviews: client insert after shoot" on reviews;
+create policy "reviews: client insert after shoot" on reviews
+  for insert to authenticated
+  with check (
+    client_id = auth.uid()
+    and booking_id is not null
+    and exists (
+      select 1 from public.bookings b
+      where b.id = reviews.booking_id
+        and b.client_id = auth.uid()
+        and b.photographer_id = reviews.photographer_id
+        and b.status in ('paid', 'confirmed', 'completed')
+        and ((b.booking_date + b.end_time) at time zone 'Asia/Tokyo') <= now()
+    )
+  );
+
+drop policy if exists "reviews: client update own" on reviews;
+create policy "reviews: client update own" on reviews
+  for update to authenticated using (client_id = auth.uid()) with check (client_id = auth.uid());
+
+drop policy if exists "reviews: client delete own" on reviews;
+create policy "reviews: client delete own" on reviews
+  for delete to authenticated using (client_id = auth.uid());
+
+-- 評価・レビュー数は reviews から自動で求める（投稿・編集・削除・運営の非表示のたびに更新）。
+-- photographers の rating / reviews_count は運営のみ書き込み可なので、定義者権限で更新する。
+create or replace function refresh_photographer_rating()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  pid text := coalesce(new.photographer_id, old.photographer_id);
+begin
+  update public.photographers set
+    rating = (select round(avg(stars), 1) from public.reviews where photographer_id = pid and not is_hidden),
+    reviews_count = (select count(*) from public.reviews where photographer_id = pid and not is_hidden)
+  where id = pid;
+  return null;
+end;
+$$;
+
+drop trigger if exists reviews_refresh_rating on reviews;
+create trigger reviews_refresh_rating
+  after insert or update or delete on reviews
+  for each row execute function refresh_photographer_rating();

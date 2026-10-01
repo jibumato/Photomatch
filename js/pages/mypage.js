@@ -2,15 +2,17 @@ import { mountLayout } from '../layout.js';
 import { getSession, getProfile, signOut } from '../auth.js';
 import {
   getMyBookings, cancelBooking, getMessageCounts, getReadTimestamps, getCounselingSheetsForBookings,
-  getGuaranteeClaimsForBookings, applyGuaranteeClaim, submitGuaranteeClaim,
+  getGuaranteeClaimsForBookings, applyGuaranteeClaim, submitGuaranteeClaim, getMyReviewsByBooking,
 } from '../repo.js';
 import { mountChatModal } from '../chat.js';
 import { mountSheetModal } from '../sheet.js';
+import { mountReviewModal } from '../reviewModal.js';
 
 mountLayout();
 
 const chatModal = mountChatModal(document.getElementById('pm-chat-mount'));
 const sheetModal = mountSheetModal(document.getElementById('pm-sheet-mount'));
+const reviewModal = mountReviewModal(document.getElementById('pm-review-mount'));
 
 const STATUS_LABEL = { paid: '確定', confirmed: '確定', requested: '依頼中', completed: '完了', canceled: 'キャンセル済' };
 const STATUS_STYLE = {
@@ -65,6 +67,35 @@ function guaranteeBlockHtml(b, claim) {
   return '';
 }
 
+// A review can be written once the shoot has finished (end time, JST) on a
+// booking that wasn't canceled. The database enforces the same rule.
+function isReviewable(b) {
+  if (!['paid', 'confirmed', 'completed'].includes(b.status)) return false;
+  return new Date(`${b.booking_date}T${b.end_time.slice(0, 8)}+09:00`) <= new Date();
+}
+
+function reviewBlockHtml(b, review) {
+  if (!isReviewable(b)) return '';
+  const wrap = 'margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint)';
+  if (!review) {
+    return `<div style="${wrap};display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <span style="font:12px/1.7 var(--pm-font-body);color:var(--pm-text-3)">ご利用ありがとうございました。撮影の感想をお寄せください。</span>
+      <button data-booking-id="${b.id}" class="btn-review" style="background:#fff;border:1.5px solid oklch(0.86 0.03 215);border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:oklch(0.4 0.06 235);cursor:pointer">レビューを書く</button>
+    </div>`;
+  }
+  const filled = '★'.repeat(review.stars);
+  const empty = '☆'.repeat(5 - review.stars);
+  return `<div style="${wrap}">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div style="font:13px var(--pm-font-body);color:var(--pm-star)">${filled}<span style="color:oklch(0.85 0.01 220)">${empty}</span>
+        <span style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-left:6px">レビュー投稿済み</span></div>
+      <button data-booking-id="${b.id}" class="btn-review" style="background:none;border:none;font:700 12px var(--pm-font-body);color:oklch(0.45 0.14 210);text-decoration:underline;cursor:pointer">編集・削除</button>
+    </div>
+    ${review.comment ? `<div style="font:12px/1.7 var(--pm-font-body);color:oklch(0.4 0.02 235);margin-top:6px;white-space:pre-wrap">${escapeHtml(review.comment)}</div>` : ''}
+    ${review.is_hidden ? '<div style="font:11px var(--pm-font-body);color:oklch(0.5 0.13 75);margin-top:6px">※運営により非表示になっています。</div>' : ''}
+  </div>`;
+}
+
 function bookingCardHtml(b, meta, { history }) {
   const statusLabel = STATUS_LABEL[b.status] || b.status;
   const cancellable = !history && b.status !== 'canceled' && b.status !== 'completed';
@@ -98,6 +129,7 @@ function bookingCardHtml(b, meta, { history }) {
       ${actions.length ? `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${actions.join('')}</div>` : ''}
     </div>
     ${history ? guaranteeBlockHtml(b, meta.guarantee) : ''}
+    ${reviewBlockHtml(b, meta.review)}
   </div>`;
 }
 
@@ -124,6 +156,12 @@ function wireCardEvents(root, bookingsById) {
         alert('キャンセル処理に失敗しました。');
         console.error(err);
       }
+    });
+  });
+  root.querySelectorAll('.btn-review').forEach((el) => {
+    el.addEventListener('click', () => {
+      const b = bookingsById[el.dataset.bookingId];
+      reviewModal.open(b, reviewsByBooking[b.id] || null, () => load());
     });
   });
   root.querySelectorAll('.btn-guarantee-apply').forEach((el) => {
@@ -153,6 +191,8 @@ function wireCardEvents(root, bookingsById) {
   });
 }
 
+let reviewsByBooking = {};
+
 async function load() {
   const session = await getSession();
   if (!session) { location.href = 'login.html?next=' + encodeURIComponent(location.href); return; }
@@ -167,16 +207,18 @@ async function load() {
   const history = bookings.filter((b) => b.booking_date < today);
   const ids = bookings.map((b) => b.id);
 
-  const [counts, reads, sheets, claims] = await Promise.all([
+  const [counts, reads, sheets, claims, reviews] = await Promise.all([
     getMessageCounts(ids), getReadTimestamps(ids), getCounselingSheetsForBookings(ids), getGuaranteeClaimsForBookings(ids),
+    getMyReviewsByBooking(ids),
   ]);
+  reviewsByBooking = reviews;
 
   function metaFor(id) {
     const msgs = counts[id] || [];
     const lastRead = (reads[id] && reads[id].client) || '1970-01-01T00:00:00Z';
     const unread = msgs.filter((m) => m.sender_role === 'pro' && m.created_at > lastRead).length;
     const sheetDone = !!(sheets[id] && sheets[id].submitted_at);
-    return { hasUnread: unread > 0, unreadLabel: unread > 9 ? '9+' : String(unread), sheetDone, guarantee: claims[id] || null };
+    return { hasUnread: unread > 0, unreadLabel: unread > 9 ? '9+' : String(unread), sheetDone, guarantee: claims[id] || null, review: reviews[id] || null };
   }
 
   const bookingsById = {};

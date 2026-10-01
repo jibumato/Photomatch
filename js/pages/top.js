@@ -34,12 +34,17 @@ document.getElementById('pm-shots').innerHTML = SHOT_TYPES.map((s) => `
     <div style="aspect-ratio:3/4;background-image:url(${s.image});background-size:cover;background-position:center"></div>
   </div>`).join('');
 
-document.getElementById('pm-testimonials').innerHTML = TESTIMONIALS.map((item) => `
+// No testimonials yet -> drop the whole 口コミ block instead of showing an empty heading.
+if (TESTIMONIALS.length) {
+  document.getElementById('pm-testimonials').innerHTML = TESTIMONIALS.map((item) => `
   <div class="pm-card" style="padding:24px">
     <div style="font:13px var(--pm-font-body);color:var(--pm-star);margin-bottom:10px">${item.starsLabel}</div>
     <div style="font:14px/1.8 var(--pm-font-body);color:oklch(0.35 0.02 235);margin-bottom:16px">${L(item, 'comment')}</div>
     <div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3)">${L(item, 'name')}</div>
   </div>`).join('');
+} else {
+  document.getElementById('pm-voice').remove();
+}
 
 document.getElementById('pm-steps').innerHTML = HOW_IT_WORKS.map((s) => `
   <div class="pm-card" style="padding:26px 24px;position:relative">
