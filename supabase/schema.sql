@@ -531,7 +531,7 @@ from photographers p
 cross join (values
   ('スマホプラン', 6800, 7800, '1,000円OFF', '45分・20枚納品・スマホ撮影', 45, 0),
   ('スタンダード', 8800, 9800, '1,000円OFF', '45分・20枚納品', 45, 1),
-  ('スタンダードプラス', 11800, 12800, '1,000円OFF', '45分・20枚納品＋スマホ用5枚', 45, 2),
+  ('スタンダードプラス', 10800, 11800, '1,000円OFF', '45分・20枚納品＋スマホ用5枚', 45, 2),
   ('結婚相談所', 8800, 9800, '1,000円OFF', '45分・10枚納品', 45, 3)
 ) as v(name, price, original_price, discount_label, description, duration_min, sort_order)
 where p.id in ('p1','p2','p3','p4','p5','p6')
@@ -549,7 +549,7 @@ update plans set description = '45分・20枚納品・スマホ撮影'
   where name = 'スマホプラン' and photographer_id in ('p1','p2','p3','p4','p5','p6');
 update plans set price = 8800, original_price = 9800, discount_label = '1,000円OFF'
   where name in ('スタンダード', '結婚相談所') and photographer_id in ('p1','p2','p3','p4','p5','p6');
-update plans set price = 11800, original_price = 12800, discount_label = '1,000円OFF'
+update plans set price = 10800, original_price = 11800, discount_label = '1,000円OFF'
   where name = 'スタンダードプラス' and photographer_id in ('p1','p2','p3','p4','p5','p6');
 
 -- 以前はここに、ダミーの口コミ8件と、ダミーの評価・レビュー数を種まきしていた。
