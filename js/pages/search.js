@@ -33,11 +33,20 @@ function cardHtml(p) {
         <span style="color:var(--pm-star)">★</span>${p.rating}<span style="color:var(--pm-text-muted)">${reviewsCountLabel(p.reviews_count)}</span>
       </div>` : ''}
       <div style="border-top:1px solid var(--pm-border-faint);padding-top:10px">
-        <div style="font:13px/1.6 var(--pm-font-body);color:oklch(0.4 0.03 220);margin-bottom:6px">${escapeHtml(localizedField(p, 'price_comment', 'price_comment_en') || '')}</div>
+        <div style="font:13px/1.6 var(--pm-font-body);color:oklch(0.4 0.03 220);margin-bottom:6px">${escapeHtml(cardBlurb(p))}</div>
         <span style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${escapeHtml(availabilityText(p.availability_label) || '')}</span>
       </div>
     </div>
   </a>`;
+}
+
+// The card shows the photographer's ひとこと; when they left it blank, fall
+// back to the start of their 紹介文 so the card never ends up empty.
+function cardBlurb(p) {
+  const comment = localizedField(p, 'price_comment', 'price_comment_en');
+  if (comment) return comment;
+  const bio = String(localizedField(p, 'bio', 'bio_en') || '').replace(/\s+/g, ' ').trim();
+  return bio.length > 60 ? `${bio.slice(0, 60)}…` : bio;
 }
 
 // Areas come from the listings themselves rather than the AREAS constant, so a
