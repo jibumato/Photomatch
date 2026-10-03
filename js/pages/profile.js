@@ -1,6 +1,6 @@
 import { mountLayout } from '../layout.js';
 import { getPhotographer, getPlans, getReviews, isBookable } from '../repo.js';
-import { t, areaText, availabilityText, localizedField, planNameText, planDescText, discountLabelText, reviewsCountLabel, taxIncludedSuffix } from '../i18n.js';
+import { t, areaText, localizedField, planNameText, planDescText, discountLabelText, reviewsCountLabel, taxIncludedSuffix } from '../i18n.js';
 import { escapeHtml, safePhotoUrl, hasRating } from '../util.js';
 
 mountLayout();
@@ -52,7 +52,6 @@ function instagramLinkHtml(raw) {
 
     document.getElementById('pm-bio').textContent = localizedField(photographer, 'bio', 'bio_en') || '';
     document.getElementById('pm-price-comment').textContent = localizedField(photographer, 'price_comment', 'price_comment_en') || '';
-    document.getElementById('pm-availability').textContent = availabilityText(photographer.availability_label) || '';
     if (hasRating(photographer)) {
       document.getElementById('pm-rating-line').innerHTML = `<span style="color:var(--pm-star)">★</span>${photographer.rating}${reviewsCountLabel(photographer.reviews_count, true)}`;
     } else {
