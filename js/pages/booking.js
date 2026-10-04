@@ -6,7 +6,7 @@ import { loadDailyWeather } from '../weather.js';
 import { escapeHtml } from '../util.js';
 import {
   AREAS, EXTRA_OPTIONS, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
-  MONITOR_PLAN_NAMES, monitorPriceFor, areasFor,
+  MONITOR_PLAN_NAMES, monitorPriceFor, areasFor, meetingPointForArea, mapUrlFor,
 } from '../data.js';
 import { t, tf, L, getLang, areaText, planNameText, planDescText, discountLabelText, taxIncludedSuffix } from '../i18n.js';
 
@@ -199,6 +199,7 @@ function renderAreaChips() {
   document.querySelector('[data-i18n="booking.slot.areaHeading"]').textContent = t(allowed.length > 1 ? 'booking.slot.areaHeading' : 'booking.slot.areaHeadingFixed');
   document.getElementById('area-chips').innerHTML = allowed.map((a) => `
     <span data-key="${a.key}" class="pm-chip ${a.key === state.selectedArea ? 'is-active' : ''}">${areaText(a.label)}</span>`).join('');
+  renderAreaInfo();
   if (allowed.length < 2) return;
   document.querySelectorAll('#area-chips .pm-chip').forEach((el) => {
     el.addEventListener('click', async () => {
@@ -209,6 +210,25 @@ function renderAreaChips() {
       renderSlotGrid();
     });
   });
+}
+
+// What the selected area means on the day — where to meet — shown right
+// under the area chips so nobody books the wrong city by mistake.
+function renderAreaInfo() {
+  const el = document.getElementById('area-info');
+  const area = AREAS.find((a) => a.key === state.selectedArea);
+  const mp = area && meetingPointForArea(area.label);
+  if (!area || !mp) { el.style.display = 'none'; return; }
+  el.style.display = '';
+  el.innerHTML = `
+    <span class="pm-note-title">${tf('booking.slot.areaInfoTitle', { area: areaText(area.label) })}</span>
+    <div style="font:12px/1.7 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:6px">${L(area, 'desc')}</div>
+    <div style="font:13px/1.7 var(--pm-font-body);color:oklch(0.3 0.02 235)"><b>${t('booking.slot.meetingPoint')}</b>${escapeHtml(mp.detail)}</div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font:700 12px var(--pm-font-body)">
+      <a href="${mapUrlFor(mp)}" target="_blank" rel="noopener noreferrer" style="color:oklch(0.45 0.14 210)">${t('booking.slot.meetingMap')} ↗</a>
+      <a href="meeting-points.html" target="_blank" rel="noopener" style="color:oklch(0.45 0.14 210)">${t('booking.slot.meetingMore')} ↗</a>
+    </div>
+    <div style="font:11px/1.7 var(--pm-font-body);color:var(--pm-text-muted);margin-top:6px">${t('booking.slot.meetingNote')}</div>`;
 }
 
 function renderSlotGrid() {
@@ -445,6 +465,7 @@ function renderPaymentSummary() {
       <span style="font:700 13px var(--pm-font-body);color:oklch(0.35 0.03 220)">${t('booking.contact.total')}</span>
       <span style="font:700 22px var(--pm-font-num);color:oklch(0.3 0.03 240)">¥${s.grandTotal.toLocaleString()}</span>
     </div>
+    ${meetingPointForArea(s.areaLabel) ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:4px">${tf('booking.payment.meetingLine', { detail: escapeHtml(meetingPointForArea(s.areaLabel).detail) })}</div>` : ''}
     <div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${tf('booking.payment.locationLine', { name: escapeHtml(state.photographer.name), area: areaText(s.areaLabel), date: s.d.dateLabel, day: s.d.label, start: s.startTime, end: s.endTime })}</div>`;
   document.getElementById('payment-submit-label').textContent = tf('booking.payment.submitLabel', { total: `¥${s.grandTotal.toLocaleString()}` });
 }
