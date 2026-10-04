@@ -10,6 +10,13 @@ export const AREAS = [
   { key: 'ichinomiya', label: '一宮エリア', labelEn: 'Ichinomiya Area', desc: '落ち着いた雰囲気のスナップ', descEn: 'Relaxed, low-key snapshots', lat: 35.3039, lon: 136.8033 },
 ];
 
+// 予約で選べる撮影エリア。カメラマンの担当エリア（photographers.area）だけに絞る。
+// 担当エリアが AREAS にない（未設定など）ときは、予約できなくならないよう全エリアを返す。
+export function areasFor(photographerArea) {
+  const own = AREAS.filter((a) => a.label === photographerArea);
+  return own.length ? own : AREAS;
+}
+
 export const SHOT_TYPES = [
   { label: '一眼×正面笑顔', image: 'assets/shot-front-smile.jpg' },
   { label: '一眼×フォーマル', image: 'assets/shot-natural-snap.jpg' },

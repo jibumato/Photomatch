@@ -5,7 +5,7 @@
 // redirect to.
 import {
   AREAS, SLOT_TIMES, BOOKING_LEAD_DAYS, TOTAL_BOOKING_DAYS, addMinutes,
-  jstDateIso, addDaysToIso, MONITOR_PLAN_NAMES, monitorPriceFor, monitorBookingCounts,
+  jstDateIso, addDaysToIso, MONITOR_PLAN_NAMES, monitorPriceFor, monitorBookingCounts, areasFor,
 } from '../../../js/data.js';
 import { verifyUser, restSelect, restInsert, restUpdate } from '../../_lib/supabaseAdmin.js';
 import { stripe } from '../../_lib/stripe.js';
@@ -70,6 +70,9 @@ export async function onRequestPost({ request, env }) {
   // since this is the actual point of no return (money changes hands).
   if (photographerRow.is_visible === false || photographerRow.is_paused === true) {
     return jsonResponse({ error: '現在、このカメラマンは新規のご予約受付を休止しています。' }, 409);
+  }
+  if (!areasFor(photographerRow.area).some((a) => a.label === areaLabel)) {
+    return jsonResponse({ error: 'このカメラマンの担当エリア外のため、ご予約できません。' }, 400);
   }
 
   const durationMin = plan.duration_min || 30;
