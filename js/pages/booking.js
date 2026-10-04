@@ -1,11 +1,12 @@
 import { mountLayout } from '../layout.js';
 import { getSession, getProfile, signInOrSignUp, resendSignupEmail } from '../auth.js';
-import { getPhotographer, getPlans, getBooking, getTakenSlots, getClosedShifts, isBookable, callApi } from '../repo.js';
+import { getPhotographer, getPlans, getBooking, getTakenSlots, getClosedShifts, isBookable, callApi, hasUnusedMonitorPrice } from '../repo.js';
 import { mountSheetModal } from '../sheet.js';
 import { loadDailyWeather } from '../weather.js';
 import { escapeHtml } from '../util.js';
 import {
   AREAS, EXTRA_OPTIONS, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
+  MONITOR_PLAN_NAMES, monitorPriceFor,
 } from '../data.js';
 import { t, tf, L, getLang, areaText, planNameText, planDescText, discountLabelText, taxIncludedSuffix } from '../i18n.js';
 
@@ -39,6 +40,7 @@ const state = {
   email: '',
   phone: '',
   resumeToPayment: false,
+  hasMonitorPrice: false, // signed-in customer has an unused モニター価格 (checked at the payment step)
   weather: null,
   days: buildBookingDays(TOTAL_BOOKING_DAYS),
   takenIntervals: {}, // iso -> [[startMin,endMin], ...]
@@ -261,8 +263,10 @@ function currentSummary() {
   const areaLabel = (AREAS.find((a) => a.key === state.selectedArea) || AREAS[0]).label;
   const selectedOptions = EXTRA_OPTIONS.filter((o) => state.options.includes(o.key));
   const optionsTotal = selectedOptions.reduce((sum, o) => sum + o.price, 0);
-  const grandTotal = plan.price + optionsTotal;
-  return { plan, d, startTime, endTime, areaLabel, selectedOptions, optionsTotal, grandTotal };
+  const monitor = state.hasMonitorPrice && MONITOR_PLAN_NAMES.includes(plan.name);
+  const planPrice = monitor ? monitorPriceFor(plan.price) : plan.price;
+  const grandTotal = planPrice + optionsTotal;
+  return { plan, d, startTime, endTime, areaLabel, selectedOptions, optionsTotal, grandTotal, monitor, planPrice };
 }
 
 function updateContactStickyTotal() {
@@ -400,6 +404,17 @@ document.getElementById('contact-submit').addEventListener('click', async () => 
 function goPaymentStep() {
   showStep('payment');
   document.getElementById('payment-back-link').onclick = (e) => { e.preventDefault(); goContactStep(); };
+  renderPaymentSummary();
+  // The customer is signed in by now; show the モニター価格 if they still
+  // have one. The checkout Function applies it on its own either way.
+  hasUnusedMonitorPrice().then((has) => {
+    if (has === state.hasMonitorPrice) return;
+    state.hasMonitorPrice = has;
+    renderPaymentSummary();
+  }).catch((err) => console.error(err));
+}
+
+function renderPaymentSummary() {
   const s = currentSummary();
   const optionsHtml = s.selectedOptions.map((o) => `
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
@@ -409,8 +424,9 @@ function goPaymentStep() {
   document.getElementById('payment-summary').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
       <span style="font:13px var(--pm-font-body);color:oklch(0.45 0.03 220)">${tf('booking.payment.summaryDuration', { plan: planNameText(s.plan.name), duration: s.plan.duration_min })}</span>
-      <span style="font:700 16px var(--pm-font-num);color:oklch(0.3 0.03 240)">¥${s.plan.price.toLocaleString()}</span>
+      <span style="font:700 16px var(--pm-font-num);color:oklch(0.3 0.03 240)">${s.monitor ? `<span style="font:600 12px var(--pm-font-num);color:var(--pm-text-muted);text-decoration:line-through;margin-right:6px">¥${s.plan.price.toLocaleString()}</span>` : ''}¥${s.planPrice.toLocaleString()}</span>
     </div>
+    ${s.monitor ? `<div style="font:700 12px var(--pm-font-body);color:oklch(0.45 0.14 160);margin-bottom:8px">${t('booking.payment.monitorApplied')}</div>` : ''}
     ${optionsHtml}
     <div style="border-top:1px solid oklch(0.88 0.02 210);margin:10px 0 8px"></div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">

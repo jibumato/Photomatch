@@ -1,11 +1,11 @@
-// Booking confirmed / canceled notifications, sent to the customer and the
-// photographer at the same time. Never throws: a mail failure must not
-// break the payment webhook or the cancel request that triggered it.
+// Booking confirmed / canceled notifications, sent to the customer, the
+// photographer and ops at the same time. Never throws: a mail failure must
+// not break the payment webhook or the cancel request that triggered it.
 import { MEETING_POINTS, EXTRA_OPTIONS, WEEKDAY_JP } from '../../js/data.js';
 import { restSelect } from './supabaseAdmin.js';
 import { sendEmail } from './email.js';
 
-const CANCEL_POLICY = '撮影日の3日前まで：無料 ／ 2日前：料金の50% ／ 前日・当日：料金の100%';
+const CANCEL_POLICY = '撮影日の3日前まで：無料 ／ 2日前：プラン料金の50% ／ 前日・当日：プラン料金の100%（オプション料金は全額返金）';
 const CONTACT = 'info.photomatch@gmail.com';
 
 function formatDate(iso) {
@@ -28,13 +28,28 @@ function bookingLines(b, photographerName, { forCustomer }) {
   return [
     forCustomer ? `カメラマン：${photographerName}` : null,
     `日時：${formatDate(b.booking_date)} ${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}`,
-    `プラン：${b.plan_name}${forCustomer ? `（¥${b.plan_price.toLocaleString()}）` : ''}`,
+    `プラン：${b.plan_name}${b.monitor_application_id ? '（モニター価格）' : ''}${forCustomer ? `（¥${b.plan_price.toLocaleString()}）` : ''}`,
     options.length ? `オプション：${options.join('、')}` : null,
     forCustomer ? `お支払い合計：¥${b.total_price.toLocaleString()}（税込）` : null,
     `撮影エリア：${b.area || '-'}`,
     meeting ? `集合場所：${meeting.detail}` : null,
   ].filter(Boolean).join('\n');
 }
+
+const yen = (n) => `¥${Number(n || 0).toLocaleString()}`;
+
+function refundLines(b) {
+  if (!b.total_price || b.refund_status == null) return '';
+  const refund = b.refund_amount || 0;
+  const how = b.refund_status === 'succeeded'
+    ? 'ご利用のカードへ返金しました。カード会社によって、明細への反映まで数日〜2週間ほどかかる場合があります。'
+    : b.refund_status === 'failed' || b.refund_status === 'pending'
+      ? '運営より順次ご返金のお手続きをいたします。'
+      : '';
+  return `\n\n■キャンセル料・ご返金\nキャンセル料：${yen(b.cancel_fee)}\nご返金額：${yen(refund)}${refund > 0 && how ? `\n${how}` : ''}`;
+}
+
+const REFUND_STATUS_LABEL = { none: '返金なし', pending: '処理中', succeeded: '返金済み', failed: '【要対応】自動返金に失敗。Stripeの管理画面から手動で返金してください' };
 
 const FOOTER = (origin) => `\n――――――――――\nPhotoMatch\n${origin}/\nお問い合わせ：${CONTACT}`;
 
@@ -55,12 +70,25 @@ function messages(kind, b, photographerName, origin) {
   return {
     customer: {
       subject: `【PhotoMatch】ご予約をキャンセルしました（${when}）`,
-      text: `${b.customer_name} 様\n\n以下のご予約のキャンセルを承りました。\n\n■キャンセルしたご予約\n${bookingLines(b, photographerName, { forCustomer: true })}\n\nまたのご利用をお待ちしております。\n${FOOTER(origin)}`,
+      text: `${b.customer_name} 様\n\n以下のご予約のキャンセルを承りました。\n\n■キャンセルしたご予約\n${bookingLines(b, photographerName, { forCustomer: true })}${refundLines(b)}\n\nまたのご利用をお待ちしております。\n${FOOTER(origin)}`,
     },
     photographer: {
       subject: `【PhotoMatch】予約がキャンセルされました（${when}）`,
-      text: `${photographerName} さん\n\n以下の予約が依頼者によりキャンセルされました。この枠は再び予約を受け付けられる状態になっています。\n\n■キャンセルされた予約\n依頼者：${b.customer_name} 様\n${bookingLines(b, photographerName, { forCustomer: false })}\n\n${origin}/admin.html\n${FOOTER(origin)}`,
+      text: `${photographerName} さん\n\n以下の予約が依頼者によりキャンセルされました。この枠は再び予約を受け付けられる状態になっています。\n\n■キャンセルされた予約\n依頼者：${b.customer_name} 様\n${bookingLines(b, photographerName, { forCustomer: false })}${b.photographer_cancel_comp ? `\n\n当日のキャンセルのため、補償として${yen(b.photographer_cancel_comp)}をお支払いします（通常の報酬と同じく、月末締め・翌月25日払い）。` : ''}\n\n${origin}/admin.html\n${FOOTER(origin)}`,
     },
+  };
+}
+
+// Ops copy: every booking and cancellation, with what ops may need to act on
+// (a refund that failed, a same-day compensation to pay out).
+function opsMessage(kind, b, photographerName, origin) {
+  const head = kind === 'confirmed' ? '新しい予約' : '予約キャンセル';
+  const refund = kind === 'canceled' && b.total_price
+    ? `\n\nキャンセル料：${yen(b.cancel_fee)}\n返金額：${yen(b.refund_amount)}（${REFUND_STATUS_LABEL[b.refund_status] || b.refund_status || '-'}）${b.photographer_cancel_comp ? `\nカメラマンへの当日キャンセル補償：${yen(b.photographer_cancel_comp)}` : ''}`
+    : '';
+  return {
+    subject: `【PhotoMatch運営】${head}${b.refund_status === 'failed' ? '・要返金対応' : ''}（${shortDate(b.booking_date)} ${b.start_time.slice(0, 5)}〜 ${photographerName}）`,
+    text: `${head}がありました。\n\n予約ID：${b.id}\n依頼者：${b.customer_name} 様（${b.customer_contact || '-'}）\n${bookingLines(b, photographerName, { forCustomer: true })}${refund}\n\n${origin}/ops.html\n`,
   };
 }
 
@@ -87,6 +115,7 @@ export async function notifyBooking(env, bookingId, kind, origin) {
     const sends = [];
     if (customerEmail) sends.push(sendEmail(env, { to: customerEmail, ...msg.customer }));
     if (photographerEmail) sends.push(sendEmail(env, { to: photographerEmail, ...msg.photographer }));
+    sends.push(sendEmail(env, { to: env.OPS_EMAIL || CONTACT, ...opsMessage(kind, booking, photographerName, origin) }));
     const results = await Promise.allSettled(sends);
     results.filter((r) => r.status === 'rejected').forEach((r) => console.error('notifyBooking send failed', r.reason));
   } catch (err) {

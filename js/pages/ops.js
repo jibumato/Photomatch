@@ -7,7 +7,7 @@ import {
   createPhotographerAccount, resetPhotographerPassword, getPhotographersForReview, setPhotographerVisibility,
   getReviewsForModeration, setReviewHidden,
 } from '../repo.js';
-import { AREAS, PHOTOGRAPHER_PAYOUT_RATE } from '../data.js';
+import { AREAS, photographerPayoutFor } from '../data.js';
 import { safePhotoUrl } from '../util.js';
 
 const GUARANTEE_WINDOW_DAYS = 30;
@@ -104,14 +104,15 @@ async function loadMonitorApplications() {
 
   pendingEl.querySelectorAll('.btn-monitor-accept').forEach((btn) => {
     btn.addEventListener('click', async () => {
-      const note = prompt('当選連絡コメント（応募者に表示されます。任意）', '当選です！通常の予約フローから撮影日をお選びください。');
+      const note = prompt('当選連絡コメント（応募者に表示されます。任意）', '当選です！通常の予約ページから撮影日をお選びください。モニター価格はお支払い画面で自動で適用されます。');
       if (note === null) return;
       btn.disabled = true;
       try {
-        await reviewMonitorApplication(btn.dataset.appId, 'accepted', note);
+        const result = await reviewMonitorApplication(btn.dataset.appId, 'accepted', note);
+        if (!result.emailed) alert('記録しましたが、応募者へのメールは送れませんでした。応募者に直接ご連絡ください。');
         loadMonitorApplications();
       } catch (err) {
-        alert('更新に失敗しました。');
+        alert(err.message || '更新に失敗しました。');
         console.error(err);
         btn.disabled = false;
       }
@@ -123,10 +124,11 @@ async function loadMonitorApplications() {
       if (note === null) return;
       btn.disabled = true;
       try {
-        await reviewMonitorApplication(btn.dataset.appId, 'rejected', note);
+        const result = await reviewMonitorApplication(btn.dataset.appId, 'rejected', note);
+        if (!result.emailed) alert('記録しましたが、応募者へのメールは送れませんでした。応募者に直接ご連絡ください。');
         loadMonitorApplications();
       } catch (err) {
-        alert('更新に失敗しました。');
+        alert(err.message || '更新に失敗しました。');
         console.error(err);
         btn.disabled = false;
       }
@@ -314,9 +316,11 @@ async function loadReviews() {
   bind('.btn-review-show', false, 'この口コミを再表示します。よろしいですか？');
 }
 
-function eligiblePayoutDate(bookingDate) {
-  const d = new Date(`${bookingDate}T00:00:00`);
-  d.setDate(d.getDate() + GUARANTEE_WINDOW_DAYS);
+// A shoot is paid out after the guarantee window; a same-day cancellation
+// compensation (no shoot, nothing to guarantee) right away.
+function eligiblePayoutDate(b) {
+  const d = new Date(`${b.booking_date}T00:00:00`);
+  if (b.status !== 'canceled') d.setDate(d.getDate() + GUARANTEE_WINDOW_DAYS);
   return d;
 }
 
@@ -332,8 +336,12 @@ function bankAccountLineHtml(account) {
 // 手数料・手間の両面で現実的なため）。
 function payoutGroupHtml(group, { ready }) {
   const bookingLines = group.items.map((b) => {
-    const amount = Math.round(b.total_price * PHOTOGRAPHER_PAYOUT_RATE);
-    return `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">・${b.booking_date}　${escapeHtml(b.plan_name || '')}　依頼者：${escapeHtml(b.customer_name || '-')}　¥${amount.toLocaleString()}</div>`;
+    const amount = photographerPayoutFor(b);
+    const optionCount = (b.options || []).length;
+    const what = b.status === 'canceled'
+      ? '当日キャンセル補償'
+      : `${escapeHtml(b.plan_name || '')}${optionCount ? `＋オプション${optionCount}件` : ''}`;
+    return `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">・${b.booking_date}　${what}　依頼者：${escapeHtml(b.customer_name || '-')}　¥${amount.toLocaleString()}</div>`;
   }).join('');
   return `
   <div class="pm-card" style="padding:18px 20px">
@@ -369,7 +377,7 @@ function groupByPhotographer(bookings, bankAccounts) {
     }
     const group = map.get(key);
     group.items.push(b);
-    group.total += Math.round(b.total_price * PHOTOGRAPHER_PAYOUT_RATE);
+    group.total += photographerPayoutFor(b);
   });
   return [...map.values()];
 }
@@ -383,7 +391,7 @@ async function loadPayouts() {
   bookings.forEach((b) => {
     const claim = claimsByBooking[b.id];
     const disputed = claim && claim.status === 'claimed';
-    const pastWindow = today >= eligiblePayoutDate(b.booking_date);
+    const pastWindow = today >= eligiblePayoutDate(b);
     (pastWindow && !disputed ? ready : waiting).push(b);
   });
 

@@ -1,8 +1,14 @@
 // POST /api/bookings/cancel  { booking_id }
 // A customer cancels their own booking. Runs server-side (rather than the
-// browser updating the row directly) so the cancellation emails to the
-// customer and photographer can't be skipped.
+// browser updating the row directly) so the refund and the cancellation
+// emails to the customer, photographer and ops can't be skipped.
+//
+// The fee/refund split comes from cancellationQuote() in js/data.js — the
+// same function the マイページ confirm dialog uses — so the amount the
+// customer agreed to is the amount refunded.
+import { cancellationQuote } from '../../../js/data.js';
 import { verifyUser, restSelect, restUpdate } from '../../_lib/supabaseAdmin.js';
+import { stripe } from '../../_lib/stripe.js';
 import { notifyBooking } from '../../_lib/notifications.js';
 
 const CANCELABLE = ['pending_payment', 'paid', 'requested', 'confirmed'];
@@ -24,25 +30,65 @@ export async function onRequestPost({ request, env }) {
   const user = await verifyUser(request);
   if (!user) return jsonResponse({ error: 'ログインが必要です。' }, 401);
 
-  const [booking] = await restSelect(env, 'bookings', { id: `eq.${bookingId}`, select: 'id,client_id,status' });
+  const [booking] = await restSelect(env, 'bookings', { id: `eq.${bookingId}`, select: '*' });
   // Same response for "doesn't exist" and "not yours", so ids can't be probed.
   if (!booking || booking.client_id !== user.id) return jsonResponse({ error: '予約が見つかりません。' }, 404);
   if (!CANCELABLE.includes(booking.status)) return jsonResponse({ error: 'このご予約はキャンセルできません。' }, 409);
 
+  const quote = cancellationQuote(booking);
+  if (!quote.allowed) {
+    return jsonResponse({ error: '撮影開始時刻を過ぎたご予約は、マイページからキャンセルできません。お問い合わせください。' }, 409);
+  }
+
   // Conditional on the status we just read, so a concurrent cancel or
-  // webhook can't be double-processed.
+  // webhook can't be double-processed. The refund amounts are recorded
+  // before Stripe is called, so a refund that fails midway is still visible.
   const updated = await restUpdate(
     env,
     'bookings',
     { id: `eq.${bookingId}`, client_id: `eq.${user.id}`, status: `eq.${booking.status}` },
-    { status: 'canceled' },
+    {
+      status: 'canceled',
+      canceled_at: new Date().toISOString(),
+      cancel_fee: quote.fee,
+      refund_amount: quote.refund,
+      refund_status: quote.refund > 0 ? 'pending' : 'none',
+      photographer_cancel_comp: quote.photographerComp,
+    },
   );
   if (!updated.length) return jsonResponse({ error: 'このご予約はキャンセルできません。' }, 409);
+
+  // Close the unpaid Checkout page too, so it can't be paid after the
+  // booking it belongs to was canceled. Already-closed sessions just error.
+  if (booking.status === 'pending_payment' && booking.stripe_checkout_session_id) {
+    await stripe.checkoutSessions.expire(env, booking.stripe_checkout_session_id).catch(() => {});
+  }
+
+  let refundStatus = quote.refund > 0 ? 'pending' : 'none';
+  if (quote.refund > 0) {
+    try {
+      if (!booking.stripe_payment_intent_id) throw new Error('no payment intent on booking');
+      const refund = await stripe.refunds.create(
+        env,
+        { payment_intent: booking.stripe_payment_intent_id, amount: quote.refund, metadata: { booking_id: bookingId } },
+        { idempotencyKey: `cancel-refund-${bookingId}` },
+      );
+      refundStatus = 'succeeded';
+      await restUpdate(env, 'bookings', { id: `eq.${bookingId}` }, { refund_status: refundStatus, stripe_refund_id: refund.id })
+        .catch((err) => console.error('cancel: refund ok but failed to record it', bookingId, refund.id, err));
+    } catch (err) {
+      // The booking stays canceled; ops is told by email (notifyBooking
+      // includes the refund status) and refunds by hand from Stripe.
+      refundStatus = 'failed';
+      console.error('cancel: refund failed', bookingId, err);
+      await restUpdate(env, 'bookings', { id: `eq.${bookingId}` }, { refund_status: refundStatus }).catch(() => {});
+    }
+  }
 
   // An unpaid (pending_payment) booking was never confirmed to anyone, so
   // there's nothing to tell the photographer about.
   if (booking.status !== 'pending_payment') {
     await notifyBooking(env, bookingId, 'canceled', new URL(request.url).origin);
   }
-  return jsonResponse({ ok: true });
+  return jsonResponse({ ok: true, fee: quote.fee, refund: quote.refund, refund_status: refundStatus });
 }

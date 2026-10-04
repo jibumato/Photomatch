@@ -3,7 +3,10 @@
 // client's numbers), creates the booking as `pending_payment`, then creates
 // a Stripe Checkout Session for it and returns its URL for the browser to
 // redirect to.
-import { AREAS, SLOT_TIMES, BOOKING_LEAD_DAYS, TOTAL_BOOKING_DAYS, addMinutes } from '../../../js/data.js';
+import {
+  AREAS, SLOT_TIMES, BOOKING_LEAD_DAYS, TOTAL_BOOKING_DAYS, addMinutes,
+  jstDateIso, addDaysToIso, MONITOR_PLAN_NAMES, monitorPriceFor, monitorBookingCounts,
+} from '../../../js/data.js';
 import { verifyUser, restSelect, restInsert, restUpdate } from '../../_lib/supabaseAdmin.js';
 import { stripe } from '../../_lib/stripe.js';
 import { optionsTotalFor } from '../../_lib/pricing.js';
@@ -46,15 +49,12 @@ export async function onRequestPost({ request, env }) {
   const areaLabel = (AREAS.find((a) => a.key === area) || {}).label;
   if (!areaLabel) return jsonResponse({ error: 'エリアが不正です。' }, 400);
 
-  // Booking window: BOOKING_LEAD_DAYS .. BOOKING_LEAD_DAYS + TOTAL_BOOKING_DAYS.
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const minDate = new Date(today);
-  minDate.setDate(minDate.getDate() + BOOKING_LEAD_DAYS);
-  const maxDate = new Date(today);
-  maxDate.setDate(maxDate.getDate() + BOOKING_LEAD_DAYS + TOTAL_BOOKING_DAYS);
-  const requestedDate = new Date(`${bookingDate}T00:00:00`);
-  if (Number.isNaN(requestedDate.getTime()) || requestedDate < minDate || requestedDate >= maxDate) {
+  // Booking window: BOOKING_LEAD_DAYS .. BOOKING_LEAD_DAYS + TOTAL_BOOKING_DAYS,
+  // counted in Japan time (the Functions runtime itself runs in UTC).
+  const todayIso = jstDateIso();
+  const minIso = addDaysToIso(todayIso, BOOKING_LEAD_DAYS);
+  const maxIso = addDaysToIso(todayIso, BOOKING_LEAD_DAYS + TOTAL_BOOKING_DAYS);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(bookingDate)) || bookingDate < minIso || bookingDate >= maxIso) {
     return jsonResponse({ error: 'ご指定の日付は予約可能な期間外です。' }, 400);
   }
 
@@ -108,14 +108,35 @@ export async function onRequestPost({ request, env }) {
   const hitsClosed = SLOT_TIMES.slice(startIndex, startIndex + slotCount).some((t) => closedTimes.has(t));
   if (isTaken || hitsClosed) return jsonResponse({ error: 'この枠は既に埋まっています。別の日時をお選びください。' }, 409);
 
+  // Monitor price: an accepted monitor applicant gets half price on the
+  // Standard / Smartphone plan, once. Applied automatically here — the
+  // booking screen only displays what this decides.
+  let planPrice = plan.price;
+  let monitorApplicationId = null;
+  if (MONITOR_PLAN_NAMES.includes(plan.name)) {
+    const [app] = await restSelect(env, 'monitor_applications', {
+      client_id: `eq.${user.id}`, status: 'eq.accepted', select: 'id', order: 'applied_at.asc', limit: '1',
+    });
+    if (app) {
+      const used = await restSelect(env, 'bookings', {
+        monitor_application_id: `eq.${app.id}`, select: 'status,created_at',
+      });
+      if (!used.some((b) => monitorBookingCounts(b))) {
+        planPrice = monitorPriceFor(plan.price);
+        monitorApplicationId = app.id;
+      }
+    }
+  }
+
   const optionsTotal = optionsTotalFor(optionKeys);
-  const totalPrice = plan.price + optionsTotal;
+  const totalPrice = planPrice + optionsTotal;
 
   const booking = await restInsert(env, 'bookings', {
     client_id: user.id,
     photographer_id: photographerId,
     plan_name: plan.name,
-    plan_price: plan.price,
+    plan_price: planPrice,
+    monitor_application_id: monitorApplicationId,
     duration_min: durationMin,
     area: areaLabel,
     booking_date: bookingDate,
@@ -133,6 +154,10 @@ export async function onRequestPost({ request, env }) {
   try {
     const session = await stripe.checkoutSessions.create(env, {
       mode: 'payment',
+      // Card only: delayed methods (konbini, bank transfer) complete after
+      // checkout, which the webhook doesn't wait for — the slot would be
+      // released while the customer is still on their way to pay.
+      payment_method_types: ['card'],
       customer_email: user.email,
       line_items: [
         {
@@ -140,12 +165,10 @@ export async function onRequestPost({ request, env }) {
           price_data: {
             currency: 'jpy',
             unit_amount: totalPrice,
-            tax_behavior: 'inclusive',
-            product_data: { name: `${plan.name}（${photographerRow.name}さん）` },
+            product_data: { name: `${plan.name}${monitorApplicationId ? '・モニター価格' : ''}（${photographerRow.name}さん）` },
           },
         },
       ],
-      automatic_tax: { enabled: true },
       metadata: { booking_id: booking.id },
       payment_intent_data: { metadata: { booking_id: booking.id } },
       success_url: `${origin}/booking.html?id=${photographerId}&paid_booking=${booking.id}`,

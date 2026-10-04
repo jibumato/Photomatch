@@ -113,7 +113,7 @@ export const LEGAL_PAGES = {
       { k: '商品代金以外の費用', v: '交通費等が発生する場合は予約前に明示します' },
       { k: '支払方法', v: 'クレジットカード（Stripe）／予約時に全額をお支払いいただきます' },
       { k: '役務の提供時期', v: 'ご予約いただいた撮影日時に提供します' },
-      { k: 'キャンセル', v: '撮影日の3日前まで無料／2日前50%／前日・当日100%' },
+      { k: 'キャンセル', v: '撮影日の3日前まで無料／2日前 プラン料金の50%／前日・当日 プラン料金の100%（オプション料金は全額返金。返金はお支払いのカードへ）' },
     ],
   },
   privacy: {
@@ -135,7 +135,7 @@ export const LEGAL_PAGES = {
       { h: '第1条（本サービスの概要）', b: '本サービスは、お客様とカメラマンとの間で撮影日時・場所を調整し、マッチングアプリ用プロフィール写真を中心とした出張撮影を提供するものです。撮影場所の使用許可等の手配は、当社またはカメラマンが行います。' },
       { h: '第2条（申込みと契約成立）', b: 'お客様は、サイト上の空き枠カレンダーから希望日時・プランを選択し、必要事項を入力のうえお申込みください。決済が完了した時点で契約が成立し、予約が確定します。' },
       { h: '第3条（支払方法）', b: '利用料金は、予約確定時にサイト上のクレジットカード決済（Stripe）にて全額をお支払いいただきます。表示価格はすべて税込です。当日の追加料金は発生しません。' },
-      { h: '第4条（変更・キャンセル）', b: '撮影日の3日前まで：無料でキャンセル・変更が可能です。撮影日の2日前：利用料金の50%をキャンセル料として申し受けます。撮影日の前日・当日：利用料金の100%をキャンセル料として申し受けます。キャンセル・変更はマイページから承ります。' },
+      { h: '第4条（変更・キャンセル）', b: '撮影日の3日前まで：無料でキャンセル・変更が可能です。撮影日の2日前：プラン料金の50%をキャンセル料として申し受けます。撮影日の前日・当日：プラン料金の100%をキャンセル料として申し受けます。オプション料金はキャンセル料の対象外とし、全額返金します。キャンセル料を差し引いた金額は、お支払いに使われたクレジットカードへ返金します。キャンセル・変更はマイページから承ります（撮影開始時刻以降のキャンセルはお問い合わせください）。' },
       { h: '第5条（遅刻）', b: '集合時間に15分以上遅れて指定場所にお越しいただいた場合、当日キャンセルとして扱い、前条に定めるキャンセル料（返金なし）を申し受けます。15分未満の遅刻の場合も、撮影時間の短縮など提供内容を変更させていただくことがあり、この場合も返金・代金の減額は行いません。' },
       { h: '第6条（データの納品）', b: '撮影データは、撮影日から最短翌日〜3営業日以内に、Googleフォトのアルバムリンクを電子メールにてお送りする方法で納品します。お客様はGoogleフォトの利用規約に同意のうえご使用ください。納品後のデータ保存期間は撮影月の翌々月末日までとし、それを超える保存について当社は責任を負いません。' },
       { h: '第7条（システム障害等の免責）', b: 'Googleフォトその他当社が利用するシステムの中断・停止等、当社の責によらない事由により本サービスの提供またはデータ納品が遅延・不能となった場合、当社はその責任を負いません。' },
@@ -169,8 +169,8 @@ export const FAQS = [
     a: '撮影後、最短翌日〜3営業日以内にメールにてGoogleフォトのURLを共有してのお渡しになります。',
     aEn: 'Within 1–3 business days after the shoot, by email with a shared Google Photos link.' },
   { q: 'キャンセルはできますか？', qEn: 'Can I cancel my booking?',
-    a: '撮影日の3日前まで無料、2日前は料金の50%、前日・当日は料金の100%をキャンセル料として申し受けます。マイページからお手続きいただけます。なお、集合時間に15分以上遅れた場合はキャンセル扱いとなることがあり、その際の返金はできません。',
-    aEn: "Free up to 3 days before the shoot; 50% of the fee at 2 days before; 100% the day before or on the day. Cancel from My Page. Arriving more than 15 minutes late may be treated as a same-day cancellation, which is non-refundable." },
+    a: '撮影日の3日前まで無料、2日前はプラン料金の50%、前日・当日はプラン料金の100%をキャンセル料として申し受けます（オプション料金は全額返金します）。マイページからお手続きいただけ、残りの金額はお支払いのカードへ自動で返金されます。なお、集合時間に15分以上遅れた場合はキャンセル扱いとなることがあり、その際の返金はできません。',
+    aEn: "Free up to 3 days before the shoot; 50% of the plan fee at 2 days before; 100% of the plan fee the day before or on the day (options are always fully refunded). Cancel from My Page — the rest is refunded to your card automatically. Arriving more than 15 minutes late may be treated as a same-day cancellation, which is non-refundable." },
   { q: '撮影場所の許可は自分で取る必要がありますか？', qEn: 'Do I need to get permission for the shoot location myself?',
     a: 'ロケーション撮影に必要な許可取得は運営・カメラマン側で対応します。お客様のお手間はかかりません。',
     aEn: "No — we and the photographer handle any permits the location needs, so it's no extra work for you." },
@@ -365,7 +365,66 @@ export function addMinutes(timeStr, mins) {
 // カメラマンが受け取る割合（残りがPhotoMatchのプラットフォーム手数料）。
 // EXTRA_OPTIONS の料金とあわせ、サーバー側（functions/_lib/pricing.js）も
 // ここを直接参照して請求額を計算する。変更はここだけでよい。
+// 報酬 = プラン料金 × PHOTOGRAPHER_PAYOUT_RATE ＋ オプション1件につき OPTION_PAYOUT_PER_ITEM。
 export const PHOTOGRAPHER_PAYOUT_RATE = 0.5;
+export const OPTION_PAYOUT_PER_ITEM = 1100;
+// 当日キャンセルのときだけ、カメラマンへ補償として支払う額（税込）。
+export const SAME_DAY_CANCEL_COMPENSATION = 2000;
+
+// モニター価格（当選者1回限り・半額）の対象プラン。
+export const MONITOR_PLAN_NAMES = ['スタンダード', 'スマホプラン'];
+export const monitorPriceFor = (planPrice) => Math.round(planPrice / 2);
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// 日本時間での日付（YYYY-MM-DD）。サーバー（UTC）でもブラウザでも同じ結果になる。
+export function jstDateIso(now = new Date()) {
+  return new Date(now.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+export function addDaysToIso(iso, days) {
+  return new Date(Date.parse(`${iso}T00:00:00Z`) + days * DAY_MS).toISOString().slice(0, 10);
+}
+
+function daysBetweenIso(fromIso, toIso) {
+  return Math.round((Date.parse(`${toIso}T00:00:00Z`) - Date.parse(`${fromIso}T00:00:00Z`)) / DAY_MS);
+}
+
+// お客様都合のキャンセルで、いくら返金し、いくらキャンセル料をいただくか。
+// 規約どおり 3日前まで無料／2日前 50%／前日・当日 100%。キャンセル料は
+// プラン料金にだけかけ、オプション料金は提供していないので全額返金する。
+// 撮影開始時刻を過ぎたらマイページからはキャンセルできない（allowed: false）。
+// サーバー（/api/bookings/cancel）とマイページの確認ダイアログで共用する。
+export function cancellationQuote(booking, now = new Date()) {
+  const start = new Date(`${booking.booking_date}T${String(booking.start_time).slice(0, 5)}:00+09:00`);
+  if (!(now < start)) return { allowed: false };
+  const daysBefore = daysBetweenIso(jstDateIso(now), booking.booking_date);
+  const rate = daysBefore >= 3 ? 0 : daysBefore === 2 ? 0.5 : 1;
+  const paid = booking.status === 'pending_payment' ? 0 : booking.total_price;
+  const fee = paid ? Math.min(paid, Math.round(booking.plan_price * rate)) : 0;
+  return {
+    allowed: true,
+    daysBefore,
+    fee,
+    refund: paid - fee,
+    photographerComp: paid && daysBefore <= 0 ? SAME_DAY_CANCEL_COMPENSATION : 0,
+  };
+}
+
+// 1件の予約についてカメラマンへ振り込む額。キャンセル済みは当日キャンセル補償のみ。
+export function photographerPayoutFor(booking) {
+  if (booking.status === 'canceled') return booking.photographer_cancel_comp || 0;
+  return Math.round(booking.plan_price * PHOTOGRAPHER_PAYOUT_RATE)
+    + OPTION_PAYOUT_PER_ITEM * (booking.options || []).length;
+}
+
+// モニター価格を使った予約が「使用済み」に数えられるか。キャンセル済みと、
+// 決済されないまま20分過ぎた決済待ちは数えない（もう一度使える）。
+export function monitorBookingCounts(b, now = new Date()) {
+  if (b.status === 'canceled') return false;
+  if (b.status === 'pending_payment' && now - new Date(b.created_at) > 20 * 60 * 1000) return false;
+  return true;
+}
 
 export function weatherIconFor(code) {
   if (code == null) return { icon: '', color: 'oklch(0.5 0.05 220)' };
