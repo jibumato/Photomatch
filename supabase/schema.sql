@@ -726,6 +726,12 @@ alter table bookings add constraint bookings_refund_status_check
   check (refund_status is null or refund_status in ('none', 'pending', 'succeeded', 'failed'));
 alter table bookings add column if not exists stripe_refund_id text;
 alter table bookings add column if not exists photographer_cancel_comp int not null default 0;
+-- customer: お客様がマイページからキャンセル／no_show: 15分以上の遅刻で運営が当日キャンセル扱いにした
+-- （/api/bookings/no-show。規約第5条）。
+alter table bookings add column if not exists cancel_reason text;
+alter table bookings drop constraint if exists bookings_cancel_reason_check;
+alter table bookings add constraint bookings_cancel_reason_check
+  check (cancel_reason is null or cancel_reason in ('customer', 'no_show'));
 
 -- モニター価格（当選者1回限りの半額）を使った予約。どの応募の権利を使ったかを残し、
 -- 2回目以降は定価になるようにする（/api/checkout/create-session が判定）。

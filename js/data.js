@@ -411,6 +411,18 @@ export function cancellationQuote(booking, now = new Date()) {
   };
 }
 
+// 遅刻キャンセル（集合時間に15分以上遅れた場合。規約第5条）。運営が撮影開始後に
+// 処理し、当日キャンセルと同じ扱いにする：プラン料金の100%をいただき、
+// オプション料金は返金、カメラマンへは当日キャンセル補償。
+export const NO_SHOW_STATUSES = ['paid', 'confirmed', 'requested'];
+export function noShowQuote(booking, now = new Date()) {
+  const start = new Date(`${booking.booking_date}T${String(booking.start_time).slice(0, 5)}:00+09:00`);
+  if (!NO_SHOW_STATUSES.includes(booking.status) || now < start || booking.payout_status === 'released') return { allowed: false };
+  const paid = booking.total_price || 0;
+  const fee = Math.min(paid, booking.plan_price || 0);
+  return { allowed: true, fee, refund: paid - fee, photographerComp: SAME_DAY_CANCEL_COMPENSATION };
+}
+
 // 1件の予約についてカメラマンへ振り込む額。キャンセル済みは当日キャンセル補償のみ。
 export function photographerPayoutFor(booking) {
   if (booking.status === 'canceled') return booking.photographer_cancel_comp || 0;

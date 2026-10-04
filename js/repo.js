@@ -246,6 +246,12 @@ export async function getPhotographerBookings(photographerId) {
 
 // Goes through a Function (not a direct table update) so the cancellation
 // emails to the customer and photographer are always sent.
+// Ops only: treat a booking as a same-day cancellation because the customer
+// was 15+ minutes late. Resolves to { ok, fee, refund, refund_status, compensation }.
+export async function markNoShow(bookingId, note) {
+  return callApi('/api/bookings/no-show', { booking_id: bookingId, note }, '遅刻キャンセルの処理に失敗しました。');
+}
+
 // Resolves to { ok, fee, refund, refund_status }.
 export async function cancelBooking(bookingId) {
   return callApi('/api/bookings/cancel', { booking_id: bookingId }, 'キャンセル処理に失敗しました。', '時間をおいて再度お試しください。');

@@ -4,10 +4,10 @@ import {
   getGuaranteeClaimsForReview, reviewGuaranteeClaim,
   getMonitorApplicationsForReview, reviewMonitorApplication,
   getPayoutCandidates, getGuaranteeClaimsForBookings, releasePayout, getBankAccountsForPhotographers,
-  createPhotographerAccount, resetPhotographerPassword, getPhotographersForReview, setPhotographerVisibility,
+  createPhotographerAccount, resetPhotographerPassword, markNoShow, getPhotographersForReview, setPhotographerVisibility,
   getReviewsForModeration, setReviewHidden,
 } from '../repo.js';
-import { AREAS, photographerPayoutFor } from '../data.js';
+import { AREAS, photographerPayoutFor, noShowQuote } from '../data.js';
 import { safePhotoUrl } from '../util.js';
 
 const GUARANTEE_WINDOW_DAYS = 30;
@@ -341,7 +341,12 @@ function payoutGroupHtml(group, { ready }) {
     const what = b.status === 'canceled'
       ? '当日キャンセル補償'
       : `${escapeHtml(b.plan_name || '')}${optionCount ? `＋オプション${optionCount}件` : ''}`;
-    return `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">・${b.booking_date}　${what}　依頼者：${escapeHtml(b.customer_name || '-')}　¥${amount.toLocaleString()}</div>`;
+    // Lateness can only be judged once the shoot has started; until its
+    // payout is sent, ops can still turn it into a same-day cancellation.
+    const noShow = noShowQuote(b).allowed
+      ? ` <button data-booking-id="${b.id}" class="btn-no-show" style="background:none;border:none;padding:0 0 0 6px;font:700 11px var(--pm-font-body);color:var(--pm-warn-text);text-decoration:underline;cursor:pointer">遅刻キャンセルにする</button>`
+      : '';
+    return `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">・${b.booking_date} ${String(b.start_time || '').slice(0, 5)}　${what}　依頼者：${escapeHtml(b.customer_name || '-')}　¥${amount.toLocaleString()}${noShow}</div>`;
   }).join('');
   return `
   <div class="pm-card" style="padding:18px 20px">
@@ -409,6 +414,33 @@ async function loadPayouts() {
   waitingEl.innerHTML = waitingGroups.length
     ? waitingGroups.map((g) => payoutGroupHtml(g, { ready: false })).join('')
     : '<div class="pm-empty">対象データがありません。</div>';
+
+  const bookingsById = Object.fromEntries(bookings.map((b) => [b.id, b]));
+  [readyEl, waitingEl].forEach((el) => el.querySelectorAll('.btn-no-show').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const b = bookingsById[btn.dataset.bookingId];
+      const q = noShowQuote(b);
+      if (!q.allowed) return;
+      const yen = (n) => `¥${n.toLocaleString()}`;
+      const note = prompt(
+        `${b.booking_date} ${String(b.start_time).slice(0, 5)}〜 ${b.customer_name || ''} 様の予約を、遅刻（15分以上）による当日キャンセルとして処理します。\n\n`
+        + `キャンセル料：${yen(q.fee)}\nお客様への返金（オプション分）：${yen(q.refund)}\nカメラマンへの報酬：${yen(photographerPayoutFor(b))} → 補償 ${yen(q.photographerComp)}\n\n`
+        + 'お客様・カメラマンにメールで通知されます。取り消しはできません。\nメモ（任意。遅刻の状況など）を入力してOKを押してください。',
+        '',
+      );
+      if (note === null) return;
+      btn.disabled = true;
+      try {
+        const result = await markNoShow(b.id, note);
+        if (result.refund_status === 'failed') alert('処理しましたが、自動返金に失敗しました。Stripe の管理画面から手動で返金してください。');
+        loadPayouts();
+      } catch (err) {
+        alert(err.message || '遅刻キャンセルの処理に失敗しました。');
+        console.error(err);
+        btn.disabled = false;
+      }
+    });
+  }));
 
   readyEl.querySelectorAll('.btn-payout-release').forEach((btn) => {
     btn.addEventListener('click', async () => {

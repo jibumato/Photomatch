@@ -67,6 +67,18 @@ function messages(kind, b, photographerName, origin) {
       },
     };
   }
+  if (kind === 'no_show') {
+    return {
+      customer: {
+        subject: `【PhotoMatch】ご予約を当日キャンセル扱いとしました（${when}）`,
+        text: `${b.customer_name} 様\n\n以下のご予約について、集合時間に15分以上遅れてのご来場（またはご来場がなかった）ため、利用規約第5条に基づき当日キャンセルとして扱いました。\n\n■対象のご予約\n${bookingLines(b, photographerName, { forCustomer: true })}${refundLines(b)}\n\n内容に心当たりがない場合は、お手数ですが下記までご連絡ください。\n${FOOTER(origin)}`,
+      },
+      photographer: {
+        subject: `【PhotoMatch】遅刻のため当日キャンセル扱いになりました（${when}）`,
+        text: `${photographerName} さん\n\n以下の予約は、依頼者の遅刻（15分以上）のため、運営にて当日キャンセルとして処理しました。\n\n■対象の予約\n依頼者：${b.customer_name} 様\n${bookingLines(b, photographerName, { forCustomer: false })}\n\n補償として${yen(b.photographer_cancel_comp)}をお支払いします（通常の報酬と同じく、月末締め・翌月25日払い）。\n\n${origin}/admin.html\n${FOOTER(origin)}`,
+      },
+    };
+  }
   return {
     customer: {
       subject: `【PhotoMatch】ご予約をキャンセルしました（${when}）`,
@@ -82,8 +94,8 @@ function messages(kind, b, photographerName, origin) {
 // Ops copy: every booking and cancellation, with what ops may need to act on
 // (a refund that failed, a same-day compensation to pay out).
 function opsMessage(kind, b, photographerName, origin) {
-  const head = kind === 'confirmed' ? '新しい予約' : '予約キャンセル';
-  const refund = kind === 'canceled' && b.total_price
+  const head = { confirmed: '新しい予約', canceled: '予約キャンセル', no_show: '遅刻キャンセルの処理' }[kind];
+  const refund = kind !== 'confirmed' && b.total_price
     ? `\n\nキャンセル料：${yen(b.cancel_fee)}\n返金額：${yen(b.refund_amount)}（${REFUND_STATUS_LABEL[b.refund_status] || b.refund_status || '-'}）${b.photographer_cancel_comp ? `\nカメラマンへの当日キャンセル補償：${yen(b.photographer_cancel_comp)}` : ''}`
     : '';
   return {
@@ -92,7 +104,7 @@ function opsMessage(kind, b, photographerName, origin) {
   };
 }
 
-// kind: 'confirmed' | 'canceled'
+// kind: 'confirmed' | 'canceled' | 'no_show'
 export async function notifyBooking(env, bookingId, kind, origin) {
   try {
     const [booking] = await restSelect(env, 'bookings', { id: `eq.${bookingId}`, select: '*' });

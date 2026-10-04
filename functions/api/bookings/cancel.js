@@ -9,6 +9,7 @@
 import { cancellationQuote } from '../../../js/data.js';
 import { verifyUser, restSelect, restUpdate } from '../../_lib/supabaseAdmin.js';
 import { stripe } from '../../_lib/stripe.js';
+import { refundBooking } from '../../_lib/refund.js';
 import { notifyBooking } from '../../_lib/notifications.js';
 
 const CANCELABLE = ['pending_payment', 'paid', 'requested', 'confirmed'];
@@ -50,6 +51,7 @@ export async function onRequestPost({ request, env }) {
     {
       status: 'canceled',
       canceled_at: new Date().toISOString(),
+      cancel_reason: 'customer',
       cancel_fee: quote.fee,
       refund_amount: quote.refund,
       refund_status: quote.refund > 0 ? 'pending' : 'none',
@@ -64,26 +66,7 @@ export async function onRequestPost({ request, env }) {
     await stripe.checkoutSessions.expire(env, booking.stripe_checkout_session_id).catch(() => {});
   }
 
-  let refundStatus = quote.refund > 0 ? 'pending' : 'none';
-  if (quote.refund > 0) {
-    try {
-      if (!booking.stripe_payment_intent_id) throw new Error('no payment intent on booking');
-      const refund = await stripe.refunds.create(
-        env,
-        { payment_intent: booking.stripe_payment_intent_id, amount: quote.refund, metadata: { booking_id: bookingId } },
-        { idempotencyKey: `cancel-refund-${bookingId}` },
-      );
-      refundStatus = 'succeeded';
-      await restUpdate(env, 'bookings', { id: `eq.${bookingId}` }, { refund_status: refundStatus, stripe_refund_id: refund.id })
-        .catch((err) => console.error('cancel: refund ok but failed to record it', bookingId, refund.id, err));
-    } catch (err) {
-      // The booking stays canceled; ops is told by email (notifyBooking
-      // includes the refund status) and refunds by hand from Stripe.
-      refundStatus = 'failed';
-      console.error('cancel: refund failed', bookingId, err);
-      await restUpdate(env, 'bookings', { id: `eq.${bookingId}` }, { refund_status: refundStatus }).catch(() => {});
-    }
-  }
+  const refundStatus = await refundBooking(env, booking, quote.refund);
 
   // An unpaid (pending_payment) booking was never confirmed to anyone, so
   // there's nothing to tell the photographer about.

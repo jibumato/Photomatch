@@ -126,6 +126,7 @@ function bookingCardHtml(b, meta, { history }) {
         </div>
         <div style="font:13px var(--pm-font-body);color:oklch(0.45 0.02 235)">${b.booking_date}（${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}）</div>
         <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${b.plan_name} ・ ${priceLabel}</div>
+        ${b.status === 'canceled' && b.cancel_reason === 'no_show' ? '<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">集合時間に15分以上遅れたため、当日キャンセル扱いとなりました（利用規約第5条）</div>' : ''}
         ${b.status === 'canceled' && b.refund_amount > 0 ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">ご返金：¥${b.refund_amount.toLocaleString()}${b.refund_status === 'succeeded' ? '（カードへ返金済み）' : '（運営より手続き中）'}</div>` : ''}
       </div>
       ${actions.length ? `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${actions.join('')}</div>` : ''}
