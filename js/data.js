@@ -202,6 +202,13 @@ export const MEETING_POINTS = [
   { key: 'ichinomiya', label: '一宮', detail: '尾張一宮駅 北口広場前', mapQuery: '尾張一宮駅 北口' },
 ];
 
+// 撮影エリア（AREAS の label、例「名古屋エリア」）に対応する集合場所。
+export function meetingPointForArea(areaLabel) {
+  return MEETING_POINTS.find((mp) => String(areaLabel || '').startsWith(mp.label)) || null;
+}
+
+export const mapUrlFor = (mp) => `https://www.google.com/maps?q=${encodeURIComponent(mp.mapQuery)}`;
+
 export const MONITOR_CONDITIONS = [
   '名古屋・岐阜・一宮いずれかの集合場所での撮影に来場できる方',
   '現在マッチングアプリで使用中の写真がある方（施策前後の変化の比較にご協力いただきます）',

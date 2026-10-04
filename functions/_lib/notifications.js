@@ -1,7 +1,7 @@
 // Booking confirmed / canceled notifications, sent to the customer, the
 // photographer and ops at the same time. Never throws: a mail failure must
 // not break the payment webhook or the cancel request that triggered it.
-import { MEETING_POINTS, EXTRA_OPTIONS, WEEKDAY_JP } from '../../js/data.js';
+import { meetingPointForArea, EXTRA_OPTIONS, WEEKDAY_JP } from '../../js/data.js';
 import { restSelect } from './supabaseAdmin.js';
 import { sendEmail } from './email.js';
 
@@ -24,7 +24,7 @@ function bookingLines(b, photographerName, { forCustomer }) {
     .map((o) => EXTRA_OPTIONS.find((eo) => eo.key === o.key))
     .filter(Boolean)
     .map((o) => o.label);
-  const meeting = MEETING_POINTS.find((mp) => (b.area || '').startsWith(mp.label));
+  const meeting = meetingPointForArea(b.area);
   return [
     forCustomer ? `カメラマン：${photographerName}` : null,
     `日時：${formatDate(b.booking_date)} ${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}`,
