@@ -6,7 +6,7 @@ import { loadDailyWeather } from '../weather.js';
 import { escapeHtml } from '../util.js';
 import {
   AREAS, EXTRA_OPTIONS, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
-  MONITOR_PLAN_NAMES, monitorPriceFor,
+  MONITOR_PLAN_NAMES, monitorPriceFor, areasFor,
 } from '../data.js';
 import { t, tf, L, getLang, areaText, planNameText, planDescText, discountLabelText, taxIncludedSuffix } from '../i18n.js';
 
@@ -185,9 +185,21 @@ async function goSlotStep() {
   renderSlotGrid();
 }
 
+// Only the photographer's own area can be booked (a Nagoya photographer
+// can't be booked for Gifu). Also fixes up a default/restored area that
+// isn't one of theirs.
+function allowedAreas() {
+  const allowed = areasFor(state.photographer && state.photographer.area);
+  if (!allowed.some((a) => a.key === state.selectedArea)) state.selectedArea = allowed[0].key;
+  return allowed;
+}
+
 function renderAreaChips() {
-  document.getElementById('area-chips').innerHTML = AREAS.map((a) => `
+  const allowed = allowedAreas();
+  document.querySelector('[data-i18n="booking.slot.areaHeading"]').textContent = t(allowed.length > 1 ? 'booking.slot.areaHeading' : 'booking.slot.areaHeadingFixed');
+  document.getElementById('area-chips').innerHTML = allowed.map((a) => `
     <span data-key="${a.key}" class="pm-chip ${a.key === state.selectedArea ? 'is-active' : ''}">${areaText(a.label)}</span>`).join('');
+  if (allowed.length < 2) return;
   document.querySelectorAll('#area-chips .pm-chip').forEach((el) => {
     el.addEventListener('click', async () => {
       state.selectedArea = el.dataset.key;
@@ -531,6 +543,7 @@ function showConfirmForBooking(booking) {
     }
 
     const restored = restoreDraft();
+    allowedAreas();
     if (canceled && restored) {
       await goSlotStepFromRestore();
       goPaymentStep();

@@ -170,6 +170,7 @@ const DICT = {
   'booking.slot.back': { ja: '← プラン選択に戻る', en: '← Back to Plans' },
   'booking.slot.title': { ja: '空き枠を選ぶ', en: 'Choose a Time' },
   'booking.slot.areaHeading': { ja: '撮影希望エリアを選ぶ', en: 'Choose a Shoot Area' },
+  'booking.slot.areaHeadingFixed': { ja: '撮影エリア（このカメラマンの担当エリア）', en: "Shoot Area (this photographer's area)" },
   'booking.slot.scrollHint': { ja: '→ 表がはみ出す場合は横にスクロールしてご覧ください', en: '→ Scroll sideways if the table runs off the screen' },
   'booking.slot.legend.available': { ja: '予約可能', en: 'Available' },
   'booking.slot.legend.taken': { ja: '予約済み', en: 'Booked' },
