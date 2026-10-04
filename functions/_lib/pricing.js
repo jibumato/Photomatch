@@ -2,9 +2,9 @@
 // screen displays — so what the customer sees and what Stripe charges can't
 // drift apart. Totals are still recomputed here from option keys rather than
 // trusting any amount sent by the client.
-import { EXTRA_OPTIONS, PHOTOGRAPHER_PAYOUT_RATE } from '../../js/data.js';
+import { EXTRA_OPTIONS, PHOTOGRAPHER_PAYOUT_RATE, photographerPayoutFor } from '../../js/data.js';
 
-export { EXTRA_OPTIONS, PHOTOGRAPHER_PAYOUT_RATE };
+export { EXTRA_OPTIONS, PHOTOGRAPHER_PAYOUT_RATE, photographerPayoutFor };
 
 export function optionsTotalFor(keys) {
   const selected = new Set(keys || []);

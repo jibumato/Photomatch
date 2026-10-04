@@ -210,7 +210,7 @@ function bankAccountFormHtml(account) {
   const a = account || {};
   return `
     <div style="font:700 15px var(--pm-font-body);margin-bottom:6px">報酬の振込先を登録する</div>
-    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 14px">お客様からのお支払いは一旦PhotoMatchでお預かりし、撮影完了・保証期間（30日）経過後、月末締め・翌月25日払いで運営より銀行振込にてお支払いします（プラン料金の50%）。</p>
+    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 14px">お客様からのお支払いは一旦PhotoMatchでお預かりし、撮影完了・保証期間（30日）経過後、月末締め・翌月25日払いで運営より銀行振込にてお支払いします。報酬は「プラン料金の50%＋オプション1件につき¥1,100」です。お客様の当日キャンセルの場合は、補償として¥2,000（税込）をお支払いします。</p>
     <div style="display:flex;flex-direction:column;gap:14px;max-width:400px">
       <div class="pm-field">
         <label>金融機関名</label>

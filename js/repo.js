@@ -1,6 +1,7 @@
 // Supabase data-access layer shared by all pages.
 import { supabase } from './supabaseClient.js';
 import { getSession } from './auth.js';
+import { monitorBookingCounts } from './data.js';
 
 // POST JSON to a Function with the signed-in user's token. A reply that isn't
 // JSON (e.g. an empty 404/405 from a host that isn't serving /functions, or an
@@ -245,8 +246,15 @@ export async function getPhotographerBookings(photographerId) {
 
 // Goes through a Function (not a direct table update) so the cancellation
 // emails to the customer and photographer are always sent.
+// Ops only: treat a booking as a same-day cancellation because the customer
+// was 15+ minutes late. Resolves to { ok, fee, refund, refund_status, compensation }.
+export async function markNoShow(bookingId, note) {
+  return callApi('/api/bookings/no-show', { booking_id: bookingId, note }, '遅刻キャンセルの処理に失敗しました。');
+}
+
+// Resolves to { ok, fee, refund, refund_status }.
 export async function cancelBooking(bookingId) {
-  await callApi('/api/bookings/cancel', { booking_id: bookingId }, 'キャンセル処理に失敗しました。', '時間をおいて再度お試しください。');
+  return callApi('/api/bookings/cancel', { booking_id: bookingId }, 'キャンセル処理に失敗しました。', '時間をおいて再度お試しください。');
 }
 
 // ---- chat ----
@@ -384,12 +392,13 @@ export async function getBankAccountsForPhotographers(photographerIds) {
 
 // ---- payouts (カメラマンへの報酬送金 — 月末締め・翌月25日payoutの銀行振込) ----
 
-// ops: paid bookings still awaiting a payout, across all photographers.
+// ops: bookings still awaiting a payout, across all photographers.
 export async function getPayoutCandidates() {
   const { data, error } = await supabase
     .from('bookings')
     .select('*, photographers(name)')
-    .eq('status', 'paid')
+    // paid bookings, plus canceled ones that owe a same-day compensation
+    .or('status.eq.paid,and(status.eq.canceled,photographer_cancel_comp.gt.0)')
     .eq('payout_status', 'pending')
     .order('booking_date', { ascending: true });
   if (error) throw error;
@@ -474,14 +483,32 @@ export async function getMonitorApplicationsForReview() {
   return data;
 }
 
+// Ops only. Goes through a Function so the result email to the applicant
+// is always sent. Resolves to { ok, emailed }.
 export async function reviewMonitorApplication(applicationId, status, reviewNote) {
+  return callApi('/api/monitor/review', { application_id: applicationId, status, note: reviewNote }, '更新に失敗しました。');
+}
+
+// Whether the signed-in customer still has an unused monitor price (accepted
+// application with no booking that used it). Display only — the checkout
+// Function makes the same decision itself when it sets the price.
+export async function hasUnusedMonitorPrice() {
   const session = await getSession();
-  if (!session) throw new Error('not signed in');
-  const { error } = await supabase
+  if (!session) return false;
+  const { data: apps, error } = await supabase
     .from('monitor_applications')
-    .update({ status, review_note: reviewNote, reviewed_at: new Date().toISOString(), reviewed_by: session.user.id })
-    .eq('id', applicationId);
-  if (error) throw error;
+    .select('id')
+    .eq('client_id', session.user.id)
+    .eq('status', 'accepted')
+    .order('applied_at', { ascending: true })
+    .limit(1);
+  if (error || !apps || !apps.length) return false;
+  const { data: used, error: usedError } = await supabase
+    .from('bookings')
+    .select('status, created_at')
+    .eq('monitor_application_id', apps[0].id);
+  if (usedError) return false;
+  return !used.some((b) => monitorBookingCounts(b));
 }
 
 // ---- counseling sheet ----

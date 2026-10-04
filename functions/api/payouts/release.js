@@ -1,13 +1,16 @@
 // POST /api/payouts/release  { booking_id, note }
-// ops-only. Records that a booking's photographer share has been paid out
+// ops-only. Records that a booking's photographer share (plan price × 50%
+// + ¥1,100 per option, or the same-day cancellation compensation for a
+// canceled booking — see photographerPayoutFor in js/data.js) has been paid out
 // via manual bank transfer (month-end cutoff, paid on the 25th of the
 // following month) — this endpoint does not move money itself, ops does
 // that directly with the bank details the photographer registered. Going
 // through a Function (rather than a client-side Supabase update) still
 // matters because it enforces ops-role authorization and the eligibility
 // checks server-side, not just via RLS.
+import { addDaysToIso } from '../../../js/data.js';
 import { verifyUser, getProfile, restSelect, restUpdate } from '../../_lib/supabaseAdmin.js';
-import { PHOTOGRAPHER_PAYOUT_RATE } from '../../_lib/pricing.js';
+import { photographerPayoutFor } from '../../_lib/pricing.js';
 
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -34,18 +37,25 @@ export async function onRequestPost({ request, env }) {
   const bookings = await restSelect(env, 'bookings', { id: `eq.${bookingId}`, select: '*' });
   const booking = bookings[0];
   if (!booking) return jsonResponse({ error: '予約が見つかりません。' }, 404);
-  if (booking.status !== 'paid') return jsonResponse({ error: 'この予約はまだ決済が完了していません。' }, 400);
+  // A canceled booking is only paid out when it carries a same-day
+  // cancellation compensation; there's no shoot, so no guarantee window.
+  const compensation = booking.status === 'canceled' && booking.photographer_cancel_comp > 0;
+  if (booking.status !== 'paid' && !compensation) {
+    return jsonResponse({ error: booking.status === 'canceled' ? 'このキャンセルにはカメラマンへの支払いがありません。' : 'この予約はまだ決済が完了していません。' }, 400);
+  }
   if (booking.payout_status === 'released') return jsonResponse({ error: 'この予約はすでに送金済みです。' }, 400);
 
-  const eligibleDate = new Date(`${booking.booking_date}T00:00:00`);
-  eligibleDate.setDate(eligibleDate.getDate() + GUARANTEE_WINDOW_DAYS);
-  if (new Date() < eligibleDate) {
-    return jsonResponse({ error: `保証期間中のため送金確定できません（${eligibleDate.toISOString().slice(0, 10)}以降に送金可能）。` }, 400);
-  }
+  if (!compensation) {
+    const eligibleDate = new Date(`${booking.booking_date}T00:00:00+09:00`);
+    eligibleDate.setDate(eligibleDate.getDate() + GUARANTEE_WINDOW_DAYS);
+    if (new Date() < eligibleDate) {
+      return jsonResponse({ error: `保証期間中のため送金確定できません（${addDaysToIso(booking.booking_date, GUARANTEE_WINDOW_DAYS)}以降に送金可能）。` }, 400);
+    }
 
-  const claims = await restSelect(env, 'guarantee_claims', { booking_id: `eq.${bookingId}`, select: 'status' });
-  if (claims.some((c) => c.status === 'claimed')) {
-    return jsonResponse({ error: '再撮影申請が審査中のため送金確定できません。先に保証審査を完了してください。' }, 400);
+    const claims = await restSelect(env, 'guarantee_claims', { booking_id: `eq.${bookingId}`, select: 'status' });
+    if (claims.some((c) => c.status === 'claimed')) {
+      return jsonResponse({ error: '再撮影申請が審査中のため送金確定できません。先に保証審査を完了してください。' }, 400);
+    }
   }
 
   const bankAccounts = await restSelect(env, 'photographer_bank_accounts', {
@@ -56,7 +66,7 @@ export async function onRequestPost({ request, env }) {
     return jsonResponse({ error: 'カメラマンの振込先口座がまだ登録されていません。' }, 400);
   }
 
-  const amount = Math.round(booking.total_price * PHOTOGRAPHER_PAYOUT_RATE);
+  const amount = photographerPayoutFor(booking);
   try {
     await restUpdate(env, 'bookings', { id: `eq.${bookingId}` }, {
       payout_status: 'released',

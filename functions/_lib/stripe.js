@@ -27,9 +27,12 @@ function toFormBody(params) {
   return out.join('&');
 }
 
-async function stripeRequest(env, method, path, params) {
+async function stripeRequest(env, method, path, params, { idempotencyKey } = {}) {
   if (!env.STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY is not configured');
   const headers = { Authorization: `Basic ${btoa(`${env.STRIPE_SECRET_KEY}:`)}` };
+  // Lets a retried request (e.g. a refund) be safely re-sent without Stripe
+  // performing it twice.
+  if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey;
   let url = `${STRIPE_API_BASE}${path}`;
   let body;
   if (method === 'GET') {
@@ -55,9 +58,13 @@ export const stripe = {
   checkoutSessions: {
     create: (env, params) => stripeRequest(env, 'POST', '/checkout/sessions', params),
     retrieve: (env, id, params) => stripeRequest(env, 'GET', `/checkout/sessions/${id}`, params),
+    expire: (env, id) => stripeRequest(env, 'POST', `/checkout/sessions/${id}/expire`),
   },
   paymentIntents: {
     retrieve: (env, id, params) => stripeRequest(env, 'GET', `/payment_intents/${id}`, params),
+  },
+  refunds: {
+    create: (env, params, opts) => stripeRequest(env, 'POST', '/refunds', params, opts),
   },
 };
 

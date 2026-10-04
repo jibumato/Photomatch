@@ -7,6 +7,7 @@ import {
 import { mountChatModal } from '../chat.js';
 import { mountSheetModal } from '../sheet.js';
 import { mountReviewModal } from '../reviewModal.js';
+import { cancellationQuote } from '../data.js';
 
 mountLayout();
 
@@ -14,7 +15,7 @@ const chatModal = mountChatModal(document.getElementById('pm-chat-mount'));
 const sheetModal = mountSheetModal(document.getElementById('pm-sheet-mount'));
 const reviewModal = mountReviewModal(document.getElementById('pm-review-mount'));
 
-const STATUS_LABEL = { paid: '確定', confirmed: '確定', requested: '依頼中', completed: '完了', canceled: 'キャンセル済' };
+const STATUS_LABEL = { pending_payment: '決済待ち', paid: '確定', confirmed: '確定', requested: '依頼中', completed: '完了', canceled: 'キャンセル済' };
 const STATUS_STYLE = {
   '確定': 'background:oklch(0.94 0.06 200);color:oklch(0.4 0.14 200)',
   '依頼中': 'background:oklch(0.95 0.05 85);color:oklch(0.5 0.13 75)',
@@ -98,7 +99,7 @@ function reviewBlockHtml(b, review) {
 
 function bookingCardHtml(b, meta, { history }) {
   const statusLabel = STATUS_LABEL[b.status] || b.status;
-  const cancellable = !history && b.status !== 'canceled' && b.status !== 'completed';
+  const cancellable = !history && b.status !== 'canceled' && b.status !== 'completed' && cancellationQuote(b).allowed;
   const priceLabel = `¥${b.total_price.toLocaleString()}（税込）`;
 
   const actions = [];
@@ -125,6 +126,8 @@ function bookingCardHtml(b, meta, { history }) {
         </div>
         <div style="font:13px var(--pm-font-body);color:oklch(0.45 0.02 235)">${b.booking_date}（${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}）</div>
         <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${b.plan_name} ・ ${priceLabel}</div>
+        ${b.status === 'canceled' && b.cancel_reason === 'no_show' ? '<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">集合時間に15分以上遅れたため、当日キャンセル扱いとなりました（利用規約第5条）</div>' : ''}
+        ${b.status === 'canceled' && b.refund_amount > 0 ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">ご返金：¥${b.refund_amount.toLocaleString()}${b.refund_status === 'succeeded' ? '（カードへ返金済み）' : '（運営より手続き中）'}</div>` : ''}
       </div>
       ${actions.length ? `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${actions.join('')}</div>` : ''}
     </div>
@@ -148,12 +151,29 @@ function wireCardEvents(root, bookingsById) {
   });
   root.querySelectorAll('.btn-cancel').forEach((el) => {
     el.addEventListener('click', async () => {
-      if (!confirm('一度キャンセルすると、返金はできません。\n本当にキャンセルしますか？')) return;
+      const b = bookingsById[el.dataset.bookingId];
+      const quote = cancellationQuote(b);
+      if (!quote.allowed) {
+        alert('撮影開始時刻を過ぎたため、マイページからはキャンセルできません。お問い合わせください。');
+        return;
+      }
+      const yen = (n) => `¥${n.toLocaleString()}`;
+      const message = b.status === 'pending_payment'
+        ? 'お支払い前のご予約をキャンセルします。よろしいですか？'
+        : `このご予約をキャンセルします。\n\nキャンセル料：${yen(quote.fee)}\nご返金額：${yen(quote.refund)}\n\n※キャンセル料はプラン料金にかかり、オプション料金は全額返金します。\n※一度キャンセルすると取り消せません。\n\nキャンセルしますか？`;
+      if (!confirm(message)) return;
+      el.disabled = true;
       try {
-        await cancelBooking(el.dataset.bookingId);
+        const result = await cancelBooking(el.dataset.bookingId);
+        if (result && result.refund > 0) {
+          alert(result.refund_status === 'succeeded'
+            ? `キャンセルしました。${yen(result.refund)}をご利用のカードへ返金しました（明細への反映まで数日〜2週間ほどかかる場合があります）。`
+            : `キャンセルしました。${yen(result.refund)}のご返金は、運営より順次お手続きします。`);
+        }
         load();
       } catch (err) {
-        alert('キャンセル処理に失敗しました。');
+        el.disabled = false;
+        alert(err.message || 'キャンセル処理に失敗しました。');
         console.error(err);
       }
     });

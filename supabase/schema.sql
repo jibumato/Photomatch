@@ -639,7 +639,9 @@ create policy "guarantee_claims: ops review" on guarantee_claims
 -- ============================================================
 -- 先着10名・スタンダード半額(¥4,400)でのモニター撮影に応募するテーブル。
 -- 効果測定（施策前後のマッチング数比較）のため、既存アカウントに紐づけて
--- 申し込む必要がある（bookingは審査通過後にops側で別途作成する運用）。
+-- 申し込む必要がある。当選後は本人が通常の予約ページから予約し、対象プランの
+-- 決済時にモニター価格が自動で適用される（bookings.monitor_application_id）。
+-- 審査結果は /api/monitor/review で記録し、応募者へメールで通知する。
 create table if not exists monitor_applications (
   id uuid primary key default gen_random_uuid(),
   client_id uuid not null references profiles(id) on delete cascade,
@@ -698,7 +700,8 @@ alter table photographers add column if not exists stripe_payouts_enabled boolea
 -- 予約ごとの決済・送金情報。予約は決済前は status='pending_payment' で作成され、
 -- Stripe Webhookが checkout.session.completed を受け取った時点で 'paid' に更新する。
 -- payout_status は「プラットフォームが一旦全額を預かり、保証期間（30日）経過後に
--- opsが銀行振込でカメラマンへ50%を送金する」運用のための状態（released 前は pending）。
+-- opsが銀行振込でカメラマンへ報酬（プラン料金の50%＋オプション1件につき¥1,100、
+-- js/data.js の photographerPayoutFor）を送金する」運用のための状態（released 前は pending）。
 alter table bookings add column if not exists stripe_checkout_session_id text;
 alter table bookings add column if not exists stripe_payment_intent_id text;
 alter table bookings add column if not exists stripe_charge_id text;
@@ -708,6 +711,31 @@ alter table bookings add constraint bookings_payout_status_check check (payout_s
 alter table bookings add column if not exists stripe_transfer_id text; -- 未使用（銀行振込方式に変更したため）。データ保持のため残置。
 alter table bookings add column if not exists payout_released_at timestamptz;
 alter table bookings add column if not exists payout_note text; -- opsが銀行振込を記録する際の任意メモ
+
+-- お客様都合のキャンセル（/api/bookings/cancel）。キャンセル料・返金額の計算は
+-- js/data.js の cancellationQuote()：3日前まで無料／2日前 プラン料金の50%／
+-- 前日・当日 プラン料金の100%（オプション料金は全額返金）。返金は Stripe で自動。
+-- photographer_cancel_comp は当日キャンセルのときだけカメラマンへ払う補償（¥2,000）で、
+-- 通常の報酬と同じく payout_status で送金を管理する。
+alter table bookings add column if not exists canceled_at timestamptz;
+alter table bookings add column if not exists cancel_fee int;
+alter table bookings add column if not exists refund_amount int;
+alter table bookings add column if not exists refund_status text;
+alter table bookings drop constraint if exists bookings_refund_status_check;
+alter table bookings add constraint bookings_refund_status_check
+  check (refund_status is null or refund_status in ('none', 'pending', 'succeeded', 'failed'));
+alter table bookings add column if not exists stripe_refund_id text;
+alter table bookings add column if not exists photographer_cancel_comp int not null default 0;
+-- customer: お客様がマイページからキャンセル／no_show: 15分以上の遅刻で運営が当日キャンセル扱いにした
+-- （/api/bookings/no-show。規約第5条）。
+alter table bookings add column if not exists cancel_reason text;
+alter table bookings drop constraint if exists bookings_cancel_reason_check;
+alter table bookings add constraint bookings_cancel_reason_check
+  check (cancel_reason is null or cancel_reason in ('customer', 'no_show'));
+
+-- モニター価格（当選者1回限りの半額）を使った予約。どの応募の権利を使ったかを残し、
+-- 2回目以降は定価になるようにする（/api/checkout/create-session が判定）。
+alter table bookings add column if not exists monitor_application_id uuid references monitor_applications(id) on delete set null;
 
 -- Postgres names an unnamed inline check constraint "<table>_<column>_check".
 alter table bookings drop constraint if exists bookings_status_check;
