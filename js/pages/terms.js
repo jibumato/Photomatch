@@ -3,7 +3,7 @@ import { LEGAL_PAGES } from '../data.js';
 
 mountLayout();
 
-const VALID_KEYS = ['company', 'tokushoho', 'privacy', 'terms'];
+const VALID_KEYS = ['company', 'tokushoho', 'privacy', 'terms', 'pro'];
 const params = new URLSearchParams(location.search);
 const key = params.get('key');
 const page = LEGAL_PAGES[VALID_KEYS.includes(key) ? key : 'company'];
