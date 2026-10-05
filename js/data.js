@@ -127,7 +127,7 @@ export const LEGAL_PAGES = {
     title: 'プライバシーポリシー',
     intro: 'PhotoMatch（以下「当サービス」）は、お客様の個人情報を以下の方針に基づき取り扱います。',
     sections: [
-      { h: '1. 取得する情報', b: 'お名前、連絡先（メール・電話番号）、予約内容、撮影データ、決済に必要な情報などを取得します。' },
+      { h: '1. 取得する情報', b: 'お名前、性別（「異性スタッフ写真セレクト」の担当判定に使用します）、連絡先（メール・電話番号）、予約内容、撮影データ、決済に必要な情報などを取得します。' },
       { h: '2. 利用目的', b: '予約の管理・カメラマンとの調整・撮影データの納品・お問い合わせ対応・サービス改善のために利用します。' },
       { h: '3. 第三者提供', b: '撮影の実施に必要な範囲で担当カメラマンに共有するほかは、法令に基づく場合を除き第三者へ提供しません。' },
       { h: '4. 決済情報の取り扱い', b: 'クレジットカード情報は決済代行事業者（Stripe）が安全に処理し、当サービスはカード番号を保持しません。' },
@@ -142,7 +142,7 @@ export const LEGAL_PAGES = {
       { h: '第1条（本サービスの概要）', b: '本サービスは、お客様とカメラマンとの間で撮影日時・場所を調整し、マッチングアプリ用プロフィール写真を中心とした出張撮影を提供するものです。撮影場所の使用許可等の手配は、当社またはカメラマンが行います。' },
       { h: '第2条（申込みと契約成立）', b: 'お客様は、サイト上の空き枠カレンダーから希望日時・プランを選択し、必要事項を入力のうえお申込みください。決済が完了した時点で契約が成立し、予約が確定します。' },
       { h: '第3条（支払方法）', b: '利用料金は、予約確定時にサイト上のクレジットカード決済（Stripe）にて全額をお支払いいただきます。表示価格はすべて税込です。当日の追加料金は発生しません。' },
-      { h: '第4条（変更・キャンセル）', b: '撮影日の3日前まで：無料でキャンセル・変更が可能です。撮影日の2日前：プラン料金の50%をキャンセル料として申し受けます。撮影日の前日・当日：プラン料金の100%をキャンセル料として申し受けます。オプション料金はキャンセル料の対象外とし、全額返金します。キャンセル料を差し引いた金額は、お支払いに使われたクレジットカードへ返金します。キャンセル・変更はマイページから承ります（撮影開始時刻以降のキャンセルはお問い合わせください）。' },
+      { h: '第4条（変更・キャンセル）', b: '撮影日の3日前まで：無料でキャンセル・日程変更が可能です。撮影日の2日前から撮影開始前までの日程変更は、「あんしん振替プラン」にご加入のお客様に限り、1回まで無料で可能です（未加入の場合はキャンセルとなります）。撮影日の2日前：プラン料金の50%をキャンセル料として申し受けます。撮影日の前日・当日：プラン料金の100%をキャンセル料として申し受けます。オプション料金はキャンセル料の対象外とし、全額返金します。キャンセル料を差し引いた金額は、お支払いに使われたクレジットカードへ返金します。キャンセル・日程変更はマイページから承ります（撮影開始時刻以降のキャンセル・日程変更はお問い合わせください）。' },
       { h: '第5条（遅刻）', b: '集合時間に15分以上遅れて指定場所にお越しいただいた場合、当日キャンセルとして扱い、前条に定めるキャンセル料（返金なし）を申し受けます。15分未満の遅刻の場合も、撮影時間の短縮など提供内容を変更させていただくことがあり、この場合も返金・代金の減額は行いません。' },
       { h: '第6条（データの納品）', b: '撮影データは、撮影日から最短翌日〜3営業日以内に、Googleフォトのアルバムリンクを電子メールにてお送りする方法で納品します。お客様はGoogleフォトの利用規約に同意のうえご使用ください。納品後のデータ保存期間は撮影月の翌々月末日までとし、それを超える保存について当社は責任を負いません。' },
       { h: '第7条（システム障害等の免責）', b: 'Googleフォトその他当社が利用するシステムの中断・停止等、当社の責によらない事由により本サービスの提供またはデータ納品が遅延・不能となった場合、当社はその責任を負いません。' },
@@ -167,8 +167,8 @@ export const FAQS = [
     a: 'サイト上でのクレジットカード決済に対応しています。表示価格はすべて税込です。当日の追加料金は発生しません。',
     aEn: 'Credit card, paid through the site. All prices shown include tax, and there are no additional charges on the day.' },
   { q: '天候が悪いときはどうなりますか？', qEn: "What if the weather is bad?",
-    a: 'カレンダーに週間天気予報を表示しています。雨天が見込まれる場合は日程変更が可能なほか、屋内・アーケードなどのロケーションもご提案します。',
-    aEn: 'The calendar shows a weekly forecast. If rain looks likely, you can reschedule, or we can suggest a covered location like an arcade.' },
+    a: 'カレンダーに週間天気予報を表示しています。撮影日の3日前まではマイページから無料で日程を変更できます。直前に悪天候で撮影が難しくなった場合は、日程変更または返金で対応します（利用規約第9条）。屋内・アーケードなどのロケーションもご提案します。',
+    aEn: 'The calendar shows a weekly forecast. You can reschedule for free from My Page until 3 days before the shoot. If bad weather makes a shoot difficult at the last minute, we will reschedule or refund (Terms, Article 9). We can also suggest a covered location like an arcade.' },
   { q: 'マッチング数保証とは何ですか？', qEn: 'What is the match-count guarantee?',
     a: '事前申請のうえ納品写真をメインに設定し、1ヶ月運用してもマッチング数が増えなかった場合、同じプランで無料で撮り直します。サイト経由のご予約が対象です。',
     aEn: "Apply in advance, set your new photo as your main picture, and if your match count hasn't improved after a month of use, we'll reshoot the same plan for free. Only bookings made through the site qualify." },
@@ -208,6 +208,17 @@ export function meetingPointForArea(areaLabel) {
 }
 
 export const mapUrlFor = (mp) => `https://www.google.com/maps?q=${encodeURIComponent(mp.mapQuery)}`;
+
+// お客様の性別（登録時に選ぶ）。「異性スタッフ写真セレクト」は、男性・女性のどちらかを
+// 選んだお客様だけが使える（異性のスタッフが写真を選ぶため）。
+export const CUSTOMER_GENDERS = [
+  { key: 'male', label: '男性', labelEn: 'Male' },
+  { key: 'female', label: '女性', labelEn: 'Female' },
+  { key: 'other', label: '回答しない', labelEn: 'Prefer not to say' },
+];
+export const isValidCustomerGender = (g) => CUSTOMER_GENDERS.some((x) => x.key === g);
+export const OPPOSITE_SEX_OPTION_KEY = 'oppositeSexPick';
+export const needsGenderForOptions = (optionKeys) => (optionKeys || []).includes(OPPOSITE_SEX_OPTION_KEY);
 
 export const MONITOR_CONDITIONS = [
   '名古屋・岐阜・一宮いずれかの集合場所での撮影に来場できる方',
@@ -317,7 +328,7 @@ export const EXTRA_OPTIONS = [
   { key: 'fullData', label: '全データ納品', labelEn: 'All Photos Delivered', desc: '撮影した全カットをまとめてお渡し', descEn: 'Every shot from the session, delivered together', price: 3800 },
   { key: 'retouch', label: 'スキンレタッチ（美肌補正）', labelEn: 'Skin Retouching', desc: '肌の質感・くすみを自然に補正（20枚まで）', descEn: 'Natural-looking skin smoothing and tone correction (up to 20 photos)', price: 3800 },
   { key: 'speed', label: 'スピード納品', labelEn: 'Speed Delivery', desc: '撮影日から原則3営業日以内の通常納期を、撮影日の翌営業日（土日祝を除く）に早めるオプションです。', descEn: 'Moves the usual 1–3 business day turnaround up to the next business day after your shoot (excluding weekends/holidays).', price: 3800 },
-  { key: 'reschedule', label: 'あんしん振替プラン', labelEn: 'Peace-of-Mind Reschedule Plan', desc: '当日の突然の不調や急用でも無料で日程変更が可能です（1回まで）', descEn: 'Free rescheduling if something comes up on the day — sudden illness, an urgent conflict (once).', price: 4800 },
+  { key: 'reschedule', label: 'あんしん振替プラン', labelEn: 'Peace-of-Mind Reschedule Plan', desc: '撮影日の2日前〜当日の急な不調・急用でも、1回まで無料で日程変更できます（3日前までは、プランなしでも無料）', descEn: 'Reschedule once for free from 2 days before up to the day itself — sudden illness or an urgent conflict. (Until 3 days before, rescheduling is free without the plan.)', price: 4800 },
   { key: 'oppositeSexPick', label: '異性スタッフ写真セレクト', labelEn: 'Opposite-Gender Staff Pick', desc: '異性のスタッフ目線でマッチングアプリ受けの良い一枚を選び、おすすめとしてご提案します', descEn: "A staff member of the opposite gender picks the shot they think will land best on dating apps, and suggests it to you.", price: 3800 },
 ];
 
@@ -424,6 +435,32 @@ export function cancellationQuote(booking, now = new Date()) {
     photographerComp: paid && daysBefore <= 0 ? SAME_DAY_CANCEL_COMPENSATION : 0,
   };
 }
+
+// 日程変更（お客様が同じカメラマン・同じプランで、日時だけを動かす）。
+//   ・撮影日の3日前まで（日本時間）：誰でも無料。回数の制限なし
+//   ・2日前〜撮影開始前：「あんしん振替プラン」に加入していて、まだ使っていない場合だけ、1回無料
+//   ・それ以外：日程変更はできない（キャンセル規定どおりのキャンセルになる）
+// サーバー（/api/bookings/reschedule）とマイページで同じ判定を使う。
+export const RESCHEDULE_OPTION_KEY = 'reschedule';
+export const RESCHEDULABLE_STATUSES = ['paid', 'confirmed', 'requested'];
+export function rescheduleQuote(booking, now = new Date()) {
+  if (!RESCHEDULABLE_STATUSES.includes(booking.status)) return { allowed: false, reason: 'status' };
+  const start = new Date(`${booking.booking_date}T${String(booking.start_time).slice(0, 5)}:00+09:00`);
+  if (!(now < start)) return { allowed: false, reason: 'started' };
+  const daysBefore = daysBetweenIso(jstDateIso(now), booking.booking_date);
+  if (daysBefore >= 3) return { allowed: true, daysBefore, usesPlan: false };
+  const hasPlan = (booking.options || []).some((o) => o.key === RESCHEDULE_OPTION_KEY);
+  if (!hasPlan) return { allowed: false, reason: 'no_plan', daysBefore };
+  if (booking.reschedule_plan_used) return { allowed: false, reason: 'plan_used', daysBefore };
+  return { allowed: true, daysBefore, usesPlan: true };
+}
+
+export const RESCHEDULE_DENIED_MESSAGE = {
+  status: 'このご予約は日程変更できません。',
+  started: '撮影開始時刻を過ぎたご予約は、日程変更できません。お問い合わせください。',
+  no_plan: '撮影日の2日前からの日程変更は、「あんしん振替プラン」にご加入の方のみ可能です。ご都合がつかない場合は、キャンセル（キャンセル規定どおり）をご利用ください。',
+  plan_used: '「あんしん振替プラン」の無料の日程変更は、1回までです。すでにご利用済みのため、これ以上は日程変更できません。',
+};
 
 // 遅刻キャンセル（集合時間に15分以上遅れた場合。規約第5条）。運営が撮影開始後に
 // 処理し、当日キャンセルと同じ扱いにする：プラン料金の100%をいただき、

@@ -48,6 +48,7 @@ export async function onRequestPost({ request, env }) {
   }
   const photographerId = payload && payload.photographer_id;
   const visible = payload && payload.visible;
+  const verified = !!(payload && payload.verified === true);
   if (!photographerId || typeof visible !== 'boolean') return jsonResponse({ error: 'photographer_id と visible が必要です。' }, 400);
 
   const user = await verifyUser(request);
@@ -66,6 +67,11 @@ export async function onRequestPost({ request, env }) {
       if (missing.length) {
         return jsonResponse({ error: `プロフィールが未入力のため公開できません（${missing.join('・')}）。` }, 400);
       }
+      // 「審査済」バッジの根拠: 本人確認と接客研修を終えていることを、運営が承認のたびに
+      // 確認する（確認済みのカメラマンを再公開するときは不要）。
+      if (!photographer.verified_at && !verified) {
+        return jsonResponse({ error: '本人確認と接客研修の完了を確認してから公開してください。' }, 400);
+      }
       const plans = await restSelect(env, 'plans', { photographer_id: `eq.${photographerId}`, select: 'id' });
       if (!plans.length) {
         await restInsert(env, 'plans', standardPlans(photographerId));
@@ -73,7 +79,9 @@ export async function onRequestPost({ request, env }) {
       }
     }
 
-    await restUpdate(env, 'photographers', { id: `eq.${photographerId}` }, { is_visible: visible });
+    const patch = { is_visible: visible };
+    if (visible && !photographer.verified_at) patch.verified_at = new Date().toISOString();
+    await restUpdate(env, 'photographers', { id: `eq.${photographerId}` }, patch);
     return jsonResponse({ success: true, plansAdded });
   } catch (err) {
     console.error('photographers/visibility failed', err);

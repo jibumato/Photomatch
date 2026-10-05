@@ -1,6 +1,7 @@
 import { mountLayout } from '../layout.js';
 import { signIn, signUp, getSession, safeNext } from '../auth.js';
-import { t, tf } from '../i18n.js';
+import { t, tf, getLang } from '../i18n.js';
+import { CUSTOMER_GENDERS } from '../data.js';
 
 mountLayout();
 
@@ -15,6 +16,10 @@ const next = safeNext(params.get('next'), '');
 let mode = 'login';
 const title = document.getElementById('form-title');
 const nameField = document.getElementById('name-field');
+const genderField = document.getElementById('gender-field');
+const genderEl = document.getElementById('f-gender');
+genderEl.innerHTML = `<option value="">${t('login.gender.placeholder')}</option>`
+  + CUSTOMER_GENDERS.map((g) => `<option value="${g.key}">${getLang() === 'en' ? g.labelEn : g.label}</option>`).join('');
 const submitBtn = document.getElementById('submit-btn');
 const toggle = document.getElementById('toggle-mode');
 const togglePrefix = document.getElementById('toggle-prefix');
@@ -37,6 +42,7 @@ toggle.addEventListener('click', () => {
   if (mode === 'signup') {
     title.textContent = t('login.title.signup');
     nameField.style.display = 'block';
+    genderField.style.display = 'block';
     forgotLink.style.display = 'none';
     submitBtn.textContent = t('login.submit.signup');
     toggle.textContent = t('login.toggle.toLogin.link');
@@ -44,6 +50,7 @@ toggle.addEventListener('click', () => {
   } else {
     title.textContent = t('login.title.login');
     nameField.style.display = 'none';
+    genderField.style.display = 'none';
     forgotLink.style.display = '';
     submitBtn.textContent = t('login.submit.login');
     toggle.textContent = t('login.toggle.toSignup.link');
@@ -60,10 +67,15 @@ submitBtn.addEventListener('click', async () => {
   submitBtn.disabled = true;
   try {
     if (mode === 'signup') {
+      if (!genderEl.value) {
+        errorEl.textContent = t('login.gender.required');
+        errorEl.style.display = 'block';
+        return;
+      }
       const confirmUrl = new URL('email-confirmed.html', location.href);
       if (next) confirmUrl.searchParams.set('next', next);
       const data = await signUp({
-        email, password, name, role: 'client',
+        email, password, name, gender: genderEl.value, role: 'client',
         redirectTo: confirmUrl.href,
       });
       // With Supabase "Confirm email" on, there's no session until the emailed

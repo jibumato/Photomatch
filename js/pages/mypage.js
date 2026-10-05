@@ -7,13 +7,15 @@ import {
 import { mountChatModal } from '../chat.js';
 import { mountSheetModal } from '../sheet.js';
 import { mountReviewModal } from '../reviewModal.js';
-import { cancellationQuote } from '../data.js';
+import { mountRescheduleModal } from '../rescheduleModal.js';
+import { cancellationQuote, rescheduleQuote, RESCHEDULE_DENIED_MESSAGE, RESCHEDULE_OPTION_KEY } from '../data.js';
 
 mountLayout();
 
 const chatModal = mountChatModal(document.getElementById('pm-chat-mount'));
 const sheetModal = mountSheetModal(document.getElementById('pm-sheet-mount'));
 const reviewModal = mountReviewModal(document.getElementById('pm-review-mount'));
+const reschedModal = mountRescheduleModal(document.getElementById('pm-resched-mount'));
 
 const STATUS_LABEL = { pending_payment: '決済待ち', paid: '確定', confirmed: '確定', requested: '依頼中', completed: '完了', canceled: 'キャンセル済' };
 const STATUS_STYLE = {
@@ -111,6 +113,12 @@ function bookingCardHtml(b, meta, { history }) {
         ${meta.sheetDone ? 'カウンセリング済' : '事前カウンセリング'}
         ${meta.sheetDone ? '<span style="color:oklch(0.6 0.14 150);font:700 13px var(--pm-font-num)">✓</span>' : ''}
       </button>`);
+    // 日程変更: 3日前まで誰でも無料。2日前からは「あんしん振替プラン」加入者の1回のみ。
+    // 条件を満たさないときも、プラン加入者には理由が分かるようボタンは残す。
+    const hasReschedulePlan = (b.options || []).some((o) => o.key === RESCHEDULE_OPTION_KEY);
+    if (cancellable && (rescheduleQuote(b).allowed || hasReschedulePlan)) {
+      actions.push(`<button data-booking-id="${b.id}" class="btn-reschedule" style="background:#fff;border:1.5px solid oklch(0.86 0.03 215);border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:oklch(0.4 0.06 235);cursor:pointer;white-space:nowrap">日程変更</button>`);
+    }
     if (cancellable) actions.push(`<button data-booking-id="${b.id}" class="btn-cancel pm-btn-danger-outline">キャンセル</button>`);
   } else if (meta.guarantee && meta.guarantee.status === 'approved') {
     actions.push(chatBtnHtml(b.id, meta));
@@ -126,6 +134,7 @@ function bookingCardHtml(b, meta, { history }) {
         </div>
         <div style="font:13px var(--pm-font-body);color:oklch(0.45 0.02 235)">${b.booking_date}（${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}）</div>
         <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${b.plan_name} ・ ${priceLabel}</div>
+        ${b.rescheduled_count > 0 && b.previous_booking_date && b.status !== 'canceled' ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">日程変更済み（変更前：${b.previous_booking_date} ${String(b.previous_start_time).slice(0, 5)}〜）</div>` : ''}
         ${b.status === 'canceled' && b.cancel_reason === 'no_show' ? '<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">集合時間に15分以上遅れたため、当日キャンセル扱いとなりました（利用規約第5条）</div>' : ''}
         ${b.status === 'canceled' && b.refund_amount > 0 ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">ご返金：¥${b.refund_amount.toLocaleString()}${b.refund_status === 'succeeded' ? '（カードへ返金済み）' : '（運営より手続き中）'}</div>` : ''}
       </div>
@@ -176,6 +185,14 @@ function wireCardEvents(root, bookingsById) {
         alert(err.message || 'キャンセル処理に失敗しました。');
         console.error(err);
       }
+    });
+  });
+  root.querySelectorAll('.btn-reschedule').forEach((el) => {
+    el.addEventListener('click', () => {
+      const b = bookingsById[el.dataset.bookingId];
+      const quote = rescheduleQuote(b);
+      if (!quote.allowed) { alert(RESCHEDULE_DENIED_MESSAGE[quote.reason] || 'このご予約は日程変更できません。'); return; }
+      reschedModal.open(b, () => load());
     });
   });
   root.querySelectorAll('.btn-review').forEach((el) => {

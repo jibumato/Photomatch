@@ -27,7 +27,7 @@
             <span style="background:var(--pm-pro-navy);color:#fff;font:700 11px var(--pm-font-body);padding:4px 12px;border-radius:100px;display:inline-block">カメラマン管理</span>
           </div>
           <h1 style="font:700 26px var(--pm-font-body);margin:0 0 6px">シフト管理</h1>
-          <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0;max-width:520px">枠をタップして受付のオン（○）／オフ（休）を切り替えます。予約が入っている枠は変更できません。</p>
+          <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0;max-width:560px">お客様が予約できるのは、<b>ここで「受付中（○）」にした枠だけ</b>です。初期状態はすべて休みなので、撮影できる日時を開けてください。枠をタップして、受付中／休みを切り替えます（予約が入っている枠は変更できません）。表示は、予約を受け付ける30日分です。</p>
         </div>
         <button class="pm-btn-outline" id="logout-btn">ログアウト</button>
       </div>
@@ -45,9 +45,22 @@
         <div id="open-count-line" style="font:700 13px var(--pm-font-body);color:oklch(0.35 0.02 240)">受付中の枠：0</div>
       </div>
 
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-        <button class="pm-btn-outline" id="btn-all-open">全て空きに</button>
-        <button class="pm-btn-outline" id="btn-all-closed">全て休みに</button>
+      <div class="pm-card" style="padding:16px 18px;margin-bottom:16px">
+        <div style="font:700 13px var(--pm-font-body);margin-bottom:8px">まとめて設定する</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px;font:13px var(--pm-font-body)">
+          <label>時間帯</label>
+          <select class="pm-select" id="tpl-from" style="width:auto"></select>
+          <span>〜</span>
+          <select class="pm-select" id="tpl-to" style="width:auto"></select>
+          <span style="color:var(--pm-text-3)">（終了時刻の枠は含みません）</span>
+        </div>
+        <div id="tpl-days" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;font:13px var(--pm-font-body)"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="pm-btn-outline" id="btn-tpl-open">この条件で受付中にする</button>
+          <button class="pm-btn-outline" id="btn-tpl-close">この条件で休みにする</button>
+          <button class="pm-btn-outline" id="btn-all-closed">表示中の30日をすべて休みに</button>
+        </div>
+        <p style="font:11px/1.7 var(--pm-font-body);color:var(--pm-text-muted);margin:8px 0 0">例：時間帯を「10:00〜18:00」、曜日を「土・日」にして「受付中にする」を押すと、表示中の30日間の土日の10:00〜18:00が一括で開きます。</p>
       </div>
 
       <p id="shift-weather-line" style="font:12px var(--pm-font-body);color:var(--pm-text-muted);margin:0 0 8px"></p>

@@ -211,6 +211,8 @@ function listingCardHtml(p) {
     live ? `<span style="${PILL};background:oklch(0.94 0.06 160);color:oklch(0.4 0.12 160)">公開中</span>`
       : `<span style="${PILL};background:oklch(0.95 0.05 85);color:oklch(0.5 0.13 75)">非公開</span>`,
     p.is_paused ? `<span style="${PILL};background:oklch(0.93 0.01 220);color:oklch(0.45 0.02 235)">本人が休止中</span>` : '',
+    p.verified_at ? `<span style="${PILL};background:oklch(0.94 0.05 200);color:oklch(0.4 0.14 200)">本人確認・研修済み</span>`
+      : `<span style="${PILL};background:oklch(0.93 0.01 220);color:oklch(0.45 0.02 235)">本人確認・研修 未確認</span>`,
     p.speaks_english ? `<span style="${PILL};background:oklch(0.94 0.05 245);color:oklch(0.42 0.14 250)">英語対応</span>` : '',
   ].join('');
   const action = live
@@ -252,9 +254,16 @@ async function loadListings() {
     document.querySelectorAll(selector).forEach((btn) => {
       btn.addEventListener('click', async () => {
         if (btn.disabled || !confirm(confirmText(btn.dataset.name))) return;
+        // 「審査済」バッジの根拠。初めて公開するときは、本人確認と接客研修を終えているか確認する。
+        const target = all.find((p) => p.id === btn.dataset.id);
+        let verified = false;
+        if (visible && target && !target.verified_at) {
+          if (!confirm(`${btn.dataset.name}さんの「本人確認」と「接客研修」は完了していますか？\n完了している場合だけ OK を押してください（サイトに「審査済」と表示されます）。`)) return;
+          verified = true;
+        }
         btn.disabled = true;
         try {
-          const res = await setPhotographerVisibility(btn.dataset.id, visible);
+          const res = await setPhotographerVisibility(btn.dataset.id, visible, verified);
           if (res.plansAdded) alert(`標準の料金プランを${res.plansAdded}件登録しました。`);
           await loadListings();
         } catch (err) {

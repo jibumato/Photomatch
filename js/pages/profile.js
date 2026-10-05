@@ -40,7 +40,7 @@ function instagramLinkHtml(raw) {
       <div style="min-width:0">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap">
           <h1 style="font:700 28px var(--pm-font-body);margin:0">${escapeHtml(photographer.name)}</h1>
-          <span class="pm-badge">${t('profile.badge.verified')}</span>
+          ${photographer.verified_at ? `<span class="pm-badge">${t('profile.badge.verified')}</span>` : ''}
           ${photographer.speaks_english ? `<span class="pm-badge" style="background:oklch(0.94 0.05 245);color:oklch(0.42 0.14 250)">${t('profile.badge.english')}</span>` : ''}
         </div>
         <div style="font:14px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${escapeHtml(areaText(photographer.area) || '')}</div>

@@ -18,6 +18,12 @@ create table if not exists profiles (
   created_at timestamptz not null default now()
 );
 
+-- お客様の性別（登録時に選ぶ。「異性スタッフ写真セレクト」の判定に使う）。
+-- ブラウザからは書き込めない（サインアップ時のメタデータ経由と、決済作成 Function のみ）。
+alter table profiles add column if not exists gender text;
+alter table profiles drop constraint if exists profiles_gender_check;
+alter table profiles add constraint profiles_gender_check check (gender is null or gender in ('male', 'female', 'other'));
+
 alter table profiles enable row level security;
 
 drop policy if exists "profiles: read own" on profiles;
@@ -42,12 +48,13 @@ begin
   -- untrusted: only 'client' and 'photographer' can be chosen that way. An
   -- 'ops' value (or anything else) becomes 'client' — ops accounts are made
   -- only from the SQL Editor (see "ops account" at the bottom of this file).
-  insert into public.profiles (id, role, name, email)
+  insert into public.profiles (id, role, name, email, gender)
   values (
     new.id,
     case when new.raw_user_meta_data->>'role' = 'photographer' then 'photographer' else 'client' end,
     new.raw_user_meta_data->>'name',
-    new.email
+    new.email,
+    case when new.raw_user_meta_data->>'gender' in ('male', 'female', 'other') then new.raw_user_meta_data->>'gender' end
   );
 
   -- The stub starts hidden: area/photo/bio/plans are still empty, so it
@@ -102,6 +109,13 @@ alter table photographers add column if not exists is_visible boolean not null d
 -- is_paused は本人による一時休止（admin.html から本人が切り替え）。
 -- 検索・予約に出るのは is_visible = true かつ is_paused = false のときだけ。
 alter table photographers add column if not exists is_paused boolean not null default false;
+
+-- 本人確認・接客研修を終えて運営が承認した日時。サイトの「審査済」バッジはこれが入っている
+-- カメラマンだけに表示する。運営だけが書き込む（/api/photographers/visibility）。
+alter table photographers add column if not exists verified_at timestamptz;
+-- すでに公開されている実在のカメラマンは、確認済みとして印を付ける（デモ用の p3〜p6 は除く）。
+update photographers set verified_at = now()
+  where verified_at is null and is_visible is not false and id not in ('p3', 'p4', 'p5', 'p6');
 
 -- Instagramのユーザー名（@なし）。設定されているカメラマンのみプロフィールにリンクを表示。
 alter table photographers add column if not exists instagram text;
@@ -322,16 +336,24 @@ create or replace view booking_slots as
 grant select on booking_slots to anon, authenticated;
 
 -- ============================================================
--- shifts (photographer manually closes a slot; default = open)
+-- shifts（カメラマンが「受付中」にした30分枠。初期状態はすべて休み）
 -- ============================================================
+-- お客様が予約できるのは、ここに is_open = true の行がある枠だけ。行がない枠は休み。
+-- （以前は「休みにした枠だけ行を作る」方式で、初期状態がすべて受付中だったため、
+--  カメラマンが開けていない日時にも予約が入った。）
 create table if not exists shifts (
   id uuid primary key default gen_random_uuid(),
   photographer_id text not null references photographers(id) on delete cascade,
   shift_date date not null,
   start_time time not null,
-  is_open boolean not null default false,
+  is_open boolean not null default true,
   unique (photographer_id, shift_date, start_time)
 );
+
+-- 旧方式の「休み」の行（is_open = false）は、いまは行がない＝休みと同じ意味なので消す。
+-- 方式を切り替えた時点では、どのカメラマンも受付中の枠がなくなる（管理画面で開け直す）。
+alter table shifts alter column is_open set default true;
+delete from shifts where is_open = false;
 
 alter table shifts enable row level security;
 
@@ -781,6 +803,20 @@ alter table bookings add column if not exists payout_note text; -- opsが銀行�
 -- 前日・当日 プラン料金の100%（オプション料金は全額返金）。返金は Stripe で自動。
 -- photographer_cancel_comp は当日キャンセルのときだけカメラマンへ払う補償（¥2,000）で、
 -- 通常の報酬と同じく payout_status で送金を管理する。
+-- 日程変更（/api/bookings/reschedule。ルールは js/data.js の rescheduleQuote）。
+-- 動かす前の日時は previous_* に残す（直前の1回分）。reschedule_plan_used は
+-- 「あんしん振替プラン」の無料の1回を使ったかどうか。
+alter table bookings add column if not exists rescheduled_count int not null default 0;
+alter table bookings add column if not exists reschedule_plan_used boolean not null default false;
+alter table bookings add column if not exists previous_booking_date date;
+alter table bookings add column if not exists previous_start_time time;
+alter table bookings add column if not exists rescheduled_at timestamptz;
+
+-- 予約時のお客様の性別（「異性スタッフ写真セレクト」を担当するスタッフ用）。
+alter table bookings add column if not exists customer_gender text;
+alter table bookings drop constraint if exists bookings_customer_gender_check;
+alter table bookings add constraint bookings_customer_gender_check check (customer_gender is null or customer_gender in ('male', 'female', 'other'));
+
 alter table bookings add column if not exists canceled_at timestamptz;
 alter table bookings add column if not exists cancel_fee int;
 alter table bookings add column if not exists refund_amount int;
