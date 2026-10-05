@@ -25,7 +25,7 @@ function cardHtml(p) {
         <span style="font:700 15px var(--pm-font-body)">${escapeHtml(p.name)}</span>
         <div style="display:flex;gap:6px;flex-shrink:0">
           ${p.speaks_english ? `<span class="pm-badge" style="background:oklch(0.94 0.05 245);color:oklch(0.42 0.14 250)">${t('search.badge.english')}</span>` : ''}
-          <span class="pm-badge">${t('search.badge.verified')}</span>
+          ${p.verified_at ? `<span class="pm-badge">${t('search.badge.verified')}</span>` : ''}
         </div>
       </div>
       <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${escapeHtml(areaText(p.area) || '')}</div>

@@ -25,11 +25,11 @@ export function onAuthStateChange(cb) {
   return supabase.auth.onAuthStateChange((_event, session) => cb(session));
 }
 
-export async function signUp({ email, password, name, role, redirectTo }) {
+export async function signUp({ email, password, name, gender, role, redirectTo }) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { name, role }, ...(redirectTo ? { emailRedirectTo: redirectTo } : {}) },
+    options: { data: { name, role, ...(gender ? { gender } : {}) }, ...(redirectTo ? { emailRedirectTo: redirectTo } : {}) },
   });
   if (error) throw error;
   return data;
@@ -41,7 +41,7 @@ export async function signUp({ email, password, name, role, redirectTo }) {
 // (Supabase "Confirm email" is on, so the session starts after the link in the
 // confirmation email is opened) | { status: 'wrong_password' } |
 // { status: 'email_not_confirmed' }. Other failures throw.
-export async function signInOrSignUp({ email, password, name, redirectTo }) {
+export async function signInOrSignUp({ email, password, name, gender, redirectTo }) {
   const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
   if (!signInError && signInData.session) return { status: 'signed_in' };
   if (signInError && /not confirmed/i.test(signInError.message || '')) return { status: 'email_not_confirmed' };
@@ -50,7 +50,7 @@ export async function signInOrSignUp({ email, password, name, redirectTo }) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { name, role: 'client' }, ...(redirectTo ? { emailRedirectTo: redirectTo } : {}) },
+    options: { data: { name, role: 'client', ...(gender ? { gender } : {}) }, ...(redirectTo ? { emailRedirectTo: redirectTo } : {}) },
   });
   if (error) {
     if (/already registered|already exists/i.test(error.message || '')) return { status: 'wrong_password' };

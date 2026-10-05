@@ -173,45 +173,36 @@ export async function getTakenSlots(photographerId, fromDate, toDate) {
   return data;
 }
 
-export async function getClosedShifts(photographerId, fromDate, toDate) {
+// Shifts the photographer has OPENED in the range (a slot is bookable only
+// when opened — closed is the default, so there is no row for a closed slot).
+export async function getOpenShifts(photographerId, fromDate, toDate) {
   const { data, error } = await supabase
     .from('shifts')
     .select('shift_date, start_time, is_open')
     .eq('photographer_id', photographerId)
+    .eq('is_open', true)
     .gte('shift_date', fromDate)
     .lte('shift_date', toDate);
   if (error) throw error;
   return data;
 }
 
-export async function toggleShift(photographerId, dateIso, startTime, closeIt) {
-  if (closeIt) {
-    const { error } = await supabase
-      .from('shifts')
-      .upsert({ photographer_id: photographerId, shift_date: dateIso, start_time: startTime, is_open: false },
-        { onConflict: 'photographer_id,shift_date,start_time' });
-    if (error) throw error;
-  } else {
-    const { error } = await supabase
-      .from('shifts')
-      .delete()
-      .eq('photographer_id', photographerId)
-      .eq('shift_date', dateIso)
-      .eq('start_time', startTime);
-    if (error) throw error;
-  }
-}
-
-export async function bulkSetShiftsOpen(photographerId, dateIsos) {
-  const { error } = await supabase.from('shifts').delete().eq('photographer_id', photographerId).in('shift_date', dateIsos);
-  if (error) throw error;
-}
-
-export async function bulkSetShiftsClosed(photographerId, rows) {
-  // rows: [{shift_date, start_time}]
-  const payload = rows.map((r) => ({ photographer_id: photographerId, shift_date: r.shift_date, start_time: r.start_time, is_open: false }));
+// rows: [{shift_date, start_time}] to open / close. Closing deletes the row.
+export async function openShifts(photographerId, rows) {
+  if (!rows.length) return;
+  const payload = rows.map((r) => ({ photographer_id: photographerId, shift_date: r.shift_date, start_time: r.start_time, is_open: true }));
   const { error } = await supabase.from('shifts').upsert(payload, { onConflict: 'photographer_id,shift_date,start_time' });
   if (error) throw error;
+}
+
+export async function closeShifts(photographerId, rows) {
+  // one delete per day (PostgREST can't filter on a list of (date, time) pairs)
+  const byDay = {};
+  rows.forEach((r) => { (byDay[r.shift_date] = byDay[r.shift_date] || []).push(r.start_time); });
+  for (const [day, times] of Object.entries(byDay)) {
+    const { error } = await supabase.from('shifts').delete().eq('photographer_id', photographerId).eq('shift_date', day).in('start_time', times);
+    if (error) throw error;
+  }
 }
 
 // ---- bookings ----
@@ -246,6 +237,12 @@ export async function getPhotographerBookings(photographerId) {
 
 // Goes through a Function (not a direct table update) so the cancellation
 // emails to the customer and photographer are always sent.
+// Moves the signed-in customer's booking to another date/time (rules and
+// slot checks are on the server). Resolves to { ok, booking_date, start_time, end_time, used_plan }.
+export async function rescheduleBooking(bookingId, bookingDate, startTime) {
+  return callApi('/api/bookings/reschedule', { booking_id: bookingId, booking_date: bookingDate, start_time: startTime }, '日程変更に失敗しました。', '時間をおいて再度お試しください。');
+}
+
 // Ops only: treat a booking as a same-day cancellation because the customer
 // was 15+ minutes late. Resolves to { ok, fee, refund, refund_status, compensation }.
 export async function markNoShow(bookingId, note) {
@@ -430,8 +427,10 @@ export async function getPhotographersForReview() {
 // ops: approve (visible = true) or take down a listing. Goes through a
 // Function: a browser role can't be given is_visible without also letting
 // photographers flip it on their own row.
-export async function setPhotographerVisibility(photographerId, visible) {
-  return callApi('/api/photographers/visibility', { photographer_id: photographerId, visible }, '更新に失敗しました。');
+// verified: ops confirms the photographer has completed ID verification and
+// service training (required the first time a photographer is published).
+export async function setPhotographerVisibility(photographerId, visible, verified = false) {
+  return callApi('/api/photographers/visibility', { photographer_id: photographerId, visible, verified }, '更新に失敗しました。');
 }
 
 // ops: creates a login account for a new photographer (goes through a

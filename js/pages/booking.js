@@ -1,12 +1,14 @@
 import { mountLayout } from '../layout.js';
 import { getSession, getProfile, signInOrSignUp, resendSignupEmail } from '../auth.js';
-import { getPhotographer, getPlans, getBooking, getTakenSlots, getClosedShifts, isBookable, callApi, hasUnusedMonitorPrice } from '../repo.js';
+import { getPhotographer, getPlans, getBooking, getTakenSlots, getOpenShifts, isBookable, callApi, hasUnusedMonitorPrice } from '../repo.js';
 import { mountSheetModal } from '../sheet.js';
 import { loadDailyWeather } from '../weather.js';
+import { takenIntervalsFrom, openSetFrom, isSlotTaken, canStartAt } from '../availability.js';
 import { escapeHtml } from '../util.js';
 import {
   AREAS, EXTRA_OPTIONS, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
   MONITOR_PLAN_NAMES, monitorPriceFor, areasFor, meetingPointForArea, mapUrlFor,
+  CUSTOMER_GENDERS, needsGenderForOptions,
 } from '../data.js';
 import { t, tf, L, getLang, areaText, planNameText, planDescText, discountLabelText, taxIncludedSuffix } from '../i18n.js';
 
@@ -39,12 +41,13 @@ const state = {
   name: '',
   email: '',
   phone: '',
+  gender: '',
   resumeToPayment: false,
   hasMonitorPrice: false, // signed-in customer has an unused モニター価格 (checked at the payment step)
   weather: null,
   days: buildBookingDays(TOTAL_BOOKING_DAYS),
   takenIntervals: {}, // iso -> [[startMin,endMin], ...]
-  closedSet: new Set(), // `${iso}|${time}`
+  openSet: new Set(), // `${iso}|${time}` the photographer has opened (closed by default)
   lastBooking: null,
 };
 
@@ -58,7 +61,7 @@ function saveDraft() {
     localStorage.setItem(DRAFT_KEY, JSON.stringify({
       savedAt: Date.now(),
       photographerId, planIndex: state.planIndex, dayIndex: state.dayIndex, slotIndex: state.slotIndex,
-      options: state.options, name: state.name, email: state.email, phone: state.phone,
+      options: state.options, name: state.name, email: state.email, phone: state.phone, gender: state.gender,
       selectedArea: state.selectedArea, resumeToPayment: state.resumeToPayment,
     }));
   } catch (e) { /* storage unavailable: the flow still works, just without restore */ }
@@ -93,16 +96,21 @@ async function syncAuthFields() {
   const emailEl = document.getElementById('f-email');
   const hintEl = document.getElementById('email-hint');
   document.getElementById('password-field').style.display = session ? 'none' : '';
+  updateGenderRequirement(session);
   if (session) {
     state.email = session.user.email || state.email;
     emailEl.value = state.email;
     emailEl.readOnly = true;
     hintEl.textContent = t('booking.contact.loggedInEmailHint');
-    if (!state.name) {
+    if (!state.name || !state.gender) {
       const profile = await getProfile();
-      if (profile && profile.name) {
+      if (profile && profile.name && !state.name) {
         state.name = profile.name;
         document.getElementById('f-name').value = state.name;
+      }
+      if (profile && profile.gender && !state.gender) {
+        state.gender = profile.gender;
+        document.getElementById('f-gender').value = state.gender;
       }
     }
   } else {
@@ -112,35 +120,43 @@ async function syncAuthFields() {
   return session;
 }
 
+// The gender dropdown is filled once. It is required when registering (the
+// password field is showing) or when the 異性スタッフ写真セレクト option is chosen.
+const genderEl = document.getElementById('f-gender');
+genderEl.innerHTML = `<option value="">${t('login.gender.placeholder')}</option>`
+  + CUSTOMER_GENDERS.map((g) => `<option value="${g.key}">${getLang() === 'en' ? g.labelEn : g.label}</option>`).join('');
+genderEl.addEventListener('change', () => { state.gender = genderEl.value; document.getElementById('err-gender').style.display = 'none'; });
+
+function genderRequired(session) {
+  return !session || needsGenderForOptions(state.options);
+}
+
+function updateGenderRequirement(session) {
+  document.getElementById('gender-req').style.display = genderRequired(session) ? '' : 'none';
+}
+
+// Returns an error message, or '' when the gender entered is acceptable.
+function genderProblem(session) {
+  if (genderRequired(session) && !state.gender) return t('booking.contact.genderError');
+  if (needsGenderForOptions(state.options) && !['male', 'female'].includes(state.gender)) return t('booking.contact.genderOptionError');
+  return '';
+}
+
 function showAuthNotice(html) {
   const el = document.getElementById('auth-notice');
   el.innerHTML = html;
   el.style.display = html ? 'block' : 'none';
 }
 
-function timeToMinutes(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
-
 async function loadAvailability() {
   const fromIso = state.days[0].iso;
   const toIso = state.days[state.days.length - 1].iso;
-  const [taken, closed] = await Promise.all([
+  const [taken, shifts] = await Promise.all([
     getTakenSlots(photographerId, fromIso, toIso),
-    getClosedShifts(photographerId, fromIso, toIso),
+    getOpenShifts(photographerId, fromIso, toIso),
   ]);
-  state.takenIntervals = {};
-  taken.forEach((row) => {
-    const key = row.booking_date;
-    state.takenIntervals[key] = state.takenIntervals[key] || [];
-    state.takenIntervals[key].push([timeToMinutes(row.start_time), timeToMinutes(row.end_time)]);
-  });
-  state.closedSet = new Set(closed.filter((r) => !r.is_open).map((r) => `${r.shift_date}|${r.start_time.slice(0, 5)}`));
-}
-
-function cellTaken(iso, slotTime) {
-  if (state.closedSet.has(`${iso}|${slotTime}`)) return true;
-  const intervals = state.takenIntervals[iso] || [];
-  const mins = timeToMinutes(slotTime);
-  return intervals.some(([s, e]) => mins >= s && mins < e);
+  state.takenIntervals = takenIntervalsFrom(taken);
+  state.openSet = openSetFrom(shifts);
 }
 
 async function loadWeather() {
@@ -240,7 +256,6 @@ function renderSlotGrid() {
   document.getElementById('slot-weather-line').textContent = `${weatherNote}${sep}${t('booking.slot.windowNote')}`;
 
   const plan = state.plans[state.planIndex];
-  const slotCount = Math.max(1, Math.ceil((plan.duration_min || 30) / 30));
   const grid = document.getElementById('slot-grid');
   grid.style.gridTemplateColumns = `48px repeat(${state.days.length}, minmax(44px,1fr))`;
   grid.style.minWidth = (48 + state.days.length * 46) + 'px';
@@ -256,14 +271,10 @@ function renderSlotGrid() {
   SLOT_TIMES.forEach((time, slotIndex) => {
     html += `<div class="pm-cal-time">${time}</div>`;
     state.days.forEach((d) => {
-      const taken = cellTaken(d.iso, time);
-      let bookable = false;
-      if (!taken) {
-        bookable = slotIndex + slotCount <= SLOT_TIMES.length;
-        for (let i = 1; i < slotCount && bookable; i++) {
-          if (cellTaken(d.iso, SLOT_TIMES[slotIndex + i])) bookable = false;
-        }
-      }
+      // taken = already booked; a slot the photographer hasn't opened (or that
+      // is too short for this plan) is just "not available", shown as −.
+      const taken = isSlotTaken(state.takenIntervals, d.iso, time);
+      const bookable = canStartAt(state.takenIntervals, state.openSet, d.iso, slotIndex, plan.duration_min);
       const bg = taken ? 'oklch(0.92 0.008 220)' : (bookable ? 'var(--pm-accent-grad)' : 'oklch(0.97 0.006 220)');
       const color = taken ? 'oklch(0.62 0.02 220)' : (bookable ? '#fff' : 'oklch(0.8 0.01 220)');
       const mark = bookable ? '○' : (taken ? '×' : '−');
@@ -316,6 +327,8 @@ function goContactStep() {
   document.getElementById('f-name').value = state.name;
   document.getElementById('f-email').value = state.email;
   document.getElementById('f-phone').value = state.phone;
+  genderEl.value = state.gender || '';
+  document.getElementById('err-gender').style.display = 'none';
   document.getElementById('f-password').value = '';
   document.getElementById('err-password').style.display = 'none';
   showAuthNotice('');
@@ -344,6 +357,7 @@ function renderOptionTiles() {
       state.options = state.options.includes(key) ? state.options.filter((k) => k !== key) : [...state.options, key];
       renderOptionTiles();
       updateContactStickyTotal();
+      getSession().then(updateGenderRequirement);
       // renderOptionTiles() rebuilds every tile's markup, which would
       // otherwise drop keyboard focus off the tile the person just toggled —
       // restore it to the (new) element for the same option key.
@@ -375,6 +389,11 @@ document.getElementById('contact-submit').addEventListener('click', async () => 
   state.name = name; state.email = email; state.phone = phone;
 
   const session = await getSession();
+  const genderError = genderProblem(session);
+  const genderErrEl = document.getElementById('err-gender');
+  genderErrEl.textContent = genderError;
+  genderErrEl.style.display = genderError ? 'block' : 'none';
+  if (genderError) { genderEl.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
   if (session) { goPaymentStep(); return; }
 
   const password = passwordEl.value;
@@ -391,7 +410,7 @@ document.getElementById('contact-submit').addEventListener('click', async () => 
     // new tab) lands back here with everything still filled in.
     state.resumeToPayment = false;
     saveDraft();
-    const result = await signInOrSignUp({ email, password, name, redirectTo: confirmRedirectUrl() });
+    const result = await signInOrSignUp({ email, password, name, gender: state.gender, redirectTo: confirmRedirectUrl() });
     if (result.status === 'signed_in') {
       goPaymentStep();
     } else if (result.status === 'wrong_password') {
@@ -494,6 +513,7 @@ document.getElementById('payment-submit').addEventListener('click', async () => 
       // number when one was given — the email alone otherwise.
       customer_contact: state.phone ? `${state.email} / ${state.phone}` : state.email,
       option_keys: state.options,
+      customer_gender: state.gender || undefined,
     }, t('booking.payment.checkoutFailed'), t('booking.payment.checkoutFailedRetry'));
     location.href = data.url;
   } catch (err) {

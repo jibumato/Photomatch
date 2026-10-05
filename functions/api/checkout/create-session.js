@@ -4,21 +4,16 @@
 // a Stripe Checkout Session for it and returns its URL for the browser to
 // redirect to.
 import {
-  AREAS, SLOT_TIMES, BOOKING_LEAD_DAYS, TOTAL_BOOKING_DAYS, addMinutes,
-  jstDateIso, addDaysToIso, MONITOR_PLAN_NAMES, monitorPriceFor, monitorBookingCounts, areasFor,
-  EXTRA_OPTIONS, CHECKOUT_EXPIRES_MIN, PENDING_PAYMENT_HOLD_MIN,
+  AREAS, SLOT_TIMES, MONITOR_PLAN_NAMES, monitorPriceFor, monitorBookingCounts, areasFor,
+  EXTRA_OPTIONS, CHECKOUT_EXPIRES_MIN, isValidCustomerGender, needsGenderForOptions,
 } from '../../../js/data.js';
 import { verifyUser, restSelect, restInsert, restUpdate } from '../../_lib/supabaseAdmin.js';
+import { bookingWindowError, checkSlot } from '../../_lib/slots.js';
 import { stripe } from '../../_lib/stripe.js';
 import { optionsTotalFor } from '../../_lib/pricing.js';
 
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
-}
-
-function timeToMinutes(t) {
-  const [h, m] = t.split(':').map(Number);
-  return h * 60 + m;
 }
 
 export async function onRequestPost({ request, env }) {
@@ -41,6 +36,7 @@ export async function onRequestPost({ request, env }) {
     customer_name: customerName,
     customer_contact: customerContact,
     option_keys: optionKeys,
+    customer_gender: requestedGender,
   } = payload || {};
 
   if (!photographerId || !planName || !bookingDate || !startTime || !customerName || !customerContact) {
@@ -50,14 +46,9 @@ export async function onRequestPost({ request, env }) {
   const areaLabel = (AREAS.find((a) => a.key === area) || {}).label;
   if (!areaLabel) return jsonResponse({ error: 'エリアが不正です。' }, 400);
 
-  // Booking window: BOOKING_LEAD_DAYS .. BOOKING_LEAD_DAYS + TOTAL_BOOKING_DAYS,
-  // counted in Japan time (the Functions runtime itself runs in UTC).
-  const todayIso = jstDateIso();
-  const minIso = addDaysToIso(todayIso, BOOKING_LEAD_DAYS);
-  const maxIso = addDaysToIso(todayIso, BOOKING_LEAD_DAYS + TOTAL_BOOKING_DAYS);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(bookingDate)) || bookingDate < minIso || bookingDate >= maxIso) {
-    return jsonResponse({ error: 'ご指定の日付は予約可能な期間外です。' }, 400);
-  }
+  // Booking window (BOOKING_LEAD_DAYS .. + TOTAL_BOOKING_DAYS, in Japan time).
+  const windowError = bookingWindowError(bookingDate);
+  if (windowError) return jsonResponse({ error: windowError }, 400);
 
   const [photographer, plans] = await Promise.all([
     restSelect(env, 'photographers', { id: `eq.${photographerId}`, select: '*' }),
@@ -77,40 +68,11 @@ export async function onRequestPost({ request, env }) {
   }
 
   const durationMin = plan.duration_min || 30;
-  const slotCount = Math.max(1, Math.ceil(durationMin / 30));
-  const startIndex = SLOT_TIMES.indexOf(startTime);
-  if (startIndex === -1 || startIndex + slotCount > SLOT_TIMES.length) {
-    return jsonResponse({ error: 'この時間帯には予約できません。' }, 400);
-  }
-  const endTime = addMinutes(startTime, durationMin);
-
-  // Re-check availability server-side (bookings that hold the slot + closed shifts).
-  const [existingBookings, closedShifts] = await Promise.all([
-    restSelect(env, 'bookings', {
-      photographer_id: `eq.${photographerId}`,
-      booking_date: `eq.${bookingDate}`,
-      status: 'neq.canceled',
-      select: 'start_time,end_time,status,created_at',
-    }),
-    restSelect(env, 'shifts', {
-      photographer_id: `eq.${photographerId}`,
-      shift_date: `eq.${bookingDate}`,
-      is_open: 'eq.false',
-      select: 'start_time',
-    }),
-  ]);
-  const startMin = timeToMinutes(startTime);
-  const endMin = timeToMinutes(endTime);
-  const staleCutoff = Date.now() - PENDING_PAYMENT_HOLD_MIN * 60 * 1000;
-  const isTaken = existingBookings.some((b) => {
-    if (b.status === 'pending_payment' && new Date(b.created_at).getTime() < staleCutoff) return false;
-    const bStart = timeToMinutes(b.start_time.slice(0, 5));
-    const bEnd = timeToMinutes(b.end_time.slice(0, 5));
-    return startMin < bEnd && endMin > bStart;
-  });
-  const closedTimes = new Set(closedShifts.map((s) => s.start_time.slice(0, 5)));
-  const hitsClosed = SLOT_TIMES.slice(startIndex, startIndex + slotCount).some((t) => closedTimes.has(t));
-  if (isTaken || hitsClosed) return jsonResponse({ error: 'この枠は既に埋まっています。別の日時をお選びください。' }, 409);
+  // Re-check availability server-side: the slot must be opened by the
+  // photographer (closed is the default) and not held by another booking.
+  const slot = await checkSlot(env, { photographerId, bookingDate, startTime, durationMin });
+  if (slot.error) return jsonResponse({ error: slot.error }, 409);
+  const endTime = slot.endTime;
 
   // Monitor price: an accepted monitor applicant gets half price on the
   // Standard / Smartphone plan, once. Applied automatically here — the
@@ -132,6 +94,15 @@ export async function onRequestPost({ request, env }) {
     }
   }
 
+  // The customer's gender: from this form, else from their profile. The
+  // 異性スタッフ写真セレクト option needs a male/female customer (an opposite-
+  // gender staff member picks the photo).
+  const [customerProfile] = await restSelect(env, 'profiles', { id: `eq.${user.id}`, select: 'gender' });
+  const customerGender = isValidCustomerGender(requestedGender) ? requestedGender : (customerProfile && customerProfile.gender) || null;
+  if (needsGenderForOptions(optionKeys) && !['male', 'female'].includes(customerGender)) {
+    return jsonResponse({ error: '「異性スタッフ写真セレクト」は、性別を「男性」または「女性」で登録した方のみご利用いただけます。' }, 400);
+  }
+
   // Keep only known option keys, once each: the charge, the stored options and
   // the photographer payout (¥1,100 per option) must all count the same list.
   const validOptionKeys = EXTRA_OPTIONS.map((o) => o.key).filter((k) => (Array.isArray(optionKeys) ? optionKeys : []).includes(k));
@@ -144,6 +115,7 @@ export async function onRequestPost({ request, env }) {
     plan_name: plan.name,
     plan_price: planPrice,
     monitor_application_id: monitorApplicationId,
+    customer_gender: customerGender,
     duration_min: durationMin,
     area: areaLabel,
     booking_date: bookingDate,
@@ -156,6 +128,12 @@ export async function onRequestPost({ request, env }) {
     total_price: totalPrice,
     status: 'pending_payment',
   });
+
+  // Remember the gender on the account too (the browser can't write profiles),
+  // so the next booking is pre-filled. Best effort.
+  if (customerGender && customerProfile && !customerProfile.gender) {
+    await restUpdate(env, 'profiles', { id: `eq.${user.id}` }, { gender: customerGender }).catch(() => {});
+  }
 
   const origin = new URL(request.url).origin;
   try {

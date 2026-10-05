@@ -1,14 +1,15 @@
 import { mountLayout } from '../layout.js';
 import { requireRole, signOut } from '../auth.js';
 import {
-  getMyPhotographerRow, getClosedShifts, toggleShift, bulkSetShiftsOpen, bulkSetShiftsClosed,
+  getMyPhotographerRow, getOpenShifts, openShifts, closeShifts,
   getPhotographerBookings, getMessageCounts, getReadTimestamps,
   getBankAccount, saveBankAccount,
 } from '../repo.js';
 import { mountChatModal } from '../chat.js';
 import { loadDailyWeather } from '../weather.js';
 import { mountProfileEditor } from '../profileEditor.js';
-import { AREAS, SLOT_TIMES, buildBookingDays, weatherIconFor } from '../data.js';
+import { AREAS, SLOT_TIMES, TOTAL_BOOKING_DAYS, WEEKDAY_JP, PENDING_PAYMENT_HOLD_MIN, buildBookingDays, weatherIconFor } from '../data.js';
+import { takenIntervalsFrom, openSetFrom, cellState as slotState } from '../availability.js';
 import { escapeHtml } from '../util.js';
 
 mountLayout();
@@ -23,13 +24,11 @@ const STATUS_STYLE = {
   'キャンセル済': 'background:oklch(0.93 0.008 220);color:oklch(0.55 0.02 220)',
 };
 
-function timeToMinutes(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
-
 const state = {
   photographerId: null,
-  days: buildBookingDays(7),
+  days: buildBookingDays(TOTAL_BOOKING_DAYS), // the same 30 days customers can book
   takenIntervals: {}, // iso -> [[startMin,endMin], ...]
-  closedSet: new Set(), // `${iso}|${time}`
+  openSet: new Set(), // `${iso}|${time}` slots the photographer has opened (closed by default)
   bookings: [],
   area: AREAS[0],
   weather: null, // per-day { code, pop } aligned with `days`, or null if unavailable
@@ -47,25 +46,23 @@ async function loadWeather() {
 async function loadShifts() {
   const fromIso = state.days[0].iso;
   const toIso = state.days[state.days.length - 1].iso;
-  const closed = await getClosedShifts(state.photographerId, fromIso, toIso);
-  state.closedSet = new Set(closed.filter((r) => !r.is_open).map((r) => `${r.shift_date}|${r.start_time.slice(0, 5)}`));
+  state.openSet = openSetFrom(await getOpenShifts(state.photographerId, fromIso, toIso));
 }
 
+// Bookings that hold a slot: not canceled, and not an unpaid checkout that has
+// already timed out (those slots are given back to customers, so the grid
+// must show them as free too).
 function computeTakenIntervals() {
-  state.takenIntervals = {};
-  state.bookings.filter((b) => b.status !== 'canceled').forEach((b) => {
-    const key = b.booking_date;
-    state.takenIntervals[key] = state.takenIntervals[key] || [];
-    state.takenIntervals[key].push([timeToMinutes(b.start_time), timeToMinutes(b.end_time)]);
-  });
+  const holdMs = PENDING_PAYMENT_HOLD_MIN * 60 * 1000;
+  state.takenIntervals = takenIntervalsFrom(state.bookings.filter((b) => {
+    if (b.status === 'canceled') return false;
+    if (b.status === 'pending_payment' && Date.now() - new Date(b.created_at).getTime() > holdMs) return false;
+    return true;
+  }));
 }
 
 function cellState(iso, time) {
-  const mins = timeToMinutes(time);
-  const intervals = state.takenIntervals[iso] || [];
-  if (intervals.some(([s, e]) => mins >= s && mins < e)) return 'booked';
-  if (state.closedSet.has(`${iso}|${time}`)) return 'closed';
-  return 'open';
+  return slotState(state.takenIntervals, state.openSet, iso, time);
 }
 
 function renderGrid() {
@@ -106,9 +103,10 @@ function renderGrid() {
     el.addEventListener('click', async () => {
       const iso = el.dataset.day;
       const time = el.dataset.time;
-      const closeIt = el.dataset.state === 'open';
+      const row = [{ shift_date: iso, start_time: time }];
       try {
-        await toggleShift(state.photographerId, iso, time, closeIt);
+        if (el.dataset.state === 'open') await closeShifts(state.photographerId, row);
+        else await openShifts(state.photographerId, row);
         await loadShifts();
         renderGrid();
       } catch (err) {
@@ -119,11 +117,40 @@ function renderGrid() {
   });
 }
 
-document.getElementById('btn-all-open').addEventListener('click', async () => {
-  const btn = document.getElementById('btn-all-open');
+// ---- 「まとめて設定する」: time range × weekdays over the 30 displayed days ----
+const tplFrom = document.getElementById('tpl-from');
+const tplTo = document.getElementById('tpl-to');
+tplFrom.innerHTML = SLOT_TIMES.map((t) => `<option value="${t}">${t}</option>`).join('');
+tplTo.innerHTML = SLOT_TIMES.concat(['22:00']).map((t) => `<option value="${t}">${t}</option>`).join('');
+tplFrom.value = '10:00';
+tplTo.value = '18:00';
+// Monday first reads more naturally than Sunday first for a work schedule.
+const TPL_DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
+document.getElementById('tpl-days').innerHTML = TPL_DAY_ORDER.map((dow) => `
+  <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" class="tpl-day" value="${dow}" ${dow === 0 || dow === 6 ? 'checked' : ''}>${WEEKDAY_JP[dow]}</label>`).join('');
+
+// Slots (not already booked) matching the chosen time range and weekdays.
+function templateRows() {
+  const days = new Set([...document.querySelectorAll('.tpl-day:checked')].map((el) => Number(el.value)));
+  const from = tplFrom.value;
+  const to = tplTo.value;
+  const rows = [];
+  state.days.forEach((d) => {
+    if (!days.has(d.date.getDay())) return;
+    SLOT_TIMES.forEach((time) => {
+      if (time >= from && time < to && cellState(d.iso, time) !== 'booked') rows.push({ shift_date: d.iso, start_time: time });
+    });
+  });
+  return rows;
+}
+
+async function applyTemplate(btn, apply, emptyMessage) {
+  if (tplFrom.value >= tplTo.value) { alert('終了時刻は開始時刻より後にしてください。'); return; }
+  const rows = templateRows();
+  if (!rows.length) { alert(emptyMessage); return; }
   btn.disabled = true;
   try {
-    await bulkSetShiftsOpen(state.photographerId, state.days.map((d) => d.iso));
+    await apply(state.photographerId, rows);
     await loadShifts();
     renderGrid();
   } catch (err) {
@@ -132,20 +159,23 @@ document.getElementById('btn-all-open').addEventListener('click', async () => {
   } finally {
     btn.disabled = false;
   }
-});
+}
+
+document.getElementById('btn-tpl-open').addEventListener('click', (e) => applyTemplate(e.currentTarget, openShifts, '曜日を1つ以上選んでください。'));
+document.getElementById('btn-tpl-close').addEventListener('click', (e) => applyTemplate(e.currentTarget, closeShifts, '曜日を1つ以上選んでください。'));
 
 document.getElementById('btn-all-closed').addEventListener('click', async () => {
-  if (!confirm('表示中の7日間の空き枠をすべて休みに設定します。よろしいですか？')) return;
+  if (!confirm('表示中の30日間の受付中の枠を、すべて休みに設定します。よろしいですか？')) return;
   const btn = document.getElementById('btn-all-closed');
   btn.disabled = true;
   try {
     const rows = [];
     state.days.forEach((d) => {
       SLOT_TIMES.forEach((time) => {
-        if (cellState(d.iso, time) !== 'booked') rows.push({ shift_date: d.iso, start_time: time });
+        if (cellState(d.iso, time) === 'open') rows.push({ shift_date: d.iso, start_time: time });
       });
     });
-    await bulkSetShiftsClosed(state.photographerId, rows);
+    await closeShifts(state.photographerId, rows);
     await loadShifts();
     renderGrid();
   } catch (err) {
