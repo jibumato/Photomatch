@@ -86,3 +86,12 @@ update profiles set role = 'ops' where email = 'info.photomatch@gmail.com';
 - 運営が「当選」にすると、応募者に結果のメールが届く（落選も同様）
 - 当選者がスタンダードかスマホプランを予約すると、決済時に半額が自動で適用される（1回限り。キャンセルした場合は再び使える）
 - モニター予約のカメラマン報酬も「実際のプラン料金（半額）の50%」で計算する
+
+## セキュリティの前提（変更するときの注意）
+
+- **役割（`profiles.role`）はブラウザから決められない。** 新規登録の `handle_new_user` は、`client` と `photographer` だけを受け付け、それ以外（`ops` など）は `client` にする。運営アカウントは SQL Editor で `update profiles set role = 'ops' where email = '…'` として作る
+- **プラン（`plans`）の価格・内容はブラウザから書き換えられない**（読み取りのみ）。決済額はこのテーブルの `price`。変更は SQL Editor か、運営の「承認して公開する」（標準プランの自動登録）から行う
+- **マッチング数保証（`guarantee_claims`）** は、DB のトリガー（`guarantee_claims_guard`）が、お客様の書き込みを「申請（状態は `applied` 固定、申請できる日は予約日＋30日をDBが計算）」と「申請中 → 申請済みへの変更（申請できる日以降）」だけに絞る。審査（承認・却下）は運営だけ
+- **チャットの `sender_role`・既読** は、自分の立場（お客様なら `client`、カメラマンなら `pro`）の分しか書けない
+- お客様が入力した文字（予約名など）を `innerHTML` に入れるときは、必ず `escapeHtml`（`js/util.js`）を通す
+- **決済ページの有効期限は31分、決済待ちが枠を押さえる時間は35分**（`js/data.js` の `CHECKOUT_EXPIRES_MIN` / `PENDING_PAYMENT_HOLD_MIN` と、`schema.sql` の `booking_slots` を同じ値にする）。それでも期限後に決済された場合（同じ枠が先に埋まっていた、キャンセル済みだった）は、Webhook が予約を取り消して全額返金し、運営にメールで知らせる

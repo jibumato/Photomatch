@@ -134,3 +134,14 @@ export async function notifyBooking(env, bookingId, kind, origin) {
     console.error('notifyBooking failed', err);
   }
 }
+
+// Plain alert to ops (info.photomatch@gmail.com, or OPS_EMAIL) for things that
+// need a human: a payment that couldn't become a booking, a failed refund.
+// Never throws, like notifyBooking.
+export async function notifyOps(env, subject, text, origin) {
+  try {
+    await sendEmail(env, { to: env.OPS_EMAIL || CONTACT, subject: `【PhotoMatch運営】${subject}`, text: `${text}\n\n${origin}/ops.html\n` });
+  } catch (err) {
+    console.error('notifyOps failed', err);
+  }
+}
