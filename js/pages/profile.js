@@ -63,7 +63,9 @@ function instagramLinkHtml(raw) {
       bookBtn.outerHTML = `<div class="pm-note-box" style="margin-bottom:10px">${t('profile.paused')}</div>`;
       document.getElementById('pm-plans').innerHTML = `<div class="pm-empty">${t('profile.paused')}</div>`;
     } else {
-      document.getElementById('pm-book-btn').href = `booking.html?id=${photographer.id}`;
+      // A plan chosen on the top page (?plan=名前) goes straight to that plan.
+      const wanted = plans.findIndex((pl) => pl.name === params.get('plan'));
+      document.getElementById('pm-book-btn').href = `booking.html?id=${photographer.id}${wanted >= 0 ? `&plan=${wanted}` : ''}`;
       document.getElementById('pm-plans').innerHTML = plans.map((plan, idx) => `
         <a href="booking.html?id=${photographer.id}&plan=${idx}" class="pm-card" style="display:block;border-radius:14px;padding:16px;text-decoration:none;color:inherit">
           <div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:6px">${planNameText(plan.name)}</div>

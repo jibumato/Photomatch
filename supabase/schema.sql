@@ -30,6 +30,22 @@ drop policy if exists "profiles: read own" on profiles;
 create policy "profiles: read own" on profiles
   for select using (auth.uid() = id);
 
+-- 運営は全員の名前・メールを見られる（モニター応募者・予約者への連絡のため）。
+-- profiles 自身のポリシーから profiles を参照すると無限再帰になるので、
+-- RLS を通らない security definer 関数で判定する。
+create or replace function is_ops()
+returns boolean
+language sql
+stable
+security definer set search_path = public
+as $$
+  select exists (select 1 from profiles where id = auth.uid() and role = 'ops');
+$$;
+
+drop policy if exists "profiles: ops read" on profiles;
+create policy "profiles: ops read" on profiles
+  for select using (is_ops());
+
 -- 以前はここに「自分の行なら更新できる」ポリシーがあったが、列の制限が無く、
 -- ログイン済みなら誰でもブラウザから自分の role を 'ops' に書き換えられた。
 -- サイト側に profiles を更新する処理は無いため、ポリシーごと外す。権限(role)の
@@ -703,6 +719,10 @@ begin
   if old.eligible_at > (now() at time zone 'Asia/Tokyo')::date then
     raise exception 'まだ申請できる日になっていません。';
   end if;
+  -- 申請できるのは、申請可能日から14日間（js/data.js の GUARANTEE_CLAIM_DAYS）。
+  if old.eligible_at + 14 < (now() at time zone 'Asia/Tokyo')::date then
+    raise exception '申請期限を過ぎています。';
+  end if;
   new.id := old.id;
   new.booking_id := old.booking_id;
   new.client_id := old.client_id;
@@ -714,6 +734,12 @@ begin
   return new;
 end;
 $$;
+
+-- 承認後の無料再撮影（/api/guarantee/reshoot）。お客様が日時を選ぶと、¥0 の予約を作る。
+-- ops_notified_at: 申請を運営にメールで知らせた日時（/api/notify/ops。1回だけ送る）。
+alter table guarantee_claims add column if not exists reshoot_booking_id uuid references bookings(id) on delete set null;
+alter table guarantee_claims add column if not exists ops_notified_at timestamptz;
+alter table bookings add column if not exists reshoot_of uuid references bookings(id) on delete set null;
 
 drop trigger if exists guarantee_claims_guard_trg on guarantee_claims;
 create trigger guarantee_claims_guard_trg
@@ -765,6 +791,20 @@ create policy "monitor_applications: ops review" on monitor_applications
     exists (select 1 from profiles where id = auth.uid() and role = 'ops')
   );
 
+alter table monitor_applications add column if not exists ops_notified_at timestamptz;
+
+-- 先着10名（js/data.js の MONITOR_CAPACITY）。当選（と撮影完了）の数から残り枠を返す。
+-- 応募者は他人の応募を読めないため、security definer で数だけを公開する。
+create or replace function monitor_slots_left()
+returns int
+language sql
+stable
+security definer set search_path = public
+as $$
+  select greatest(0, 10 - count(*))::int from monitor_applications where status in ('accepted', 'completed');
+$$;
+grant execute on function monitor_slots_left() to anon, authenticated;
+
 -- RLS can't restrict *which columns* an insert sets, so also narrow the
 -- table grant: an applicant can only ever supply these columns (status is
 -- covered by its default + the with check above, not by the client).
@@ -803,6 +843,39 @@ alter table bookings add column if not exists payout_note text; -- opsが銀行�
 -- 前日・当日 プラン料金の100%（オプション料金は全額返金）。返金は Stripe で自動。
 -- photographer_cancel_comp は当日キャンセルのときだけカメラマンへ払う補償（¥2,000）で、
 -- 通常の報酬と同じく payout_status で送金を管理する。
+-- 納品（/api/bookings/deliver）。カメラマンが撮影後にアルバムのリンク（https）を登録すると、
+-- お客様にメールで届き、マイページにも表示される。送金は納品済みの予約だけ確定できる。
+alter table bookings add column if not exists delivered_at timestamptz;
+alter table bookings add column if not exists delivery_url text;
+alter table bookings drop constraint if exists bookings_delivery_url_check;
+alter table bookings add constraint bookings_delivery_url_check
+  check (delivery_url is null or (delivery_url ~ '^https://' and length(delivery_url) <= 500)) not valid;
+
+-- 異性スタッフ写真セレクト（オプション）。納品後、お客様と異なる性別のスタッフが一枚を選び、
+-- 運営画面から送る（/api/bookings/staff-pick）。お客様にメールが届き、マイページに表示される。
+alter table bookings add column if not exists staff_pick_note text;
+alter table bookings add column if not exists staff_pick_at timestamptz;
+
+-- チャットの新着メール通知の送信記録（同じ相手に10分に1通まで）。サーバー（service_role）専用。
+create table if not exists message_notifications (
+  booking_id uuid not null references bookings(id) on delete cascade,
+  recipient_role text not null check (recipient_role in ('client', 'pro')),
+  last_sent_at timestamptz not null default now(),
+  primary key (booking_id, recipient_role)
+);
+alter table message_notifications enable row level security;
+revoke all on message_notifications from anon, authenticated;
+
+-- 運営による対応（/api/bookings/ops-cancel・/api/bookings/payout-hold・Stripe Webhook）。
+--   ops: カメラマン都合・悪天候などで運営がキャンセルした（cancel_reason）
+--   payout_hold: チャージバック（不審請求の申し立て）や、Stripe 管理画面での返金があったため、
+--                カメラマンへの送金を止めている。理由は payout_hold_reason。運営が確認して解除する
+--   stripe_refunded_total: Stripe 上で返金済みの合計（charge.refunded で更新）
+alter table bookings add column if not exists payout_hold boolean not null default false;
+alter table bookings add column if not exists payout_hold_reason text;
+alter table bookings add column if not exists stripe_refunded_total int not null default 0;
+alter table bookings add column if not exists cancel_note text;
+
 -- 日程変更（/api/bookings/reschedule。ルールは js/data.js の rescheduleQuote）。
 -- 動かす前の日時は previous_* に残す（直前の1回分）。reschedule_plan_used は
 -- 「あんしん振替プラン」の無料の1回を使ったかどうか。
@@ -832,7 +905,7 @@ alter table bookings add column if not exists photographer_cancel_comp int not n
 alter table bookings add column if not exists cancel_reason text;
 alter table bookings drop constraint if exists bookings_cancel_reason_check;
 alter table bookings add constraint bookings_cancel_reason_check
-  check (cancel_reason is null or cancel_reason in ('customer', 'no_show', 'system'));
+  check (cancel_reason is null or cancel_reason in ('customer', 'no_show', 'system', 'ops'));
 
 -- モニター価格（当選者1回限りの半額）を使った予約。どの応募の権利を使ったかを残し、
 -- 2回目以降は定価になるようにする（/api/checkout/create-session が判定）。

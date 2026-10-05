@@ -69,14 +69,19 @@
         <div class="pm-cal-grid" id="shift-grid"></div>
       </div>
 
-      <h2 style="font:700 17px var(--pm-font-body);margin:48px 0 8px">予約者とのメッセージ</h2>
-      <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 18px">予約ごとに依頼者と直接やりとりできます。集合場所の詳細や当日の連絡にご利用ください。</p>
+      <h2 style="font:700 17px var(--pm-font-body);margin:48px 0 8px">予約一覧</h2>
+      <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 18px">予約ごとに、内容（オプション・連絡先・集合場所）、事前カウンセリングの回答、納品期限を確認できます。依頼者とのメッセージは、相手にメールでお知らせが届きます。撮影後は、写真のアルバムのリンクを「納品する」から登録してください（お客様にメールで届きます。報酬の送金は納品後になります）。</p>
       <div id="pm-bookings" style="display:flex;flex-direction:column;gap:14px"></div>
+
+      <h2 style="font:700 17px var(--pm-font-body);margin:48px 0 8px">報酬</h2>
+      <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 18px">撮影月ごとの報酬の見込みと、送金の状況です（月末締め・翌月25日払い。撮影日から30日の保証期間後、納品済みの予約が対象）。</p>
+      <div id="pm-earnings"></div>
     </div>
   </section>
 </main>
 
 <div id="pm-chat-mount"></div>
+<div id="pm-sheetview-mount"></div>
 <footer class="pm-footer" id="pm-footer"></footer>
 
 <script type="module" src="js/pages/admin.js"></script>

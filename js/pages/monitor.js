@@ -1,6 +1,7 @@
 import { mountLayout } from '../layout.js';
 import { getSession } from '../auth.js';
-import { submitMonitorApplication, getMyMonitorApplications } from '../repo.js';
+import { submitMonitorApplication, getMyMonitorApplications, getMonitorSlotsLeft } from '../repo.js';
+import { MONITOR_CAPACITY } from '../data.js';
 import { MONITOR_CONDITIONS, MONITOR_STEPS } from '../data.js';
 
 mountLayout();
@@ -73,7 +74,10 @@ function statusHtml(app) {
       <span style="font:700 12px var(--pm-font-body);color:#fff;background:${s.color};border-radius:100px;padding:4px 12px">${s.label}</span>
       <span style="font:12px var(--pm-font-body);color:var(--pm-text-3)">応募日: ${new Date(app.applied_at).toLocaleDateString('ja-JP')}</span>
     </div>
-    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0">すでにモニター企画にご応募いただいています。審査結果はメールでご連絡します。</p>
+    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0">${app.status === 'accepted'
+      ? '当選おめでとうございます。<a href="search.html" style="color:oklch(0.45 0.14 210);font-weight:700">カメラマンを探す</a>から、スタンダードまたはスマホプランをご予約ください。お支払い画面でモニター価格（半額）が自動で適用されます（1回限り）。'
+      : app.status === 'rejected' ? '今回はご希望に添えない結果となりました。ご応募ありがとうございました。'
+      : 'すでにモニター企画にご応募いただいています。審査結果はメールでご連絡します。'}</p>
   </div>`;
 }
 
@@ -83,12 +87,19 @@ async function render() {
     appEl.innerHTML = loginPromptHtml();
     return;
   }
-  const apps = await getMyMonitorApplications();
+  const [apps, left] = await Promise.all([getMyMonitorApplications(), getMonitorSlotsLeft()]);
   if (apps.length) {
     appEl.innerHTML = statusHtml(apps[0]);
     return;
   }
+  if (left === 0) {
+    appEl.innerHTML = `<div class="pm-card" style="padding:28px;text-align:center"><div style="font:700 16px var(--pm-font-body);margin-bottom:8px">定員に達したため、募集を締め切りました</div><p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0">先着${MONITOR_CAPACITY}名の募集は終了しました。たくさんのご応募ありがとうございました。通常のプランは引き続きご予約いただけます。</p></div>`;
+    return;
+  }
   appEl.innerHTML = formHtml();
+  if (left != null) {
+    appEl.querySelector('.pm-card').insertAdjacentHTML('afterbegin', `<div style="font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 160);margin-bottom:12px">残り ${left}名（先着${MONITOR_CAPACITY}名）</div>`);
+  }
   document.getElementById('f-submit').addEventListener('click', async () => {
     const errorEl = document.getElementById('f-error');
     const btn = document.getElementById('f-submit');

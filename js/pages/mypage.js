@@ -2,17 +2,17 @@ import { mountLayout } from '../layout.js';
 import { getSession, getProfile, signOut } from '../auth.js';
 import {
   getMyBookings, cancelBooking, getMessageCounts, getReadTimestamps, getCounselingSheetsForBookings,
-  getGuaranteeClaimsForBookings, applyGuaranteeClaim, submitGuaranteeClaim, getMyReviewsByBooking,
+  getGuaranteeClaimsForBookings, applyGuaranteeClaim, submitGuaranteeClaim, getMyReviewsByBooking, createReshoot,
 } from '../repo.js';
 import { mountChatModal } from '../chat.js';
 import { mountSheetModal } from '../sheet.js';
 import { mountReviewModal } from '../reviewModal.js';
 import { mountRescheduleModal } from '../rescheduleModal.js';
-import { cancellationQuote, rescheduleQuote, RESCHEDULE_DENIED_MESSAGE, RESCHEDULE_OPTION_KEY } from '../data.js';
+import { cancellationQuote, rescheduleQuote, RESCHEDULE_DENIED_MESSAGE, RESCHEDULE_OPTION_KEY, jstDateIso, isValidDeliveryUrl, guaranteeClaimDeadline, PENDING_PAYMENT_HOLD_MIN, addDaysToIso } from '../data.js';
 
 mountLayout();
 
-const chatModal = mountChatModal(document.getElementById('pm-chat-mount'));
+const chatModal = mountChatModal(document.getElementById('pm-chat-mount'), { onClose: () => load() });
 const sheetModal = mountSheetModal(document.getElementById('pm-sheet-mount'));
 const reviewModal = mountReviewModal(document.getElementById('pm-review-mount'));
 const reschedModal = mountRescheduleModal(document.getElementById('pm-resched-mount'));
@@ -25,12 +25,9 @@ const STATUS_STYLE = {
   'キャンセル済': 'background:oklch(0.93 0.008 220);color:oklch(0.55 0.02 220)',
 };
 
-function todayIso() { return new Date().toISOString().slice(0, 10); }
-function addDaysIso(iso, days) {
-  const d = new Date(iso + 'T00:00:00');
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-}
+// Japan time, so a shoot doesn't move to 「過去の予約」 at 9:00 the next morning.
+function todayIso() { return jstDateIso(); }
+const addDaysIso = addDaysToIso;
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
@@ -42,6 +39,8 @@ const chatBtnHtml = (bookingId, unread) => `
     ${unread.hasUnread ? `<span class="pm-unread-badge">${unread.unreadLabel}</span>` : ''}
   </button>`;
 
+let reshootsById = {};
+
 function guaranteeBlockHtml(b, claim) {
   if (b.status === 'canceled') return '';
   if (!claim) {
@@ -50,19 +49,30 @@ function guaranteeBlockHtml(b, claim) {
     </div>`;
   }
   const today = todayIso();
+  const deadline = guaranteeClaimDeadline(claim);
   if (claim.status === 'applied') {
     if (today < claim.eligible_at) {
-      return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px var(--pm-font-body);color:var(--pm-text-3)">マッチング数保証：申込み済み（${claim.eligible_at}以降に無料再撮影を申請できます）</div>`;
+      return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px var(--pm-font-body);color:var(--pm-text-3)">マッチング数保証：申込み済み（${claim.eligible_at}〜${deadline}の間に無料再撮影を申請できます）</div>`;
     }
-    return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint)">
+    if (today > deadline) {
+      return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px var(--pm-font-body);color:var(--pm-text-3)">マッチング数保証：申請期限（${deadline}）を過ぎました</div>`;
+    }
+    return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <button data-claim-id="${claim.id}" class="btn-guarantee-claim" style="background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer">無料再撮影を申請する</button>
+      <span style="font:12px var(--pm-font-body);color:var(--pm-text-3)">申請期限：${deadline}</span>
     </div>`;
   }
   if (claim.status === 'claimed') {
     return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px var(--pm-font-body);color:var(--pm-text-3)">マッチング数保証：<span style="font-weight:700;color:oklch(0.5 0.13 75)">審査中</span></div>`;
   }
   if (claim.status === 'approved') {
-    return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px/1.7 var(--pm-font-body);color:oklch(0.4 0.14 200)">マッチング数保証：<span style="font-weight:700">承認済み</span>${claim.review_note ? ' ・ ' + escapeHtml(claim.review_note) : ' ・ メッセージから再撮影日程をご相談ください'}</div>`;
+    const reshoot = claim.reshoot_booking_id && reshootsById[claim.reshoot_booking_id];
+    const booked = reshoot && reshoot.status !== 'canceled';
+    return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px/1.7 var(--pm-font-body);color:oklch(0.4 0.14 200)">マッチング数保証：<span style="font-weight:700">承認済み（無料再撮影）</span>${claim.review_note ? ' ・ ' + escapeHtml(claim.review_note) : ''}
+      ${booked
+        ? `<div style="color:var(--pm-text-3)">再撮影：${reshoot.booking_date} ${reshoot.start_time.slice(0, 5)}〜（予約済み。「今後の予約」に表示されています）</div>`
+        : `<div style="margin-top:8px"><button data-claim-id="${claim.id}" data-booking-id="${b.id}" class="btn-reshoot" style="background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer">再撮影の日程を選ぶ</button></div>`}
+    </div>`;
   }
   if (claim.status === 'rejected') {
     return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px/1.7 var(--pm-font-body);color:var(--pm-text-3)">マッチング数保証：対象外${claim.review_note ? ' ・ ' + escapeHtml(claim.review_note) : ''}</div>`;
@@ -102,7 +112,7 @@ function reviewBlockHtml(b, review) {
 function bookingCardHtml(b, meta, { history }) {
   const statusLabel = STATUS_LABEL[b.status] || b.status;
   const cancellable = !history && b.status !== 'canceled' && b.status !== 'completed' && cancellationQuote(b).allowed;
-  const priceLabel = `¥${b.total_price.toLocaleString()}（税込）`;
+  const priceLabel = b.reshoot_of ? '無料再撮影（マッチング数保証）' : `¥${b.total_price.toLocaleString()}（税込）`;
 
   const actions = [];
   if (!history) {
@@ -120,7 +130,9 @@ function bookingCardHtml(b, meta, { history }) {
       actions.push(`<button data-booking-id="${b.id}" class="btn-reschedule" style="background:#fff;border:1.5px solid oklch(0.86 0.03 215);border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:oklch(0.4 0.06 235);cursor:pointer;white-space:nowrap">日程変更</button>`);
     }
     if (cancellable) actions.push(`<button data-booking-id="${b.id}" class="btn-cancel pm-btn-danger-outline">キャンセル</button>`);
-  } else if (meta.guarantee && meta.guarantee.status === 'approved') {
+  } else if (b.status !== 'canceled' && (!b.delivered_at || b.booking_date >= addDaysIso(todayIso(), -30) || (meta.guarantee && meta.guarantee.status === 'approved'))) {
+    // After the shoot the customer can still message the photographer — about
+    // delivery, or for 30 days after (and during a free reshoot).
     actions.push(chatBtnHtml(b.id, meta));
   }
 
@@ -134,6 +146,8 @@ function bookingCardHtml(b, meta, { history }) {
         </div>
         <div style="font:13px var(--pm-font-body);color:oklch(0.45 0.02 235)">${b.booking_date}（${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}）</div>
         <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${b.plan_name} ・ ${priceLabel}</div>
+        ${b.delivered_at && isValidDeliveryUrl(b.delivery_url) && b.status !== 'canceled' ? `<div style="margin-top:6px"><a href="${escapeHtml(b.delivery_url)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210)">📷 撮影データを見る（納品済み）↗</a></div>` : ''}
+        ${b.staff_pick_at && b.staff_pick_note && b.status !== 'canceled' ? `<div style="margin-top:6px;font:12px/1.7 var(--pm-font-body);color:oklch(0.35 0.02 235);background:var(--pm-bg-mint);border-radius:10px;padding:8px 12px;white-space:pre-wrap"><b>異性スタッフのおすすめ</b>\n${escapeHtml(b.staff_pick_note)}</div>` : ''}
         ${b.rescheduled_count > 0 && b.previous_booking_date && b.status !== 'canceled' ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">日程変更済み（変更前：${b.previous_booking_date} ${String(b.previous_start_time).slice(0, 5)}〜）</div>` : ''}
         ${b.status === 'canceled' && b.cancel_reason === 'no_show' ? '<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">集合時間に15分以上遅れたため、当日キャンセル扱いとなりました（利用規約第5条）</div>' : ''}
         ${b.status === 'canceled' && b.refund_amount > 0 ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">ご返金：¥${b.refund_amount.toLocaleString()}${b.refund_status === 'succeeded' ? '（カードへ返金済み）' : '（運営より手続き中）'}</div>` : ''}
@@ -213,6 +227,12 @@ function wireCardEvents(root, bookingsById) {
       }
     });
   });
+  root.querySelectorAll('.btn-reshoot').forEach((el) => {
+    el.addEventListener('click', () => {
+      const b = bookingsById[el.dataset.bookingId];
+      reschedModal.open(b, () => load(), { reshootClaimId: el.dataset.claimId });
+    });
+  });
   root.querySelectorAll('.btn-guarantee-claim').forEach((el) => {
     el.addEventListener('click', async () => {
       const note = prompt('マッチング数に改善が見られなかった状況を簡単にご記入ください（未記入でも申請できます）。');
@@ -234,12 +254,16 @@ async function load() {
   const session = await getSession();
   if (!session) { location.href = 'login.html?next=' + encodeURIComponent(location.href); return; }
 
-  const [profile, bookings] = await Promise.all([getProfile(), getMyBookings()]);
+  let [profile, bookings] = await Promise.all([getProfile(), getMyBookings()]);
+  reshootsById = Object.fromEntries(bookings.filter((x) => x.reshoot_of).map((x) => [x.id, x]));
   document.getElementById('pm-loading').style.display = 'none';
   document.getElementById('pm-mypage').style.display = 'block';
   document.getElementById('pm-user-line').textContent = `${profile?.name || 'ゲスト ユーザー'}　（${profile?.email || session.user.email}）`;
 
   const today = todayIso();
+  // An unpaid checkout that timed out is not a booking; don't list it.
+  const holdMs = PENDING_PAYMENT_HOLD_MIN * 60 * 1000;
+  bookings = bookings.filter((b) => !(b.status === 'pending_payment' && Date.now() - new Date(b.created_at).getTime() > holdMs));
   const upcoming = bookings.filter((b) => b.booking_date >= today);
   const history = bookings.filter((b) => b.booking_date < today);
   const ids = bookings.map((b) => b.id);

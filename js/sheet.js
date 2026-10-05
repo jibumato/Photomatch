@@ -1,5 +1,6 @@
 import { COUNSELING_QUESTIONS } from './data.js';
 import { getCounselingSheet, saveCounselingSheet } from './repo.js';
+import { escapeHtml } from './util.js';
 
 const CHIP_BASE = 'padding:9px 16px;border-radius:100px;border:1px solid var(--pm-border);background:#fff;font:600 13px var(--pm-font-body);cursor:pointer;color:oklch(0.32 0.02 240)';
 const CHIP_ACTIVE = 'padding:9px 16px;border-radius:100px;border:1px solid transparent;background:var(--pm-brand-grad);font:700 13px var(--pm-font-body);cursor:pointer;color:#fff';
@@ -49,7 +50,7 @@ export function mountSheetModal(container) {
         const val = draft[q.id] || '';
         return `<div>
           <div style="font:700 13px var(--pm-font-body);color:oklch(0.3 0.02 240);margin-bottom:10px">${q.label}</div>
-          <textarea data-qid="${q.id}" class="sheet-text" rows="2" placeholder="${q.placeholder || ''}" style="width:100%;resize:none;border:1px solid var(--pm-border-soft);border-radius:12px;padding:11px 14px;font:13px/1.6 var(--pm-font-body);background:#fff">${val}</textarea>
+          <textarea data-qid="${q.id}" class="sheet-text" rows="2" placeholder="${q.placeholder || ''}" style="width:100%;resize:none;border:1px solid var(--pm-border-soft);border-radius:12px;padding:11px 14px;font:13px/1.6 var(--pm-font-body);background:#fff">${escapeHtml(val)}</textarea>
         </div>`;
       }
       const current = draft[q.id];

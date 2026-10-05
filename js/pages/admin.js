@@ -3,18 +3,21 @@ import { requireRole, signOut } from '../auth.js';
 import {
   getMyPhotographerRow, getOpenShifts, openShifts, closeShifts,
   getPhotographerBookings, getMessageCounts, getReadTimestamps,
-  getBankAccount, saveBankAccount,
+  getBankAccount, saveBankAccount, getCounselingSheetsForBookings, deliverBooking,
 } from '../repo.js';
 import { mountChatModal } from '../chat.js';
 import { loadDailyWeather } from '../weather.js';
 import { mountProfileEditor } from '../profileEditor.js';
-import { AREAS, SLOT_TIMES, TOTAL_BOOKING_DAYS, WEEKDAY_JP, PENDING_PAYMENT_HOLD_MIN, buildBookingDays, weatherIconFor } from '../data.js';
+import {
+  AREAS, SLOT_TIMES, TOTAL_BOOKING_DAYS, WEEKDAY_JP, PENDING_PAYMENT_HOLD_MIN, buildBookingDays, weatherIconFor,
+  EXTRA_OPTIONS, COUNSELING_QUESTIONS, meetingPointForArea, deliveryDueDate, photographerPayoutFor, isValidDeliveryUrl, jstDateIso,
+} from '../data.js';
 import { takenIntervalsFrom, openSetFrom, cellState as slotState } from '../availability.js';
 import { escapeHtml } from '../util.js';
 
 mountLayout();
 
-const chatModal = mountChatModal(document.getElementById('pm-chat-mount'));
+const chatModal = mountChatModal(document.getElementById('pm-chat-mount'), { onClose: () => renderBookings().catch(console.error) });
 
 const STATUS_LABEL = { paid: '確定', confirmed: '確定', requested: '依頼中', completed: '完了', canceled: 'キャンセル済' };
 const STATUS_STYLE = {
@@ -186,49 +189,181 @@ document.getElementById('btn-all-closed').addEventListener('click', async () => 
   }
 });
 
+const CANCEL_REASON_TEXT = { customer: 'お客様がキャンセル', no_show: '遅刻（15分以上）のため当日キャンセル扱い', system: '決済の取り消し', ops: '運営がキャンセル' };
+const yen = (n) => `¥${Number(n || 0).toLocaleString()}`;
+const fmtDate = (iso) => `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}`;
+const shootStarted = (b) => new Date(`${b.booking_date}T${b.start_time.slice(0, 5)}:00+09:00`) <= new Date();
+
+// What the photographer sees for one booking: everything needed for the day
+// (time, place, plan, options, contact), the counseling answers, delivery.
+function displayStatus(b) {
+  if (b.status === 'canceled') return 'キャンセル済';
+  if (b.delivered_at) return '納品済み';
+  if (shootStarted(b)) return '撮影済み（未納品）';
+  return STATUS_LABEL[b.status] || b.status;
+}
+
 function bookingCardHtml(b, meta) {
-  const statusLabel = STATUS_LABEL[b.status] || b.status;
+  const statusLabel = displayStatus(b);
+  const canceled = b.status === 'canceled';
+  const options = (b.options || []).map((o) => EXTRA_OPTIONS.find((x) => x.key === o.key)).filter(Boolean);
+  const mp = meetingPointForArea(b.area);
+  const due = deliveryDueDate(b);
+  const overdue = !canceled && !b.delivered_at && jstDateIso() > due.date;
+  const lines = [
+    `${b.booking_date}（${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}）`,
+    `${escapeHtml(b.plan_name || '')}${b.monitor_application_id ? '（モニター価格）' : ''}${options.length ? `　オプション：${options.map((o) => escapeHtml(o.label)).join('、')}` : '　オプションなし'}`,
+    `${escapeHtml(b.area || '')}${mp ? `　集合：${escapeHtml(mp.detail)}` : ''}`,
+    `連絡先：${escapeHtml(b.customer_contact || '-')}`,
+  ];
+  if (b.rescheduled_count) lines.push(`日程変更あり（変更前：${b.previous_booking_date} ${String(b.previous_start_time || '').slice(0, 5)}〜）`);
+  if (canceled) {
+    lines.push(`${CANCEL_REASON_TEXT[b.cancel_reason] || 'キャンセル'}${b.photographer_cancel_comp ? `　補償 ${yen(b.photographer_cancel_comp)}` : ''}`);
+  } else {
+    lines.push(b.delivered_at
+      ? `納品済み（${b.delivered_at.slice(0, 10)}）`
+      : `<span style="${overdue ? 'color:var(--pm-warn-text);font-weight:700' : ''}">納品期限：${fmtDate(due.date)}${due.speed ? '（スピード納品）' : ''}${overdue ? '　期限を過ぎています' : ''}</span>`);
+  }
+  const payout = photographerPayoutFor(b);
+  if (payout) lines.push(`報酬：${yen(payout)}　${b.payout_status === 'released' ? '送金済み' : '未送金'}`);
+
+  const btn = 'display:flex;align-items:center;gap:6px;border-radius:100px;padding:9px 14px;font:700 12px var(--pm-font-body);cursor:pointer;white-space:nowrap';
+  const actions = [`<button data-booking-id="${b.id}" class="btn-chat" style="position:relative;${btn};background:var(--pm-brand-grad-soft);border:none;color:#fff">
+      メッセージ${meta.hasUnread ? `<span class="pm-unread-badge">${meta.unreadLabel}</span>` : ''}
+    </button>`];
+  if (!canceled) {
+    actions.push(`<button data-booking-id="${b.id}" class="btn-sheet-view" style="${btn};background:#fff;border:1.5px solid oklch(0.86 0.03 215);color:oklch(0.4 0.06 235)">カウンセリング${meta.sheetDone ? '（回答あり）' : '（未回答）'}</button>`);
+    if (shootStarted(b)) actions.push(`<button data-booking-id="${b.id}" class="btn-deliver" style="${btn};background:#fff;border:1.5px solid oklch(0.62 0.14 210);color:oklch(0.4 0.12 215)">${b.delivered_at ? '納品リンクを変更' : '納品する'}</button>`);
+  }
   return `
-  <div class="pm-card" style="padding:18px 20px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
-    <div style="min-width:0">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-        <span style="font:700 15px var(--pm-font-body)">${escapeHtml(b.customer_name || '依頼者')}</span>
-        <span style="padding:3px 10px;border-radius:100px;font:700 11px var(--pm-font-body);white-space:nowrap;${STATUS_STYLE[statusLabel] || ''}">${escapeHtml(statusLabel)}</span>
-      </div>
-      <div style="font:13px var(--pm-font-body);color:oklch(0.45 0.02 235)">${b.booking_date}（${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}）</div>
-      <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${escapeHtml(b.plan_name || '')}</div>
+  <div class="pm-card" style="padding:18px 20px;${canceled ? 'background:var(--pm-bg)' : ''}">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+      <span style="font:700 15px var(--pm-font-body)">${escapeHtml(b.customer_name || '依頼者')}</span>
+      <span style="padding:3px 10px;border-radius:100px;font:700 11px var(--pm-font-body);white-space:nowrap;${STATUS_STYLE[statusLabel] || 'background:oklch(0.94 0.04 210);color:oklch(0.4 0.1 220)'}">${escapeHtml(statusLabel)}</span>
     </div>
-    <button data-booking-id="${b.id}" class="btn-chat" style="position:relative;display:flex;align-items:center;gap:6px;background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer;white-space:nowrap">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.9-.9L3 21l1.9-5.6A8.5 8.5 0 1 1 21 11.5z"></path></svg>
-      メッセージ
-      ${meta.hasUnread ? `<span class="pm-unread-badge">${meta.unreadLabel}</span>` : ''}
-    </button>
+    <div style="font:12px/1.8 var(--pm-font-body);color:var(--pm-text-3)">${lines.map((l, i) => `<div style="${i === 0 ? 'font:13px var(--pm-font-body);color:oklch(0.35 0.02 235)' : ''}">${l}</div>`).join('')}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">${actions.join('')}</div>
   </div>`;
 }
 
+// Upcoming first (soonest first), then past shoots (newest first). Unpaid
+// checkouts aren't bookings yet, so they're not listed.
+function sortedBookings() {
+  const list = state.bookings.filter((b) => b.status !== 'pending_payment');
+  const today = jstDateIso();
+  const upcoming = list.filter((b) => b.booking_date >= today && b.status !== 'canceled');
+  const rest = list.filter((b) => !upcoming.includes(b)).sort((a, b) => (a.booking_date < b.booking_date ? 1 : -1));
+  return [...upcoming, ...rest];
+}
+
+let sheetsByBooking = {};
+
 async function renderBookings() {
   const el = document.getElementById('pm-bookings');
-  if (!state.bookings.length) {
+  const list = sortedBookings();
+  renderEarnings();
+  if (!list.length) {
     el.innerHTML = '<div class="pm-empty">予約はまだありません。</div>';
     return;
   }
-  const ids = state.bookings.map((b) => b.id);
-  const [counts, reads] = await Promise.all([getMessageCounts(ids), getReadTimestamps(ids)]);
+  const ids = list.map((b) => b.id);
+  const [counts, reads, sheets] = await Promise.all([getMessageCounts(ids), getReadTimestamps(ids), getCounselingSheetsForBookings(ids)]);
+  sheetsByBooking = sheets;
 
   function metaFor(id) {
     const msgs = counts[id] || [];
     const lastRead = (reads[id] && reads[id].pro) || '1970-01-01T00:00:00Z';
     const unread = msgs.filter((m) => m.sender_role === 'client' && m.created_at > lastRead).length;
-    return { hasUnread: unread > 0, unreadLabel: unread > 9 ? '9+' : String(unread) };
+    const sheet = sheets[id];
+    return { hasUnread: unread > 0, unreadLabel: unread > 9 ? '9+' : String(unread), sheetDone: !!(sheet && sheet.submitted_at) };
   }
 
-  el.innerHTML = state.bookings.map((b) => bookingCardHtml(b, metaFor(b.id))).join('');
+  el.innerHTML = list.map((b) => bookingCardHtml(b, metaFor(b.id))).join('');
+  const find = (btn) => state.bookings.find((x) => x.id === btn.dataset.bookingId);
   el.querySelectorAll('.btn-chat').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const b = state.bookings.find((x) => x.id === btn.dataset.bookingId);
+      const b = find(btn);
       chatModal.open(b.id, 'pro', b.customer_name || '依頼者', `${b.booking_date} ${b.start_time.slice(0, 5)}〜`);
     });
   });
+  el.querySelectorAll('.btn-sheet-view').forEach((btn) => btn.addEventListener('click', () => openSheetView(find(btn))));
+  el.querySelectorAll('.btn-deliver').forEach((btn) => btn.addEventListener('click', async () => {
+    const b = find(btn);
+    const url = prompt(`${b.customer_name || '依頼者'} 様（${b.booking_date}）の撮影データのリンク（Googleフォトのアルバムなど、https:// から始まるURL）を入力してください。\nお客様にメールで届き、マイページにも表示されます。`, b.delivery_url || '');
+    if (url === null) return;
+    if (!isValidDeliveryUrl(url.trim())) { alert('「https://」から始まるURLを入力してください。'); return; }
+    btn.disabled = true;
+    try {
+      await deliverBooking(b.id, url.trim());
+      alert(b.delivered_at ? '納品リンクを更新しました。お客様にメールでお知らせしました。' : '納品済みにしました。お客様にリンクをメールでお送りしました。');
+      state.bookings = await getPhotographerBookings(state.photographerId);
+      await renderBookings();
+    } catch (err) {
+      alert(err.message || '納品の登録に失敗しました。');
+      btn.disabled = false;
+    }
+  }));
+}
+
+// ---- 事前カウンセリングの回答（読み取り専用） ----
+const sheetMount = document.getElementById('pm-sheetview-mount');
+sheetMount.innerHTML = `
+  <div class="pm-modal-overlay" id="sv-overlay">
+    <div class="pm-modal-backdrop" id="sv-backdrop"></div>
+    <div class="pm-modal-sheet pm-sheet-modal" style="height:auto;max-height:92vh" role="dialog" aria-modal="true" aria-labelledby="sv-title">
+      <div class="pm-modal-head">
+        <div style="min-width:0">
+          <div id="sv-title" style="font:700 16px var(--pm-font-body);color:oklch(0.24 0.02 245)">事前カウンセリングの回答</div>
+          <div id="sv-label" style="font:11px var(--pm-font-body);color:var(--pm-text-3)"></div>
+        </div>
+        <button class="pm-modal-close" id="sv-close" aria-label="閉じる">×</button>
+      </div>
+      <div class="pm-sheet-body" id="sv-body"></div>
+    </div>
+  </div>`;
+const svOverlay = document.getElementById('sv-overlay');
+const closeSheetView = () => svOverlay.classList.remove('is-open');
+document.getElementById('sv-close').addEventListener('click', closeSheetView);
+document.getElementById('sv-backdrop').addEventListener('click', closeSheetView);
+
+function openSheetView(b) {
+  const sheet = sheetsByBooking[b.id];
+  const answers = (sheet && sheet.answers) || {};
+  document.getElementById('sv-label').textContent = `${b.customer_name || '依頼者'} 様 ・ ${b.booking_date} ${b.start_time.slice(0, 5)}〜`;
+  const answered = COUNSELING_QUESTIONS.filter((q) => {
+    const v = answers[q.id];
+    return Array.isArray(v) ? v.length : v && String(v).trim();
+  });
+  document.getElementById('sv-body').innerHTML = answered.length
+    ? answered.map((q) => {
+      const v = answers[q.id];
+      return `<div style="margin-bottom:16px"><div style="font:700 12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:4px">${escapeHtml(q.label)}</div>
+        <div style="font:14px/1.7 var(--pm-font-body);color:oklch(0.3 0.02 235);white-space:pre-wrap">${escapeHtml(Array.isArray(v) ? v.join('、') : v)}</div></div>`;
+    }).join('')
+    : '<div class="pm-empty">まだ回答がありません。お客様が回答すると、ここに表示されます。</div>';
+  svOverlay.classList.add('is-open');
+}
+
+// ---- 報酬（撮影月ごと） ----
+function renderEarnings() {
+  const el = document.getElementById('pm-earnings');
+  const rows = state.bookings.filter((b) => photographerPayoutFor(b) > 0 && b.status !== 'pending_payment' && (b.status === 'canceled' || shootStarted(b)));
+  if (!rows.length) { el.innerHTML = '<div class="pm-empty">まだ報酬の対象になる撮影はありません。</div>'; return; }
+  const months = {};
+  rows.forEach((b) => {
+    const m = b.booking_date.slice(0, 7);
+    const g = (months[m] = months[m] || { total: 0, released: 0, count: 0, undelivered: 0 });
+    const amount = photographerPayoutFor(b);
+    g.total += amount; g.count += 1;
+    if (b.payout_status === 'released') g.released += amount;
+    if (b.status !== 'canceled' && !b.delivered_at) g.undelivered += 1;
+  });
+  el.innerHTML = `<div class="pm-card" style="padding:6px 0;overflow-x:auto"><table style="width:100%;border-collapse:collapse;font:13px var(--pm-font-body)">
+    <thead><tr style="color:var(--pm-text-3);font-size:12px;text-align:left"><th style="padding:10px 16px">撮影月</th><th>件数</th><th>報酬の見込み</th><th>送金済み</th><th style="padding-right:16px">未納品</th></tr></thead>
+    <tbody>${Object.keys(months).sort().reverse().map((m) => {
+      const g = months[m];
+      return `<tr style="border-top:1px solid var(--pm-border-faint)"><td style="padding:10px 16px">${m.replace('-', '年')}月</td><td>${g.count}件</td><td>${yen(g.total)}</td><td>${yen(g.released)}</td><td style="padding-right:16px;${g.undelivered ? 'color:var(--pm-warn-text);font-weight:700' : ''}">${g.undelivered}件</td></tr>`;
+    }).join('')}</tbody></table></div>`;
 }
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
@@ -295,6 +430,19 @@ async function renderBankAccountSection(photographer) {
     };
     if (Object.values(fields).some((v) => !v)) {
       errorEl.textContent = 'すべての項目をご入力ください。';
+      errorEl.style.display = 'block';
+      return;
+    }
+    // Full-width digits are common on phones; normalize, then check the shape
+    // banks expect (振込に使う口座番号は7桁、名義はカタカナ).
+    fields.account_number = fields.account_number.replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+    if (!/^\d{7}$/.test(fields.account_number)) {
+      errorEl.textContent = '口座番号は7桁の数字で入力してください（7桁未満の場合は、先頭に0を付けてください）。';
+      errorEl.style.display = 'block';
+      return;
+    }
+    if (!/^[ァ-ヶー　 （）()．.・ヴ]+$/.test(fields.account_holder_name)) {
+      errorEl.textContent = '口座名義は、通帳の表記どおりカタカナで入力してください（例：ヤマダ タロウ）。';
       errorEl.style.display = 'block';
       return;
     }

@@ -116,6 +116,7 @@ export const LEGAL_PAGES = {
       { k: '運営責任者', v: '下山 慧 / 粂川 拓海' },
       { k: '所在地', v: '愛知県名古屋市港区（請求があれば遅滞なく開示します）' },
       { k: '連絡先', v: 'info.photomatch@gmail.com' },
+      { k: '電話番号', v: '請求があった場合、遅滞なく開示します（お問い合わせはメールにて承ります）' },
       { k: '販売価格', v: '各プランページに税込で表示します（スマホプラン¥6,800〜）' },
       { k: '商品代金以外の費用', v: '交通費等が発生する場合は予約前に明示します' },
       { k: '支払方法', v: 'クレジットカード（Stripe）／予約時に全額をお支払いいただきます' },
@@ -242,7 +243,7 @@ export const COLUMN_ARTICLES = [
     sections: [
       { h: '名古屋で写真を用意する3つの方法', b: '①自撮り：無料だが不自然になりやすく、他撮りに比べマッチ率が落ちる傾向。②スタジオの婚活写真：クオリティは高いが¥20,000〜30,000と高額で、背景も証明写真的になりがち。③出張ロケ撮影：街なかの自然光で撮るため“アプリらしい”自然な1枚になり、費用も抑えられます。' },
       { h: 'なぜ屋外ロケがマッチングアプリ向きなのか', b: 'マッチングアプリのメイン写真で好まれるのは、スタジオの作り込んだ写真より「休日にたまたま撮れたような自然体の1枚」。栄の街並みや鶴舞公園の緑を背景にすると、清潔感と親しみやすさが同時に伝わります。' },
-      { h: '名古屋・岐阜・一宮エリアなら最短45分', b: 'PhotoMatchは名古屋を拠点に岐阜・一宮まで対応。栄や大須など集合しやすい場所で待ち合わせ、撮影は45分で完結します。仕事帰りや休日のスキマ時間で、その日のうちにプロフィールを一新できます。' },
+      { h: '名古屋・岐阜・一宮エリアなら最短45分', b: 'PhotoMatchは名古屋を拠点に岐阜・一宮まで対応。栄や大須など集合しやすい場所で待ち合わせ、撮影は45分で完結します。仕事帰りや休日のスキマ時間で撮影でき、写真は最短翌日〜3営業日でお届けします。' },
     ],
   },
   {
@@ -360,7 +361,16 @@ export const SLOT_TIMES = (() => {
 export const WEEKDAY_JP = ['日', '月', '火', '水', '木', '金', '土'];
 export const BOOKING_LEAD_DAYS = 3;
 export const TOTAL_BOOKING_DAYS = 30;
-export const JP_HOLIDAYS = ['2026-07-20'];
+// 日本の祝日（振替休日・国民の休日を含む）。カレンダーの色分けと、納品期限（営業日）の計算に使う。
+// 2028年以降は追記が必要。
+export const JP_HOLIDAYS = [
+  '2026-01-01', '2026-01-12', '2026-02-11', '2026-02-23', '2026-03-20', '2026-04-29', '2026-05-03', '2026-05-04',
+  '2026-05-05', '2026-05-06', '2026-07-20', '2026-08-11', '2026-09-21', '2026-09-22', '2026-09-23', '2026-10-12',
+  '2026-11-03', '2026-11-23',
+  '2027-01-01', '2027-01-11', '2027-02-11', '2027-02-23', '2027-03-21', '2027-03-22', '2027-04-29', '2027-05-03',
+  '2027-05-04', '2027-05-05', '2027-07-19', '2027-08-11', '2027-09-20', '2027-09-23', '2027-10-11', '2027-11-03',
+  '2027-11-23',
+];
 
 export function isoDate(d) {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -461,6 +471,48 @@ export const RESCHEDULE_DENIED_MESSAGE = {
   no_plan: '撮影日の2日前からの日程変更は、「あんしん振替プラン」にご加入の方のみ可能です。ご都合がつかない場合は、キャンセル（キャンセル規定どおり）をご利用ください。',
   plan_used: '「あんしん振替プラン」の無料の日程変更は、1回までです。すでにご利用済みのため、これ以上は日程変更できません。',
 };
+
+// マッチング数保証：申請できるのは、撮影日＋30日（eligible_at）から14日間。
+// 申し込み済みの予約は、申請期限が過ぎる（または審査が終わる）まで送金しない。
+export const GUARANTEE_WINDOW_DAYS = 30;
+export const GUARANTEE_CLAIM_DAYS = 14;
+export const guaranteeClaimDeadline = (claim) => addDaysToIso(claim.eligible_at, GUARANTEE_CLAIM_DAYS);
+// 送金を止めるべき申請か（申請中、または申込み済みで期限内）。
+export function guaranteeBlocksPayout(claim, todayIso = jstDateIso()) {
+  if (!claim) return false;
+  if (claim.status === 'claimed') return true;
+  return claim.status === 'applied' && todayIso <= guaranteeClaimDeadline(claim);
+}
+
+// モニター価格の定員（schema.sql の monitor_slots_left() と同じ値）。
+export const MONITOR_CAPACITY = 10;
+
+// 運営によるキャンセルの理由（/api/bookings/ops-cancel と運営画面で共用）。
+export const OPS_CANCEL_REASONS = {
+  photographer: 'カメラマンの都合により撮影ができなくなったため',
+  weather: '悪天候により撮影ができなくなったため',
+  other: '運営の判断により',
+};
+
+// 納品期限（規約第6条：撮影日から最短翌日〜3営業日以内。スピード納品は翌営業日）。
+// 営業日は土日・祝日を除く日。
+export const SPEED_DELIVERY_OPTION_KEY = 'speed';
+export function addBusinessDays(iso, n) {
+  let d = iso;
+  let left = n;
+  while (left > 0) {
+    d = addDaysToIso(d, 1);
+    const dow = new Date(`${d}T00:00:00Z`).getUTCDay();
+    if (dow !== 0 && dow !== 6 && !JP_HOLIDAYS.includes(d)) left -= 1;
+  }
+  return d;
+}
+export function deliveryDueDate(booking) {
+  const speed = (booking.options || []).some((o) => o.key === SPEED_DELIVERY_OPTION_KEY);
+  return { date: addBusinessDays(booking.booking_date, speed ? 1 : 3), speed };
+}
+// 納品リンクとして受け付けるURL（https のみ）。
+export const isValidDeliveryUrl = (u) => /^https:\/\/[^\s<>"']{4,490}$/.test(String(u || ''));
 
 // 遅刻キャンセル（集合時間に15分以上遅れた場合。規約第5条）。運営が撮影開始後に
 // 処理し、当日キャンセルと同じ扱いにする：プラン料金の100%をいただき、

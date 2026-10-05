@@ -2,7 +2,7 @@
 // ops-only. Records the モニター審査 result and emails it to the applicant
 // (the monitor page promises the result "by email"). Done server-side so
 // the email can't be skipped and only ops can decide a result.
-import { MONITOR_PLAN_NAMES } from '../../../js/data.js';
+import { MONITOR_PLAN_NAMES, MONITOR_CAPACITY } from '../../../js/data.js';
 import { verifyUser, getProfile, restSelect, restUpdate } from '../../_lib/supabaseAdmin.js';
 import { sendEmail } from '../../_lib/email.js';
 
@@ -42,6 +42,12 @@ export async function onRequestPost({ request, env }) {
   if (!user) return jsonResponse({ error: 'ログインが必要です。' }, 401);
   const profile = await getProfile(env, user.id);
   if (!profile || profile.role !== 'ops') return jsonResponse({ error: '運営権限がありません。' }, 403);
+
+  // 先着の定員を超えて当選させない。
+  if (status === 'accepted') {
+    const accepted = await restSelect(env, 'monitor_applications', { status: 'in.(accepted,completed)', select: 'id' });
+    if (accepted.length >= MONITOR_CAPACITY) return jsonResponse({ error: `定員（${MONITOR_CAPACITY}名）に達しているため、これ以上当選にできません。` }, 409);
+  }
 
   // Only an application still awaiting review can be decided, so a double
   // click can't send the applicant two emails.

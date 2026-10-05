@@ -51,6 +51,17 @@ export async function restInsert(env, table, row) {
   return rows[0];
 }
 
+// Insert or, on a primary-key clash, overwrite (PostgREST merge-duplicates).
+export async function restUpsert(env, table, row) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: serviceHeaders(env, { 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=representation' }),
+    body: JSON.stringify(row),
+  });
+  if (!res.ok) throw new Error(`Supabase upsert failed on ${table}: ${res.status} ${await res.text()}`);
+  return res.json();
+}
+
 export async function restUpdate(env, table, match, patch) {
   const params = new URLSearchParams(match);
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params.toString()}`, {

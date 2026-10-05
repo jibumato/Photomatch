@@ -28,7 +28,7 @@ function bookingLines(b, photographerName, { forCustomer }) {
   return [
     forCustomer ? `カメラマン：${photographerName}` : null,
     `日時：${formatDate(b.booking_date)} ${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}`,
-    `プラン：${b.plan_name}${b.monitor_application_id ? '（モニター価格）' : ''}${forCustomer ? `（¥${b.plan_price.toLocaleString()}）` : ''}`,
+    `プラン：${b.plan_name}${b.monitor_application_id ? '（モニター価格）' : ''}${b.reshoot_of ? '（マッチング数保証による無料再撮影）' : ''}${forCustomer ? `（¥${b.plan_price.toLocaleString()}）` : ''}`,
     options.length ? `オプション：${options.join('、')}` : null,
     forCustomer ? `お支払い合計：¥${b.total_price.toLocaleString()}（税込）` : null,
     `撮影エリア：${b.area || '-'}`,
@@ -67,17 +67,30 @@ function messages(kind, b, photographerName, origin) {
       },
     };
   }
-  if (kind === 'rescheduled') {
+  if (kind === 'ops_canceled') {
+    return {
+      customer: {
+        subject: `【PhotoMatch】ご予約をキャンセルいたしました（${when}）`,
+        text: `${b.customer_name} 様\n\n誠に申し訳ございません。${b.cancel_note || '運営の判断により'}、以下のご予約をキャンセルいたしました。\n\n■キャンセルしたご予約\n${bookingLines(b, photographerName, { forCustomer: true })}${refundLines(b)}\n\n別の日時でのご予約は、下記からお選びいただけます。ご不明な点は、このメールにご返信ください。\n${origin}/search.html\n${FOOTER(origin)}`,
+      },
+      photographer: {
+        subject: `【PhotoMatch】予約が運営によりキャンセルされました（${when}）`,
+        text: `${photographerName} さん\n\n以下の予約を、運営がキャンセルしました（${b.cancel_note || '運営の判断'}）。この枠は再び予約を受け付けられる状態になっています。\n\n■キャンセルされた予約\n依頼者：${b.customer_name} 様\n${bookingLines(b, photographerName, { forCustomer: false })}\n\n${origin}/admin.html\n${FOOTER(origin)}`,
+      },
+    };
+  }
+  if (kind === 'rescheduled' || kind === 'ops_rescheduled') {
+    const byOps = kind === 'ops_rescheduled';
     const was = b.previous_booking_date ? `${formatDate(b.previous_booking_date)} ${String(b.previous_start_time).slice(0, 5)}〜` : '-';
     const change = `■変更前\n${was}\n\n■変更後\n${bookingLines(b, photographerName, { forCustomer: true })}`;
     return {
       customer: {
         subject: `【PhotoMatch】ご予約の日程を変更しました（${when}）`,
-        text: `${b.customer_name} 様\n\nご予約の日程変更を承りました。\n\n${change}\n\n当日は集合場所で直接お待ち合わせください。\n予約内容の確認・カメラマンとのメッセージはマイページからご利用いただけます。\n${origin}/mypage.html\n\n■キャンセルポリシー\n${CANCEL_POLICY}\n${FOOTER(origin)}`,
+        text: `${b.customer_name} 様\n\n${byOps ? '運営にて、ご予約の日程を変更いたしました。' : 'ご予約の日程変更を承りました。'}\n\n${change}\n\n当日は集合場所で直接お待ち合わせください。\n予約内容の確認・カメラマンとのメッセージはマイページからご利用いただけます。\n${origin}/mypage.html\n\n■キャンセルポリシー\n${CANCEL_POLICY}\n${FOOTER(origin)}`,
       },
       photographer: {
         subject: `【PhotoMatch】予約の日程が変更されました（${when}）`,
-        text: `${photographerName} さん\n\n以下の予約の日程が、依頼者により変更されました。元の枠は再び予約を受け付けられる状態になり、変更後の枠が埋まりました。\n\n依頼者：${b.customer_name} 様\n連絡先：${b.customer_contact}\n\n■変更前\n${was}\n\n■変更後\n${bookingLines(b, photographerName, { forCustomer: false })}\n\n${origin}/admin.html\n${FOOTER(origin)}`,
+        text: `${photographerName} さん\n\n以下の予約の日程が、${byOps ? '運営により' : '依頼者により'}変更されました。元の枠は再び予約を受け付けられる状態になり、変更後の枠が埋まりました。\n\n依頼者：${b.customer_name} 様\n連絡先：${b.customer_contact}\n\n■変更前\n${was}\n\n■変更後\n${bookingLines(b, photographerName, { forCustomer: false })}\n\n${origin}/admin.html\n${FOOTER(origin)}`,
       },
     };
   }
@@ -108,17 +121,17 @@ function messages(kind, b, photographerName, origin) {
 // Ops copy: every booking and cancellation, with what ops may need to act on
 // (a refund that failed, a same-day compensation to pay out).
 function opsMessage(kind, b, photographerName, origin) {
-  const head = { confirmed: '新しい予約', canceled: '予約キャンセル', no_show: '遅刻キャンセルの処理', rescheduled: '予約の日程変更' }[kind];
-  const refund = (kind === 'canceled' || kind === 'no_show') && b.total_price
+  const head = { confirmed: '新しい予約', canceled: '予約キャンセル', no_show: '遅刻キャンセルの処理', rescheduled: '予約の日程変更', ops_canceled: '運営によるキャンセル', ops_rescheduled: '運営による日程変更' }[kind];
+  const refund = (kind === 'canceled' || kind === 'no_show' || kind === 'ops_canceled') && b.total_price
     ? `\n\nキャンセル料：${yen(b.cancel_fee)}\n返金額：${yen(b.refund_amount)}（${REFUND_STATUS_LABEL[b.refund_status] || b.refund_status || '-'}）${b.photographer_cancel_comp ? `\nカメラマンへの当日キャンセル補償：${yen(b.photographer_cancel_comp)}` : ''}`
     : '';
   return {
     subject: `【PhotoMatch運営】${head}${b.refund_status === 'failed' ? '・要返金対応' : ''}（${shortDate(b.booking_date)} ${b.start_time.slice(0, 5)}〜 ${photographerName}）`,
-    text: `${head}がありました。${kind === 'rescheduled' && b.previous_booking_date ? `\n変更前：${formatDate(b.previous_booking_date)} ${String(b.previous_start_time).slice(0, 5)}〜${b.reschedule_plan_used ? '（あんしん振替プランの無料1回を使用）' : ''}` : ''}\n\n予約ID：${b.id}\n依頼者：${b.customer_name} 様（${b.customer_contact || '-'}）${b.customer_gender ? `\n依頼者の性別：${{ male: '男性', female: '女性', other: '回答しない' }[b.customer_gender] || '-'}（異性スタッフ写真セレクトの担当判定用）` : ''}\n${bookingLines(b, photographerName, { forCustomer: true })}${refund}\n\n${origin}/ops.html\n`,
+    text: `${head}がありました。${kind === 'ops_canceled' && b.cancel_note ? `\n理由：${b.cancel_note}` : ''}${(kind === 'rescheduled' || kind === 'ops_rescheduled') && b.previous_booking_date ? `\n変更前：${formatDate(b.previous_booking_date)} ${String(b.previous_start_time).slice(0, 5)}〜${b.reschedule_plan_used ? '（あんしん振替プランの無料1回を使用）' : ''}` : ''}\n\n予約ID：${b.id}\n依頼者：${b.customer_name} 様（${b.customer_contact || '-'}）${b.customer_gender ? `\n依頼者の性別：${{ male: '男性', female: '女性', other: '回答しない' }[b.customer_gender] || '-'}（異性スタッフ写真セレクトの担当判定用）` : ''}\n${bookingLines(b, photographerName, { forCustomer: true })}${refund}\n\n${origin}/ops.html\n`,
   };
 }
 
-// kind: 'confirmed' | 'canceled' | 'no_show' | 'rescheduled'
+// kind: 'confirmed' | 'canceled' | 'no_show' | 'rescheduled' | 'ops_canceled' | 'ops_rescheduled'
 export async function notifyBooking(env, bookingId, kind, origin) {
   try {
     const [booking] = await restSelect(env, 'bookings', { id: `eq.${bookingId}`, select: '*' });

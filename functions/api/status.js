@@ -76,5 +76,7 @@ export async function onRequestGet({ request, env }) {
     stripe_webhook_secret: env.STRIPE_WEBHOOK_SECRET ? 'set' : 'missing',
     resend_key: resend,
     email_from: env.EMAIL_FROM ? 'set' : 'missing',
+    // Optional: where ops alerts go (falls back to info.photomatch@gmail.com).
+    ops_email: env.OPS_EMAIL ? 'set' : 'default',
   });
 }
