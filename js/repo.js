@@ -237,6 +237,45 @@ export async function getPhotographerBookings(photographerId) {
 
 // Goes through a Function (not a direct table update) so the cancellation
 // emails to the customer and photographer are always sent.
+// ---- ops: booking management (予約の管理) ----
+
+// Bookings from fromIso on (past shoots and cancellations included), with the
+// photographer's name, for the ops list. Ops can read every booking (RLS).
+export async function getBookingsForOps(fromIso) {
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*, photographers(name)')
+    .gte('booking_date', fromIso)
+    .order('booking_date', { ascending: true })
+    .order('start_time', { ascending: true });
+  if (error) throw error;
+  return data.map((b) => ({ ...b, photographer_name: b.photographers?.name || b.photographer_id }));
+}
+
+// Bookings that need ops attention whatever their date: a refund that failed,
+// or a payout on hold (chargeback, refund made in Stripe).
+export async function getBookingsNeedingAttention() {
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*, photographers(name)')
+    .or('refund_status.eq.failed,payout_hold.eq.true')
+    .order('booking_date', { ascending: true });
+  if (error) throw error;
+  return data.map((b) => ({ ...b, photographer_name: b.photographers?.name || b.photographer_id }));
+}
+
+export async function opsCancelBooking(bookingId, refundAmount, reason, note) {
+  return callApi('/api/bookings/ops-cancel', { booking_id: bookingId, refund_amount: refundAmount, reason, note }, 'キャンセルに失敗しました。');
+}
+
+export async function markRefunded(bookingId, note) {
+  return callApi('/api/bookings/mark-refunded', { booking_id: bookingId, note }, '更新に失敗しました。');
+}
+
+export async function setPayoutHold(bookingId, hold, reason) {
+  return callApi('/api/bookings/payout-hold', { booking_id: bookingId, hold, reason }, '更新に失敗しました。');
+}
+
 // Moves the signed-in customer's booking to another date/time (rules and
 // slot checks are on the server). Resolves to { ok, booking_date, start_time, end_time, used_plan }.
 export async function rescheduleBooking(bookingId, bookingDate, startTime) {

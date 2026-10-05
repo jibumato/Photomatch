@@ -1,6 +1,7 @@
 // POST /api/stripe/webhook
 // Registered in the Stripe dashboard against this URL, subscribed to
-// checkout.session.completed (and optionally checkout.session.expired).
+// checkout.session.completed, checkout.session.expired, charge.refunded,
+// charge.dispute.created and charge.dispute.closed.
 // Finalizing the booking here — rather than trusting the browser's redirect
 // back to success_url — is what actually confirms payment; a customer
 // closing the tab after paying must not leave the booking unpaid.
@@ -73,6 +74,10 @@ export async function onRequestPost({ request, env }) {
         }
         // Otherwise: a repeated delivery for a booking already handled.
       }
+    } else if (event.type === 'charge.refunded') {
+      await handleRefunded(env, event.data.object, new URL(request.url).origin);
+    } else if (event.type === 'charge.dispute.created' || event.type === 'charge.dispute.closed') {
+      await handleDispute(env, event.type, event.data.object, new URL(request.url).origin);
     } else if (event.type === 'checkout.session.expired') {
       // Free the slot immediately instead of waiting for the 20-minute
       // pending_payment staleness window in the booking_slots view.
@@ -129,4 +134,63 @@ async function cancelAndRefundInFull(env, booking, { paymentIntent, chargeId, re
     `予約ID：${booking.id}\n依頼者：${booking.customer_name || '-'}（${booking.customer_contact || '-'}）\n日時：${booking.booking_date} ${booking.start_time.slice(0, 5)}〜\n金額：¥${booking.total_price.toLocaleString()}\n理由：${reason}\n返金：${refundStatus === 'succeeded' ? '自動返金済み' : refundStatus === 'failed' ? '自動返金に失敗しました。Stripeの管理画面から手動で返金してください' : '処理中'}\n\nお客様には、お手数ですがメールなどでご連絡ください。`,
     origin,
   );
+}
+
+async function bookingForPayment(env, paymentIntent) {
+  if (!paymentIntent) return null;
+  const [booking] = await restSelect(env, 'bookings', { stripe_payment_intent_id: `eq.${paymentIntent}`, select: '*' });
+  return booking || null;
+}
+
+// A refund happened — through the app (already recorded) or by hand in the
+// Stripe dashboard. Keep the DB in step with Stripe: record the refunded
+// total, and if money went back on a booking that is still active, hold the
+// photographer payout until ops has looked at it.
+async function handleRefunded(env, charge, origin) {
+  const booking = await bookingForPayment(env, charge.payment_intent);
+  if (!booking) return;
+  const refunded = charge.amount_refunded || 0;
+  const patch = { stripe_refunded_total: refunded };
+  // A refund that failed in the app and was then done by hand in Stripe.
+  if (booking.status === 'canceled' && ['failed', 'pending'].includes(booking.refund_status) && refunded >= (booking.refund_amount || 0)) {
+    patch.refund_status = 'succeeded';
+  }
+  const activeRefund = booking.status !== 'canceled' && refunded > 0 && booking.payout_status !== 'released';
+  if (activeRefund && !booking.payout_hold) {
+    patch.payout_hold = true;
+    patch.payout_hold_reason = `Stripeで返金（¥${refunded.toLocaleString()}）があったため`;
+  }
+  await restUpdate(env, 'bookings', { id: `eq.${booking.id}` }, patch);
+  if (activeRefund) {
+    await notifyOps(
+      env,
+      '【要確認】Stripeで返金がありました（予約は有効のまま）',
+      `予約ID：${booking.id}\n日時：${booking.booking_date} ${booking.start_time.slice(0, 5)}〜\n依頼者：${booking.customer_name || '-'}\n返金済み合計：¥${refunded.toLocaleString()}（支払い ¥${booking.total_price.toLocaleString()}）\n\nこの予約のカメラマンへの送金を保留にしました。予約をキャンセルするか、送金額を確認してから、運営画面「予約の管理」で保留を解除してください。`,
+      origin,
+    );
+  }
+}
+
+// Chargebacks: hold the payout while a dispute is open; tell ops either way.
+async function handleDispute(env, type, dispute, origin) {
+  const booking = await bookingForPayment(env, dispute.payment_intent);
+  if (!booking) return;
+  if (type === 'charge.dispute.created') {
+    if (booking.payout_status !== 'released') {
+      await restUpdate(env, 'bookings', { id: `eq.${booking.id}` }, { payout_hold: true, payout_hold_reason: 'チャージバック（不審請求の申し立て）が発生したため' });
+    }
+    await notifyOps(
+      env,
+      '【要対応】チャージバック（不審請求の申し立て）が発生しました',
+      `予約ID：${booking.id}\n日時：${booking.booking_date} ${booking.start_time.slice(0, 5)}〜\n依頼者：${booking.customer_name || '-'}（${booking.customer_contact || '-'}）\n金額：¥${(dispute.amount || 0).toLocaleString()}\n理由：${dispute.reason || '-'}\n\n${booking.payout_status === 'released' ? 'この予約のカメラマンへの送金は、すでに済んでいます。' : 'カメラマンへの送金を保留にしました。'}Stripeの管理画面で、期限までに証拠を提出してください。`,
+      origin,
+    );
+  } else {
+    await notifyOps(
+      env,
+      `チャージバックが終了しました（${dispute.status === 'won' ? '勝訴：売上は戻りました' : '敗訴：返金扱い'}）`,
+      `予約ID：${booking.id}\n日時：${booking.booking_date} ${booking.start_time.slice(0, 5)}〜\n\n${dispute.status === 'won' ? '運営画面「予約の管理」で、送金の保留を解除できます。' : '送金の保留は解除されていません。カメラマンへの支払いの扱いを決めてください。'}`,
+      origin,
+    );
+  }
 }

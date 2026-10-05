@@ -6,8 +6,12 @@ import {
   getPayoutCandidates, getGuaranteeClaimsForBookings, releasePayout, getBankAccountsForPhotographers,
   createPhotographerAccount, resetPhotographerPassword, markNoShow, getPhotographersForReview, setPhotographerVisibility,
   getReviewsForModeration, setReviewHidden,
+  getBookingsForOps, getBookingsNeedingAttention, opsCancelBooking, markRefunded, setPayoutHold,
 } from '../repo.js';
-import { AREAS, photographerPayoutFor, noShowQuote } from '../data.js';
+import {
+  AREAS, EXTRA_OPTIONS, OPS_CANCEL_REASONS, RESCHEDULABLE_STATUSES, photographerPayoutFor, noShowQuote, jstDateIso, addDaysToIso,
+} from '../data.js';
+import { mountRescheduleModal } from '../rescheduleModal.js';
 import { safePhotoUrl } from '../util.js';
 
 const GUARANTEE_WINDOW_DAYS = 30;
@@ -355,7 +359,7 @@ function payoutGroupHtml(group, { ready }) {
     const noShow = noShowQuote(b).allowed
       ? ` <button data-booking-id="${b.id}" class="btn-no-show" style="background:none;border:none;padding:0 0 0 6px;font:700 11px var(--pm-font-body);color:var(--pm-warn-text);text-decoration:underline;cursor:pointer">遅刻キャンセルにする</button>`
       : '';
-    return `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">・${b.booking_date} ${String(b.start_time || '').slice(0, 5)}　${what}　依頼者：${escapeHtml(b.customer_name || '-')}　¥${amount.toLocaleString()}${noShow}</div>`;
+    return `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">・${b.booking_date} ${String(b.start_time || '').slice(0, 5)}　${what}　依頼者：${escapeHtml(b.customer_name || '-')}　¥${amount.toLocaleString()}${b.payout_hold ? `　<b style="color:var(--pm-warn-text)">送金保留中（${escapeHtml(b.payout_hold_reason || '')}）</b>` : ''}${noShow}</div>`;
   }).join('');
   return `
   <div class="pm-card" style="padding:18px 20px">
@@ -406,7 +410,7 @@ async function loadPayouts() {
     const claim = claimsByBooking[b.id];
     const disputed = claim && claim.status === 'claimed';
     const pastWindow = today >= eligiblePayoutDate(b);
-    (pastWindow && !disputed ? ready : waiting).push(b);
+    (pastWindow && !disputed && !b.payout_hold ? ready : waiting).push(b);
   });
 
   const photographerIds = [...new Set([...ready, ...waiting].map((b) => b.photographer_id))];
@@ -426,29 +430,7 @@ async function loadPayouts() {
 
   const bookingsById = Object.fromEntries(bookings.map((b) => [b.id, b]));
   [readyEl, waitingEl].forEach((el) => el.querySelectorAll('.btn-no-show').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const b = bookingsById[btn.dataset.bookingId];
-      const q = noShowQuote(b);
-      if (!q.allowed) return;
-      const yen = (n) => `¥${n.toLocaleString()}`;
-      const note = prompt(
-        `${b.booking_date} ${String(b.start_time).slice(0, 5)}〜 ${b.customer_name || ''} 様の予約を、遅刻（15分以上）による当日キャンセルとして処理します。\n\n`
-        + `キャンセル料：${yen(q.fee)}\nお客様への返金（オプション分）：${yen(q.refund)}\nカメラマンへの報酬：${yen(photographerPayoutFor(b))} → 補償 ${yen(q.photographerComp)}\n\n`
-        + 'お客様・カメラマンにメールで通知されます。取り消しはできません。\nメモ（任意。遅刻の状況など）を入力してOKを押してください。',
-        '',
-      );
-      if (note === null) return;
-      btn.disabled = true;
-      try {
-        const result = await markNoShow(b.id, note);
-        if (result.refund_status === 'failed') alert('処理しましたが、自動返金に失敗しました。Stripe の管理画面から手動で返金してください。');
-        loadPayouts();
-      } catch (err) {
-        alert(err.message || '遅刻キャンセルの処理に失敗しました。');
-        console.error(err);
-        btn.disabled = false;
-      }
-    });
+    btn.addEventListener('click', () => handleNoShow(bookingsById[btn.dataset.bookingId], btn, () => { loadPayouts(); loadBookings(); }));
   }));
 
   readyEl.querySelectorAll('.btn-payout-release').forEach((btn) => {
@@ -471,6 +453,139 @@ async function loadPayouts() {
   });
 }
 
+// 遅刻キャンセル（送金一覧と予約の管理の両方から使う）。
+async function handleNoShow(b, btn, after) {
+  const q = noShowQuote(b);
+  if (!q.allowed) return;
+  const yen = (n) => `¥${n.toLocaleString()}`;
+  const note = prompt(
+    `${b.booking_date} ${String(b.start_time).slice(0, 5)}〜 ${b.customer_name || ''} 様の予約を、遅刻（15分以上）による当日キャンセルとして処理します。\n\n`
+    + `キャンセル料：${yen(q.fee)}\nお客様への返金（オプション分）：${yen(q.refund)}\nカメラマンへの報酬：${yen(photographerPayoutFor(b))} → 補償 ${yen(q.photographerComp)}\n\n`
+    + 'お客様・カメラマンにメールで通知されます。取り消しはできません。\nメモ（任意。遅刻の状況など）を入力してOKを押してください。',
+    '',
+  );
+  if (note === null) return;
+  btn.disabled = true;
+  try {
+    const result = await markNoShow(b.id, note);
+    if (result.refund_status === 'failed') alert('処理しましたが、自動返金に失敗しました。Stripe の管理画面から手動で返金してください。');
+    after();
+  } catch (err) {
+    alert(err.message || '遅刻キャンセルの処理に失敗しました。');
+    console.error(err);
+    btn.disabled = false;
+  }
+}
+
+// ---- 予約の管理 ----
+const reschedModal = mountRescheduleModal(document.getElementById('pm-ops-resched-mount'));
+const OPS_STATUS = { pending_payment: '決済待ち', paid: '確定', confirmed: '確定', requested: '依頼中', completed: '完了', canceled: 'キャンセル済' };
+const CANCEL_REASON_LABEL = { customer: 'お客様がキャンセル', no_show: '遅刻キャンセル', system: '決済の取り消し（自動）', ops: '運営がキャンセル' };
+const REFUND_LABEL = { none: '返金なし', pending: '返金処理中', succeeded: '返金済み', failed: '自動返金に失敗' };
+const GENDER_LABEL = { male: '男性', female: '女性', other: '回答しない' };
+const yen = (n) => `¥${Number(n || 0).toLocaleString()}`;
+
+function opsBookingCardHtml(b) {
+  const optionLabels = (b.options || []).map((o) => (EXTRA_OPTIONS.find((x) => x.key === o.key) || {}).label).filter(Boolean);
+  const active = RESCHEDULABLE_STATUSES.includes(b.status) || b.status === 'pending_payment';
+  const canAct = b.payout_status !== 'released';
+  const actions = [];
+  if (canAct && RESCHEDULABLE_STATUSES.includes(b.status)) actions.push(`<button data-id="${b.id}" class="btn-ops-resched pm-btn-outline">日程変更</button>`);
+  if (canAct && active) actions.push(`<button data-id="${b.id}" class="btn-ops-cancel pm-btn-danger-outline">キャンセル（返金）</button>`);
+  if (noShowQuote(b).allowed) actions.push(`<button data-id="${b.id}" class="btn-ops-noshow pm-btn-danger-outline">遅刻キャンセル</button>`);
+  if (b.status === 'canceled' && ['failed', 'pending'].includes(b.refund_status)) actions.push(`<button data-id="${b.id}" class="btn-ops-refunded pm-btn-outline">手動で返金済みにする</button>`);
+  if (b.payout_hold) actions.push(`<button data-id="${b.id}" class="btn-ops-unhold pm-btn-outline">送金の保留を解除</button>`);
+  else if (canAct && b.status !== 'canceled') actions.push(`<button data-id="${b.id}" class="btn-ops-hold pm-btn-outline" style="font-size:11px">送金を保留</button>`);
+  const reasons = [
+    b.status === 'canceled' ? `${CANCEL_REASON_LABEL[b.cancel_reason] || 'キャンセル'}${b.cancel_note ? `：${escapeHtml(b.cancel_note)}` : ''}` : '',
+    b.status === 'canceled' && b.refund_status ? `${REFUND_LABEL[b.refund_status] || b.refund_status} ${yen(b.refund_amount)}` : '',
+    b.payout_hold ? `<b style="color:var(--pm-warn-text)">送金保留：${escapeHtml(b.payout_hold_reason || '')}</b>` : '',
+    b.refund_status === 'failed' ? '<b style="color:var(--pm-warn-text)">Stripeで手動返金が必要</b>' : '',
+    b.rescheduled_count ? `日程変更 ${b.rescheduled_count}回（変更前：${b.previous_booking_date} ${String(b.previous_start_time || '').slice(0, 5)}〜）` : '',
+  ].filter(Boolean);
+  return `
+  <div class="pm-card" style="padding:14px 18px" data-booking-row="${b.id}">
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div style="min-width:0;font:12px/1.8 var(--pm-font-body);color:var(--pm-text-3)">
+        <div style="font:700 14px var(--pm-font-body);color:oklch(0.3 0.02 235)">${b.booking_date} ${String(b.start_time).slice(0, 5)}〜${String(b.end_time).slice(0, 5)}　${escapeHtml(b.photographer_name)}
+          <span style="${PILL};margin-left:6px;background:oklch(0.94 0.04 210);color:oklch(0.4 0.1 220)">${OPS_STATUS[b.status] || escapeHtml(b.status)}</span></div>
+        <div>依頼者：${escapeHtml(b.customer_name || '-')}（${escapeHtml(b.customer_contact || '-')}）${b.customer_gender ? ` ・ ${GENDER_LABEL[b.customer_gender] || ''}` : ''}</div>
+        <div>${escapeHtml(b.plan_name || '')}${b.monitor_application_id ? '（モニター価格）' : ''}${optionLabels.length ? ` ＋ ${optionLabels.map(escapeHtml).join('、')}` : ''} ・ 合計 ${yen(b.total_price)} ・ ${escapeHtml(b.area || '')}</div>
+        ${reasons.length ? `<div>${reasons.join(' ／ ')}</div>` : ''}
+      </div>
+      ${actions.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start">${actions.join('')}</div>` : ''}
+    </div>
+    <div class="ops-cancel-form" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint)">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;font:12px var(--pm-font-body)">
+        <label>理由<br><select class="pm-select cancel-reason" style="width:auto">${Object.entries(OPS_CANCEL_REASONS).map(([k, v]) => `<option value="${k}">${v.replace(/により.*$/, '').replace('ため', '')}</option>`).join('')}</select></label>
+        <label>返金額（円）<br><input class="pm-input cancel-refund" type="number" min="0" max="${b.status === 'pending_payment' ? 0 : b.total_price}" value="${b.status === 'pending_payment' ? 0 : b.total_price}" style="width:120px"></label>
+        <label style="flex:1;min-width:160px">メモ（任意・お客様へのメールに入ります）<br><input class="pm-input cancel-note" type="text" maxlength="200"></label>
+        <button class="pm-btn-danger-outline btn-ops-cancel-run" data-id="${b.id}">キャンセルを実行</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function loadBookings() {
+  const today = jstDateIso();
+  const [list, attention] = await Promise.all([getBookingsForOps(addDaysToIso(today, -45)), getBookingsNeedingAttention()]);
+  const visible = list.filter((b) => !(b.status === 'pending_payment' && Date.now() - new Date(b.created_at).getTime() > 60 * 60 * 1000));
+  const upcoming = visible.filter((b) => b.booking_date >= today && b.status !== 'canceled');
+  const recent = visible.filter((b) => b.booking_date < today || b.status === 'canceled').reverse();
+  const all = [...attention, ...visible];
+  const byId = Object.fromEntries(all.map((b) => [b.id, b]));
+  const fill = (id, rows, empty) => {
+    document.getElementById(id).innerHTML = rows.length ? rows.map(opsBookingCardHtml).join('') : `<div class="pm-empty">${empty}</div>`;
+  };
+  fill('pm-bookings-attention', attention, '対応が必要な予約はありません。');
+  fill('pm-bookings-upcoming', upcoming, '今後の予約はありません。');
+  fill('pm-bookings-recent', recent, '過去45日の撮影・キャンセルはありません。');
+
+  const refresh = () => { loadBookings().catch(console.error); loadPayouts().catch(console.error); };
+  const each = (cls, fn) => document.querySelectorAll(`#pm-bookings-attention .${cls}, #pm-bookings-upcoming .${cls}, #pm-bookings-recent .${cls}`)
+    .forEach((btn) => btn.addEventListener('click', () => fn(byId[btn.dataset.id], btn)));
+
+  each('btn-ops-resched', (b) => reschedModal.open(b, refresh, { asOps: true }));
+  each('btn-ops-noshow', (b, btn) => handleNoShow(b, btn, refresh));
+  each('btn-ops-cancel', (b, btn) => {
+    const form = btn.closest('[data-booking-row]').querySelector('.ops-cancel-form');
+    form.style.display = form.style.display === 'none' ? '' : 'none';
+  });
+  each('btn-ops-cancel-run', async (b, btn) => {
+    const row = btn.closest('[data-booking-row]');
+    const reason = row.querySelector('.cancel-reason').value;
+    const refund = Number(row.querySelector('.cancel-refund').value);
+    const note = row.querySelector('.cancel-note').value.trim();
+    if (!confirm(`${b.booking_date} ${String(b.start_time).slice(0, 5)}〜 ${b.customer_name || ''} 様の予約をキャンセルします。\n\n理由：${OPS_CANCEL_REASONS[reason]}\nお客様への返金：${yen(refund)}（支払い ${yen(b.status === 'pending_payment' ? 0 : b.total_price)}）\nカメラマンへの報酬：なし\n\nお客様・カメラマンにメールで通知されます。取り消しはできません。よろしいですか？`)) return;
+    btn.disabled = true;
+    try {
+      const result = await opsCancelBooking(b.id, refund, reason, note);
+      if (result.refund_status === 'failed') alert('キャンセルしましたが、自動返金に失敗しました。Stripe の管理画面から手動で返金し、「手動で返金済みにする」を押してください。');
+      refresh();
+    } catch (err) {
+      alert(err.message || 'キャンセルに失敗しました。');
+      btn.disabled = false;
+    }
+  });
+  each('btn-ops-refunded', async (b, btn) => {
+    const note = prompt('Stripe の管理画面で返金したことを記録します。お客様のマイページの表示が「返金済み」になります。\nメモ（任意）を入力してOKを押してください。', '');
+    if (note === null) return;
+    btn.disabled = true;
+    try { await markRefunded(b.id, note); refresh(); } catch (err) { alert(err.message || '更新に失敗しました。'); btn.disabled = false; }
+  });
+  each('btn-ops-unhold', async (b, btn) => {
+    if (!confirm(`この予約のカメラマンへの送金の保留を解除します（理由：${b.payout_hold_reason || '-'}）。確認は済みましたか？`)) return;
+    btn.disabled = true;
+    try { await setPayoutHold(b.id, false); refresh(); } catch (err) { alert(err.message || '更新に失敗しました。'); btn.disabled = false; }
+  });
+  each('btn-ops-hold', async (b, btn) => {
+    const reason = prompt('この予約のカメラマンへの送金を保留にします。理由を入力してください。', '');
+    if (reason === null) return;
+    btn.disabled = true;
+    try { await setPayoutHold(b.id, true, reason || '運営が保留'); refresh(); } catch (err) { alert(err.message || '更新に失敗しました。'); btn.disabled = false; }
+  });
+}
+
 async function load() {
   const profile = await requireRole('ops', 'ops-login.html');
   if (!profile) return;
@@ -479,6 +594,7 @@ async function load() {
   document.getElementById('pm-ops').style.display = 'block';
 
   loadSystemStatus();
+  await loadBookings();
   await loadListings();
   await loadReviews();
   await loadMonitorApplications();

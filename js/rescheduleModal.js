@@ -108,8 +108,9 @@ export function mountRescheduleModal(container) {
     try {
       await rescheduleBooking(current.booking.id, current.dayIso, current.time);
       const done = current.onDone;
+      const asOps = current.asOps;
       close();
-      alert('日程を変更しました。変更内容をメールでお送りしました。');
+      alert(asOps ? '日程を変更しました。お客様・カメラマンにメールで知らせました。' : '日程を変更しました。変更内容をメールでお送りしました。');
       if (done) done();
     } catch (err) {
       showError(err.message || '日程変更に失敗しました。時間をおいて再度お試しください。');
@@ -143,11 +144,14 @@ export function mountRescheduleModal(container) {
   }
 
   return {
-    async open(booking, onDone) {
-      const quote = rescheduleQuote(booking);
-      current = { booking, quote, days: buildBookingDays(TOTAL_BOOKING_DAYS), taken: {}, openSet: new Set(), dayIso: null, time: null, onDone };
+    // asOps: the ops screen moving a booking for the customer — no fee/plan rules.
+    async open(booking, onDone, { asOps = false } = {}) {
+      const quote = asOps ? { allowed: true, usesPlan: false } : rescheduleQuote(booking);
+      current = { booking, quote, asOps, days: buildBookingDays(TOTAL_BOOKING_DAYS), taken: {}, openSet: new Set(), dayIso: null, time: null, onDone };
       $('resched-booking-label').textContent = `${booking.photographer_name} ・ 現在：${booking.booking_date} ${booking.start_time.slice(0, 5)}〜${booking.end_time.slice(0, 5)}`;
-      $('resched-rule').textContent = quote.usesPlan
+      $('resched-rule').textContent = asOps
+        ? '運営として日程を変更します（料金・回数の制限はかかりません）。変更先は、カメラマンが受付中にしている空き枠から選べます。'
+        : quote.usesPlan
         ? '撮影日の2日前からの日程変更です。「あんしん振替プラン」の無料の日程変更（1回）を使います。'
         : '撮影日の3日前までの日程変更は無料です（回数の制限はありません）。';
       $('resched-loading').style.display = '';

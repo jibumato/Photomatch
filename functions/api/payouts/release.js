@@ -44,6 +44,7 @@ export async function onRequestPost({ request, env }) {
     return jsonResponse({ error: booking.status === 'canceled' ? 'このキャンセルにはカメラマンへの支払いがありません。' : 'この予約はまだ決済が完了していません。' }, 400);
   }
   if (booking.payout_status === 'released') return jsonResponse({ error: 'この予約はすでに送金済みです。' }, 400);
+  if (booking.payout_hold) return jsonResponse({ error: `この予約の送金は保留中です（${booking.payout_hold_reason || '理由未記入'}）。確認してから、運営画面「予約の管理」で保留を解除してください。` }, 400);
 
   if (!compensation) {
     const eligibleDate = new Date(`${booking.booking_date}T00:00:00+09:00`);
@@ -68,11 +69,14 @@ export async function onRequestPost({ request, env }) {
 
   const amount = photographerPayoutFor(booking);
   try {
-    await restUpdate(env, 'bookings', { id: `eq.${bookingId}` }, {
+    // Conditional, so a double click (or a hold set a moment ago) can't
+    // record the same payout twice or release a held one.
+    const updated = await restUpdate(env, 'bookings', { id: `eq.${bookingId}`, payout_status: 'eq.pending', payout_hold: 'eq.false' }, {
       payout_status: 'released',
       payout_released_at: new Date().toISOString(),
       payout_note: note,
     });
+    if (!updated.length) return jsonResponse({ error: 'この予約は送金済みか、保留中です。画面を読み込み直してください。' }, 409);
     return jsonResponse({ success: true, amount });
   } catch (err) {
     console.error('payouts/release failed', err);

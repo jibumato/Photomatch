@@ -30,6 +30,22 @@ drop policy if exists "profiles: read own" on profiles;
 create policy "profiles: read own" on profiles
   for select using (auth.uid() = id);
 
+-- 運営は全員の名前・メールを見られる（モニター応募者・予約者への連絡のため）。
+-- profiles 自身のポリシーから profiles を参照すると無限再帰になるので、
+-- RLS を通らない security definer 関数で判定する。
+create or replace function is_ops()
+returns boolean
+language sql
+stable
+security definer set search_path = public
+as $$
+  select exists (select 1 from profiles where id = auth.uid() and role = 'ops');
+$$;
+
+drop policy if exists "profiles: ops read" on profiles;
+create policy "profiles: ops read" on profiles
+  for select using (is_ops());
+
 -- 以前はここに「自分の行なら更新できる」ポリシーがあったが、列の制限が無く、
 -- ログイン済みなら誰でもブラウザから自分の role を 'ops' に書き換えられた。
 -- サイト側に profiles を更新する処理は無いため、ポリシーごと外す。権限(role)の
@@ -803,6 +819,16 @@ alter table bookings add column if not exists payout_note text; -- opsが銀行�
 -- 前日・当日 プラン料金の100%（オプション料金は全額返金）。返金は Stripe で自動。
 -- photographer_cancel_comp は当日キャンセルのときだけカメラマンへ払う補償（¥2,000）で、
 -- 通常の報酬と同じく payout_status で送金を管理する。
+-- 運営による対応（/api/bookings/ops-cancel・/api/bookings/payout-hold・Stripe Webhook）。
+--   ops: カメラマン都合・悪天候などで運営がキャンセルした（cancel_reason）
+--   payout_hold: チャージバック（不審請求の申し立て）や、Stripe 管理画面での返金があったため、
+--                カメラマンへの送金を止めている。理由は payout_hold_reason。運営が確認して解除する
+--   stripe_refunded_total: Stripe 上で返金済みの合計（charge.refunded で更新）
+alter table bookings add column if not exists payout_hold boolean not null default false;
+alter table bookings add column if not exists payout_hold_reason text;
+alter table bookings add column if not exists stripe_refunded_total int not null default 0;
+alter table bookings add column if not exists cancel_note text;
+
 -- 日程変更（/api/bookings/reschedule。ルールは js/data.js の rescheduleQuote）。
 -- 動かす前の日時は previous_* に残す（直前の1回分）。reschedule_plan_used は
 -- 「あんしん振替プラン」の無料の1回を使ったかどうか。
@@ -832,7 +858,7 @@ alter table bookings add column if not exists photographer_cancel_comp int not n
 alter table bookings add column if not exists cancel_reason text;
 alter table bookings drop constraint if exists bookings_cancel_reason_check;
 alter table bookings add constraint bookings_cancel_reason_check
-  check (cancel_reason is null or cancel_reason in ('customer', 'no_show', 'system'));
+  check (cancel_reason is null or cancel_reason in ('customer', 'no_show', 'system', 'ops'));
 
 -- モニター価格（当選者1回限りの半額）を使った予約。どの応募の権利を使ったかを残し、
 -- 2回目以降は定価になるようにする（/api/checkout/create-session が判定）。

@@ -29,6 +29,20 @@
 
       <div id="pm-system-status" class="pm-card" style="padding:16px 20px;margin-bottom:8px"></div>
 
+      <div style="margin:40px 0 20px">
+        <span style="background:var(--pm-pro-navy);color:#fff;font:700 11px var(--pm-font-body);padding:4px 12px;border-radius:100px;display:inline-block;margin-bottom:10px">運営管理</span>
+        <h1 style="font:700 22px var(--pm-font-body);margin:0 0 6px">予約の管理</h1>
+        <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0;max-width:640px">カメラマン都合・悪天候などでの<b>日程変更</b>や<b>キャンセル（返金）</b>、15分以上の<b>遅刻キャンセル</b>を、運営がお客様の代わりに行います。どれも、お客様・カメラマン・運営にメールが届きます。日程変更の変更先は、カメラマンが受付中にしている空き枠から選びます（必要ならカメラマンに枠を開けてもらってください）。</p>
+      </div>
+      <h2 style="font:700 16px var(--pm-font-body);margin:0 0 12px">要対応（返金の失敗・送金の保留）</h2>
+      <div id="pm-bookings-attention" style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px"></div>
+      <h2 style="font:700 16px var(--pm-font-body);margin:0 0 12px">今後の予約</h2>
+      <div id="pm-bookings-upcoming" style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px"></div>
+      <details style="margin-bottom:48px">
+        <summary style="cursor:pointer;font:700 16px var(--pm-font-body);margin-bottom:12px">最近の撮影・キャンセル（過去45日）</summary>
+        <div id="pm-bookings-recent" style="display:flex;flex-direction:column;gap:10px"></div>
+      </details>
+
       <div style="margin:32px 0 20px">
         <span style="background:var(--pm-pro-navy);color:#fff;font:700 11px var(--pm-font-body);padding:4px 12px;border-radius:100px;display:inline-block;margin-bottom:10px">運営管理</span>
         <h1 style="font:700 22px var(--pm-font-body);margin:0 0 6px">カメラマン登録</h1>
@@ -130,6 +144,7 @@
   </section>
 </main>
 
+<div id="pm-ops-resched-mount"></div>
 <footer class="pm-footer" id="pm-footer"></footer>
 
 <script type="module" src="js/pages/ops.js"></script>

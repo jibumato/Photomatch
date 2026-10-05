@@ -4,8 +4,8 @@
 // free until 3 days before; from 2 days before, only with the あんしん振替プラン
 // option (its one free change). The new slot goes through the same checks as a
 // new booking (opened by the photographer, not taken, inside the booking window).
-import { rescheduleQuote, RESCHEDULE_DENIED_MESSAGE } from '../../../js/data.js';
-import { verifyUser, restSelect, restUpdate } from '../../_lib/supabaseAdmin.js';
+import { rescheduleQuote, RESCHEDULE_DENIED_MESSAGE, RESCHEDULABLE_STATUSES } from '../../../js/data.js';
+import { verifyUser, getProfile, restSelect, restUpdate } from '../../_lib/supabaseAdmin.js';
 import { bookingWindowError, checkSlot } from '../../_lib/slots.js';
 import { notifyBooking } from '../../_lib/notifications.js';
 
@@ -27,11 +27,19 @@ export async function onRequestPost({ request, env }) {
   if (!user) return jsonResponse({ error: 'ログインが必要です。' }, 401);
 
   const [booking] = await restSelect(env, 'bookings', { id: `eq.${bookingId}`, select: '*' });
+  const byOps = !!booking && booking.client_id !== user.id && ((await getProfile(env, user.id)) || {}).role === 'ops';
   // Same response for "doesn't exist" and "not yours", so ids can't be probed.
-  if (!booking || booking.client_id !== user.id) return jsonResponse({ error: '予約が見つかりません。' }, 404);
+  if (!booking || (booking.client_id !== user.id && !byOps)) return jsonResponse({ error: '予約が見つかりません。' }, 404);
 
-  const quote = rescheduleQuote(booking);
-  if (!quote.allowed) return jsonResponse({ error: RESCHEDULE_DENIED_MESSAGE[quote.reason] || 'このご予約は日程変更できません。' }, 409);
+  let quote;
+  if (byOps) {
+    if (!RESCHEDULABLE_STATUSES.includes(booking.status)) return jsonResponse({ error: 'この予約は日程変更できません。' }, 409);
+    if (booking.payout_status === 'released') return jsonResponse({ error: 'カメラマンへの送金が済んでいる予約です。' }, 409);
+    quote = { allowed: true, usesPlan: false };
+  } else {
+    quote = rescheduleQuote(booking);
+    if (!quote.allowed) return jsonResponse({ error: RESCHEDULE_DENIED_MESSAGE[quote.reason] || 'このご予約は日程変更できません。' }, 409);
+  }
 
   if (newDate === booking.booking_date && newStart === booking.start_time.slice(0, 5)) {
     return jsonResponse({ error: '現在のご予約と同じ日時です。別の日時をお選びください。' }, 400);
@@ -59,7 +67,7 @@ export async function onRequestPost({ request, env }) {
   const updated = await restUpdate(
     env,
     'bookings',
-    { id: `eq.${booking.id}`, client_id: `eq.${user.id}`, status: `eq.${booking.status}`, booking_date: `eq.${booking.booking_date}`, start_time: `eq.${booking.start_time}` },
+    { id: `eq.${booking.id}`, status: `eq.${booking.status}`, booking_date: `eq.${booking.booking_date}`, start_time: `eq.${booking.start_time}` },
     {
       booking_date: newDate,
       start_time: newStart,
@@ -73,6 +81,6 @@ export async function onRequestPost({ request, env }) {
   );
   if (!updated.length) return jsonResponse({ error: 'ご予約の状態が変わったため、日程変更できませんでした。画面を読み込み直してください。' }, 409);
 
-  await notifyBooking(env, booking.id, 'rescheduled', new URL(request.url).origin);
+  await notifyBooking(env, booking.id, byOps ? 'ops_rescheduled' : 'rescheduled', new URL(request.url).origin);
   return jsonResponse({ ok: true, booking_date: newDate, start_time: newStart, end_time: slot.endTime, used_plan: quote.usesPlan });
 }
