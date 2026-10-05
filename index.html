@@ -141,19 +141,37 @@
 <header class="pm-header" id="pm-header"></header>
 
 <main>
-  <!-- Hero -->
-  <section style="position:relative;overflow:hidden;background:linear-gradient(180deg, oklch(0.95 0.035 205) 0%, oklch(0.975 0.02 215) 45%, oklch(0.99 0.006 220) 100%)">
-    <div style="position:absolute;top:-90px;right:-70px;width:440px;height:440px;border-radius:50%;background:radial-gradient(circle, oklch(0.86 0.1 195 / 0.55), transparent 70%);animation:pm-drift 15s ease-in-out infinite;pointer-events:none"></div>
-    <div style="position:absolute;bottom:-130px;left:-50px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle, oklch(0.8 0.1 240 / 0.35), transparent 70%);animation:pm-drift2 19s ease-in-out infinite;pointer-events:none"></div>
-    <div style="max-width:800px;margin:0 auto;padding:clamp(48px,10vw,88px) clamp(20px,5vw,32px) clamp(40px,8vw,68px);display:flex;flex-direction:column;align-items:center;text-align:center;position:relative">
-      <img src="assets/photomatch-logo-full-transparent.png" alt="PhotoMatch" style="height:250px;width:auto;object-fit:contain;margin:-8px 0 18px 0">
-      <div style="display:inline-flex;align-items:center;gap:7px;background:oklch(1 0 0 / 0.7);border:1px solid oklch(0.85 0.05 205);color:oklch(0.44 0.1 220);font:700 12px var(--pm-font-body);padding:7px 15px;border-radius:100px;margin-bottom:20px;backdrop-filter:blur(8px)">
-        <span style="width:6px;height:6px;border-radius:50%;background:oklch(0.72 0.14 200)"></span><span data-i18n="top.badge">名古屋発、マッチングアプリ写真専門</span>
+  <!-- Hero：写真で「こう撮れる」を見せ、判断材料（時間・料金・納品・保証）と次の一歩を1画面に収める -->
+  <section class="pm-hero2">
+    <div class="pm-hero2-glow pm-hero2-glow--a"></div>
+    <div class="pm-hero2-glow pm-hero2-glow--b"></div>
+    <div class="pm-hero2-grid">
+      <div class="pm-hero2-head">
+        <div class="pm-hero2-badge"><span></span><span data-i18n="top.badge">名古屋発、マッチングアプリ写真専門</span></div>
+        <h1 class="pm-hero2-title"><span data-i18n="top.h1.pre">自撮りじゃない、</span><br><span class="pm-hero2-hl" data-i18n="top.h1.highlight">“選ばれる一枚”を。</span></h1>
+        <p class="pm-hero2-lead" data-i18n-html="top.hero.lead">プロカメラマンが、街なかで45分撮影。<br>名古屋・岐阜・一宮で ¥6,800〜（税込）</p>
       </div>
-      <h1 style="font:900 clamp(30px,7vw,42px)/1.45 var(--pm-font-hand);margin:0 0 20px;letter-spacing:0.005em"><span data-i18n="top.h1.pre">その一枚が、</span><span data-i18n="top.h1.highlight" style="background:linear-gradient(120deg, oklch(0.64 0.15 200), oklch(0.58 0.15 250));background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent">恋の始まり。</span></h1>
-      <p style="font:clamp(14px,3.5vw,16px)/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0 0 32px;max-width:470px" data-i18n-html="top.hero.lead">待ち合わせから撮影終了まで、わずか45分。<br>あなたの街を舞台に、プロカメラマンが<br>最高の一枚を引き出します。</p>
-      <a class="pm-btn pm-btn-primary pm-btn-lg" href="search.html" id="hero-cta" data-i18n="nav.cta">撮影を予約する</a>
-      <div id="pm-hero-proof" style="margin-top:18px;font:600 13px var(--pm-font-body);color:var(--pm-text-2)"></div>
+
+      <div class="pm-hero2-photos" aria-label="撮影例">
+        <figure><img src="assets/shot-front-smile.jpg" alt="撮影例：一眼で撮った正面の笑顔" fetchpriority="high"><figcaption data-i18n="top.hero.shot1">正面×笑顔</figcaption></figure>
+        <figure><img src="assets/shot-natural-snap.jpg" alt="撮影例：一眼で撮ったフォーマルな写真"><figcaption data-i18n="top.hero.shot2">フォーマル</figcaption></figure>
+        <figure><img src="assets/shot-casual-fullbody.jpg" alt="撮影例：私服の全身写真" loading="lazy"><figcaption data-i18n="top.hero.shot3">全身×私服</figcaption></figure>
+        <figure><img src="assets/shot-outdoor-hobby.jpg" alt="撮影例：趣味・アウトドアの写真" loading="lazy"><figcaption data-i18n="top.hero.shot4">趣味・アウトドア</figcaption></figure>
+      </div>
+
+      <div class="pm-hero2-act">
+        <ul class="pm-hero2-chips">
+          <li><b data-i18n="top.hero.chip1.v">45分</b><span data-i18n="top.hero.chip1.l">で撮影完了</span></li>
+          <li><b data-i18n="top.hero.chip2.v">¥6,800〜</b><span data-i18n="top.hero.chip2.l">税込・1,000円OFF中</span></li>
+          <li><b data-i18n="top.hero.chip3.v">最短翌日</b><span data-i18n="top.hero.chip3.l">データ納品</span></li>
+          <li><b data-i18n="top.hero.chip4.v">保証付き</b><span data-i18n="top.hero.chip4.l">マッチング数保証</span></li>
+        </ul>
+        <div class="pm-hero2-ctas">
+          <a class="pm-btn pm-btn-primary pm-btn-lg" href="search.html" id="hero-cta"><span data-i18n="top.hero.cta">空き枠を見る</span><small data-i18n="top.hero.ctaNote">登録不要</small></a>
+          <a class="pm-hero2-sublink" href="#pricing-section" data-i18n="top.hero.priceLink">料金を見る →</a>
+        </div>
+        <div id="pm-hero-proof" class="pm-hero2-proof"></div>
+      </div>
     </div>
   </section>
 
