@@ -6,6 +6,7 @@
 import {
   AREAS, SLOT_TIMES, BOOKING_LEAD_DAYS, TOTAL_BOOKING_DAYS, addMinutes,
   jstDateIso, addDaysToIso, MONITOR_PLAN_NAMES, monitorPriceFor, monitorBookingCounts, areasFor,
+  EXTRA_OPTIONS, CHECKOUT_EXPIRES_MIN, PENDING_PAYMENT_HOLD_MIN,
 } from '../../../js/data.js';
 import { verifyUser, restSelect, restInsert, restUpdate } from '../../_lib/supabaseAdmin.js';
 import { stripe } from '../../_lib/stripe.js';
@@ -100,7 +101,7 @@ export async function onRequestPost({ request, env }) {
   ]);
   const startMin = timeToMinutes(startTime);
   const endMin = timeToMinutes(endTime);
-  const staleCutoff = Date.now() - 20 * 60 * 1000;
+  const staleCutoff = Date.now() - PENDING_PAYMENT_HOLD_MIN * 60 * 1000;
   const isTaken = existingBookings.some((b) => {
     if (b.status === 'pending_payment' && new Date(b.created_at).getTime() < staleCutoff) return false;
     const bStart = timeToMinutes(b.start_time.slice(0, 5));
@@ -131,7 +132,10 @@ export async function onRequestPost({ request, env }) {
     }
   }
 
-  const optionsTotal = optionsTotalFor(optionKeys);
+  // Keep only known option keys, once each: the charge, the stored options and
+  // the photographer payout (¥1,100 per option) must all count the same list.
+  const validOptionKeys = EXTRA_OPTIONS.map((o) => o.key).filter((k) => (Array.isArray(optionKeys) ? optionKeys : []).includes(k));
+  const optionsTotal = optionsTotalFor(validOptionKeys);
   const totalPrice = planPrice + optionsTotal;
 
   const booking = await restInsert(env, 'bookings', {
@@ -147,7 +151,7 @@ export async function onRequestPost({ request, env }) {
     end_time: endTime,
     customer_name: customerName,
     customer_contact: customerContact,
-    options: (optionKeys || []).map((key) => ({ key })),
+    options: validOptionKeys.map((key) => ({ key })),
     options_total: optionsTotal,
     total_price: totalPrice,
     status: 'pending_payment',
@@ -172,6 +176,9 @@ export async function onRequestPost({ request, env }) {
           },
         },
       ],
+      // Closed after CHECKOUT_EXPIRES_MIN so a page left open can't be paid
+      // once the slot has been given back to someone else.
+      expires_at: Math.floor(Date.now() / 1000) + CHECKOUT_EXPIRES_MIN * 60,
       metadata: { booking_id: booking.id },
       payment_intent_data: { metadata: { booking_id: booking.id } },
       success_url: `${origin}/booking.html?id=${photographerId}&paid_booking=${booking.id}`,

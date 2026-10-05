@@ -9,6 +9,7 @@ import { mountChatModal } from '../chat.js';
 import { loadDailyWeather } from '../weather.js';
 import { mountProfileEditor } from '../profileEditor.js';
 import { AREAS, SLOT_TIMES, buildBookingDays, weatherIconFor } from '../data.js';
+import { escapeHtml } from '../util.js';
 
 mountLayout();
 
@@ -161,11 +162,11 @@ function bookingCardHtml(b, meta) {
   <div class="pm-card" style="padding:18px 20px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
     <div style="min-width:0">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-        <span style="font:700 15px var(--pm-font-body)">${b.customer_name || '依頼者'}</span>
-        <span style="padding:3px 10px;border-radius:100px;font:700 11px var(--pm-font-body);white-space:nowrap;${STATUS_STYLE[statusLabel] || ''}">${statusLabel}</span>
+        <span style="font:700 15px var(--pm-font-body)">${escapeHtml(b.customer_name || '依頼者')}</span>
+        <span style="padding:3px 10px;border-radius:100px;font:700 11px var(--pm-font-body);white-space:nowrap;${STATUS_STYLE[statusLabel] || ''}">${escapeHtml(statusLabel)}</span>
       </div>
       <div style="font:13px var(--pm-font-body);color:oklch(0.45 0.02 235)">${b.booking_date}（${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}）</div>
-      <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${b.plan_name}</div>
+      <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${escapeHtml(b.plan_name || '')}</div>
     </div>
     <button data-booking-id="${b.id}" class="btn-chat" style="position:relative;display:flex;align-items:center;gap:6px;background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer;white-space:nowrap">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.9-.9L3 21l1.9-5.6A8.5 8.5 0 1 1 21 11.5z"></path></svg>
@@ -241,9 +242,7 @@ function bankAccountFormHtml(account) {
     </div>`;
 }
 
-function escapeAttr(s) {
-  return String(s).replace(/"/g, '&quot;');
-}
+const escapeAttr = escapeHtml;
 
 async function renderBankAccountSection(photographer) {
   const el = document.getElementById('pm-bank-account-section');

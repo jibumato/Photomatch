@@ -38,17 +38,21 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
+  -- The role comes from sign-up metadata the *browser* sends, so it is
+  -- untrusted: only 'client' and 'photographer' can be chosen that way. An
+  -- 'ops' value (or anything else) becomes 'client' — ops accounts are made
+  -- only from the SQL Editor (see "ops account" at the bottom of this file).
   insert into public.profiles (id, role, name, email)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data->>'role', 'client'),
+    case when new.raw_user_meta_data->>'role' = 'photographer' then 'photographer' else 'client' end,
     new.raw_user_meta_data->>'name',
     new.email
   );
 
   -- The stub starts hidden: area/photo/bio/plans are still empty, so it
   -- shouldn't show up in search until ops fills it in and flips is_visible.
-  if coalesce(new.raw_user_meta_data->>'role', 'client') = 'photographer' then
+  if new.raw_user_meta_data->>'role' = 'photographer' then
     insert into public.photographers (id, profile_id, name, area, availability_label, is_visible)
     values (new.id::text, new.id, coalesce(new.raw_user_meta_data->>'name', '新規カメラマン'), '未設定', '', false);
   end if;
@@ -213,11 +217,11 @@ drop policy if exists "plans: public read" on plans;
 create policy "plans: public read" on plans
   for select using (true);
 
+-- プランの価格・内容は運営だけが決める。以前は「カメラマンが自分のプランを編集できる」
+-- ポリシーがあり、ブラウザから価格を書き換えられた（決済額はこのテーブルの price）。
+-- プランの追加・変更は SQL Editor か service_role（掲載の承認時の標準プラン登録）から行う。
 drop policy if exists "plans: owner write" on plans;
-create policy "plans: owner write" on plans
-  for all using (
-    photographer_id in (select id from photographers where profile_id = auth.uid())
-  );
+revoke insert, update, delete on plans from anon, authenticated;
 
 -- ============================================================
 -- reviews (per photographer)
@@ -368,13 +372,16 @@ create policy "messages: participants read" on messages
   );
 
 drop policy if exists "messages: participants insert" on messages;
+-- sender_role は本人の立場と一致しなければならない（お客様が 'pro' として投稿できないように）。
 create policy "messages: participants insert" on messages
   for insert with check (
     sender_id = auth.uid()
-    and booking_id in (
-      select id from bookings
-      where client_id = auth.uid()
-         or photographer_id in (select id from photographers where profile_id = auth.uid())
+    and (
+      (sender_role = 'client' and booking_id in (select id from bookings where client_id = auth.uid()))
+      or (sender_role = 'pro' and booking_id in (
+        select id from bookings
+        where photographer_id in (select id from photographers where profile_id = auth.uid())
+      ))
     )
   );
 
@@ -413,23 +420,24 @@ create policy "message_reads: participants read" on message_reads
   );
 
 drop policy if exists "message_reads: participants upsert" on message_reads;
+-- 既読は自分の立場の行だけ書ける（相手側の未読バッジを消せないように）。
 create policy "message_reads: participants upsert" on message_reads
   for insert with check (
-    booking_id in (
+    (role = 'client' and booking_id in (select id from bookings where client_id = auth.uid()))
+    or (role = 'pro' and booking_id in (
       select id from bookings
-      where client_id = auth.uid()
-         or photographer_id in (select id from photographers where profile_id = auth.uid())
-    )
+      where photographer_id in (select id from photographers where profile_id = auth.uid())
+    ))
   );
 
 drop policy if exists "message_reads: participants update" on message_reads;
 create policy "message_reads: participants update" on message_reads
   for update using (
-    booking_id in (
+    (role = 'client' and booking_id in (select id from bookings where client_id = auth.uid()))
+    or (role = 'pro' and booking_id in (
       select id from bookings
-      where client_id = auth.uid()
-         or photographer_id in (select id from photographers where profile_id = auth.uid())
-    )
+      where photographer_id in (select id from photographers where profile_id = auth.uid())
+    ))
   );
 
 -- ============================================================
@@ -634,6 +642,62 @@ create policy "guarantee_claims: ops review" on guarantee_claims
     exists (select 1 from profiles where id = auth.uid() and role = 'ops')
   );
 
+-- RLS は「どの列を書くか」を制限できないため、お客様（ops・service_role 以外）の書き込みを
+-- トリガーで絞る。以前は eligible_at を画面から送れ、日付を早めたり、承認・却下済みの
+-- 申請を「申請中」に戻したり、審査コメントを書き換えたりできた。
+--   insert: 状態は 'applied' 固定、eligible_at は予約日 + 30日をDB側で計算
+--   update: 'applied' → 'claimed' だけ（eligible_at 以降の日付、日本時間）。それ以外の列は変えられない
+create or replace function guarantee_claims_guard()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  is_ops boolean;
+begin
+  if auth.uid() is null then
+    return new; -- SQL Editor / service_role
+  end if;
+  select exists (select 1 from profiles where id = auth.uid() and role = 'ops') into is_ops;
+  if is_ops then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' then
+    new.status := 'applied';
+    new.eligible_at := (select booking_date from bookings where id = new.booking_id) + 30;
+    new.claim_note := null;
+    new.claim_submitted_at := null;
+    new.review_note := null;
+    new.reviewed_at := null;
+    new.reviewed_by := null;
+    return new;
+  end if;
+
+  -- UPDATE by the customer
+  if old.status <> 'applied' or new.status <> 'claimed' then
+    raise exception 'この申請は変更できません。';
+  end if;
+  if old.eligible_at > (now() at time zone 'Asia/Tokyo')::date then
+    raise exception 'まだ申請できる日になっていません。';
+  end if;
+  new.id := old.id;
+  new.booking_id := old.booking_id;
+  new.client_id := old.client_id;
+  new.eligible_at := old.eligible_at;
+  new.applied_at := old.applied_at;
+  new.review_note := old.review_note;
+  new.reviewed_at := old.reviewed_at;
+  new.reviewed_by := old.reviewed_by;
+  return new;
+end;
+$$;
+
+drop trigger if exists guarantee_claims_guard_trg on guarantee_claims;
+create trigger guarantee_claims_guard_trg
+  before insert or update on guarantee_claims
+  for each row execute function guarantee_claims_guard();
+
 -- ============================================================
 -- monitor_applications (モニター価格プログラムへの応募)
 -- ============================================================
@@ -727,11 +791,12 @@ alter table bookings add constraint bookings_refund_status_check
 alter table bookings add column if not exists stripe_refund_id text;
 alter table bookings add column if not exists photographer_cancel_comp int not null default 0;
 -- customer: お客様がマイページからキャンセル／no_show: 15分以上の遅刻で運営が当日キャンセル扱いにした
--- （/api/bookings/no-show。規約第5条）。
+-- （/api/bookings/no-show。規約第5条）／system: 決済が遅れて同じ枠が先に埋まっていた等で、
+-- Webhook が自動で取り消して全額返金した（/api/stripe/webhook）。
 alter table bookings add column if not exists cancel_reason text;
 alter table bookings drop constraint if exists bookings_cancel_reason_check;
 alter table bookings add constraint bookings_cancel_reason_check
-  check (cancel_reason is null or cancel_reason in ('customer', 'no_show'));
+  check (cancel_reason is null or cancel_reason in ('customer', 'no_show', 'system'));
 
 -- モニター価格（当選者1回限りの半額）を使った予約。どの応募の権利を使ったかを残し、
 -- 2回目以降は定価になるようにする（/api/checkout/create-session が判定）。
@@ -743,13 +808,17 @@ alter table bookings add constraint bookings_status_check
   check (status in ('pending_payment', 'paid', 'requested', 'confirmed', 'completed', 'canceled'));
 
 -- 決済待ち（pending_payment）の予約もカレンダー上は「予約済み」として枠を塞ぐが、
--- 20分を過ぎても決済が完了しない（Stripe Checkoutを離脱した等）場合は自動的に
+-- 35分を過ぎても決済が完了しない（Stripe Checkoutを離脱した等）場合は自動的に
 -- 空き枠へ戻す。クリーンアップ用のバッチ処理は不要。
+-- Stripe Checkout の有効期限は31分（create-session.js の expires_at）。期限が切れた
+-- ページでは支払えないので、その後の4分の余裕を見て枠を戻す（js/data.js の
+-- PENDING_PAYMENT_HOLD_MIN と同じ値にすること）。以前は20分で枠を戻していたが、
+-- 決済ページは24時間有効だったため、同じ枠に2人が支払えた。
 create or replace view booking_slots as
   select photographer_id, booking_date, start_time, end_time
   from bookings
   where status <> 'canceled'
-    and (status <> 'pending_payment' or created_at > now() - interval '20 minutes');
+    and (status <> 'pending_payment' or created_at > now() - interval '35 minutes');
 
 -- ============================================================
 -- photographer_bank_accounts（カメラマンへの報酬振込先）

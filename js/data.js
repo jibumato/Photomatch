@@ -444,11 +444,18 @@ export function photographerPayoutFor(booking) {
     + OPTION_PAYOUT_PER_ITEM * (booking.options || []).length;
 }
 
+// 決済待ち（pending_payment）の予約が枠を押さえておく時間（分）。Stripe Checkout の
+// 有効期限（CHECKOUT_EXPIRES_MIN。Stripe の最短は30分）より長くしておく。そうしないと、
+// 枠が空いたあとに先の人が支払えてしまい、同じ枠に2人が支払える。
+// DB の booking_slots ビュー（schema.sql）の interval も同じ値にすること。
+export const CHECKOUT_EXPIRES_MIN = 31;
+export const PENDING_PAYMENT_HOLD_MIN = 35;
+
 // モニター価格を使った予約が「使用済み」に数えられるか。キャンセル済みと、
-// 決済されないまま20分過ぎた決済待ちは数えない（もう一度使える）。
+// 決済されないまま枠の保持時間（PENDING_PAYMENT_HOLD_MIN）を過ぎた決済待ちは数えない（もう一度使える）。
 export function monitorBookingCounts(b, now = new Date()) {
   if (b.status === 'canceled') return false;
-  if (b.status === 'pending_payment' && now - new Date(b.created_at) > 20 * 60 * 1000) return false;
+  if (b.status === 'pending_payment' && now - new Date(b.created_at) > PENDING_PAYMENT_HOLD_MIN * 60 * 1000) return false;
   return true;
 }
 
