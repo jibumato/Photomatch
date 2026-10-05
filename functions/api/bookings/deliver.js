@@ -3,7 +3,7 @@
 // album link. The customer gets the link by email and on マイページ. Sending it
 // again with a new link updates it (and tells the customer). Payouts are only
 // confirmed for delivered bookings (functions/api/payouts/release.js).
-import { isValidDeliveryUrl, deliveryDueDate } from '../../../js/data.js';
+import { isValidDeliveryUrl, deliveryDueDate, OPPOSITE_SEX_OPTION_KEY } from '../../../js/data.js';
 import { verifyUser, getProfile, restSelect, restUpdate } from '../../_lib/supabaseAdmin.js';
 import { sendEmail } from '../../_lib/email.js';
 import { notifyOps } from '../../_lib/notifications.js';
@@ -63,7 +63,10 @@ export async function onRequestPost({ request, env }) {
   if (first) {
     const due = deliveryDueDate(booking);
     const late = new Date().toISOString().slice(0, 10) > due.date;
-    await notifyOps(env, `納品がありました${late ? '（期限超過）' : ''}`, `予約ID：${booking.id}\n撮影日：${booking.booking_date} ${booking.start_time.slice(0, 5)}〜\nカメラマン：${(photographer && photographer.name) || '-'}\n依頼者：${booking.customer_name || '-'}\n納品期限：${due.date}${due.speed ? '（スピード納品）' : ''}\nリンク：${url}`, origin);
+    const pick = (booking.options || []).some((o) => o.key === OPPOSITE_SEX_OPTION_KEY);
+    const staff = { male: '女性', female: '男性' }[booking.customer_gender];
+    const pickLine = pick ? `\n\n【要対応】異性スタッフ写真セレクトあり：依頼者は${{ male: '男性', female: '女性' }[booking.customer_gender] || '性別不明'}のため、${staff || '（性別を確認して）'}スタッフが一枚を選び、運営画面「予約の管理」の「おすすめを送る」から送ってください。` : '';
+    await notifyOps(env, `納品がありました${late ? '（期限超過）' : ''}${pick ? '・異性スタッフセレクト要' : ''}`, `予約ID：${booking.id}\n撮影日：${booking.booking_date} ${booking.start_time.slice(0, 5)}〜\nカメラマン：${(photographer && photographer.name) || '-'}\n依頼者：${booking.customer_name || '-'}\n納品期限：${due.date}${due.speed ? '（スピード納品）' : ''}\nリンク：${url}${pickLine}`, origin);
   }
   return jsonResponse({ ok: true, first });
 }

@@ -19,3 +19,6 @@ EMAIL_FROM=PhotoMatch <no-reply@photo-match.jp>
 # Supabaseダッシュボード > Project Settings > API（service_role キー。RLSを
 # バイパスするため、Cloudflare側のsecret設定以外では絶対に使わないこと）
 SUPABASE_SERVICE_ROLE_KEY=...
+
+# 運営宛ての通知メールの送り先（任意）。未設定なら info.photomatch@gmail.com
+OPS_EMAIL=info.photomatch@gmail.com

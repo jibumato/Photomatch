@@ -1,10 +1,15 @@
 import { mountLayout } from '../layout.js';
 import { listPhotographers } from '../repo.js';
-import { AREAS } from '../data.js';
-import { getLang, t, areaText, localizedField, reviewsCountLabel } from '../i18n.js';
+import { AREAS, PRICING_PLANS } from '../data.js';
+import { getLang, t, areaText, localizedField, reviewsCountLabel, planNameText } from '../i18n.js';
 import { escapeHtml, safePhotoUrl, hasRating } from '../util.js';
 
 mountLayout();
+
+// A plan picked on the top page (「このプランで予約」) is carried through to the
+// photographer's page and the booking screen.
+const planParam = PRICING_PLANS.some((pl) => pl.name === new URLSearchParams(location.search).get('plan'))
+  ? new URLSearchParams(location.search).get('plan') : null;
 
 const STRIPE_BG = 'repeating-linear-gradient(135deg, oklch(0.9 0.05 200) 0px, oklch(0.9 0.05 200) 12px, oklch(0.96 0.03 210) 12px, oklch(0.96 0.03 210) 24px)';
 
@@ -16,7 +21,7 @@ function cardHtml(p) {
     ? `aspect-ratio:4/3;background-image:url(${photoUrl});background-size:cover;background-position:center`
     : `aspect-ratio:4/3;background:${STRIPE_BG};display:flex;align-items:center;justify-content:center;text-align:center;padding:10px`;
   return `
-  <a href="profile.html?id=${encodeURIComponent(p.id)}" class="pm-card" style="display:block;overflow:hidden;text-decoration:none;color:inherit">
+  <a href="profile.html?id=${encodeURIComponent(p.id)}${planParam ? `&plan=${encodeURIComponent(planParam)}` : ''}" class="pm-card" style="display:block;overflow:hidden;text-decoration:none;color:inherit">
     <div style="${photoStyle}">
       ${photoUrl ? '' : `<span style="font:11px ui-monospace,monospace;color:oklch(0.4 0.08 210)">PHOTO — ${escapeHtml(p.name)}</span>`}
     </div>
@@ -111,6 +116,11 @@ function render() {
   document.getElementById('pm-result-count').textContent = getLang() === 'en'
     ? `${list.length} photographer${list.length === 1 ? '' : 's'} found${conditions.length ? ` (${conditions.join(', ')})` : ''}`
     : `${list.length}件のカメラマンが見つかりました${suffix}`;
+  if (planParam) {
+    document.getElementById('pm-result-count').textContent += getLang() === 'en'
+      ? ` — booking the ${planNameText(planParam)} plan`
+      : `　「${planNameText(planParam)}」で予約します。カメラマンを選んでください。`;
+  }
   // Shown next to the collapsed toggle on mobile, so an active filter is still
   // visible without opening the (otherwise collapsed) filter card.
   document.getElementById('pm-filter-summary-note').textContent = conditions.length ? conditions.join('・') : '';
@@ -158,7 +168,7 @@ function render() {
     // offering one that always returns zero results.
     const hasGenderData = state.all.some((p) => p.gender);
     if (!hasGenderData) {
-      document.getElementById('pm-female-toggle').closest('div').style.display = 'none';
+      document.getElementById('pm-female-toggle').style.display = 'none';
       state.femaleOnly = false;
     }
 

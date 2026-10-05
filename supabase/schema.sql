@@ -851,6 +851,11 @@ alter table bookings drop constraint if exists bookings_delivery_url_check;
 alter table bookings add constraint bookings_delivery_url_check
   check (delivery_url is null or (delivery_url ~ '^https://' and length(delivery_url) <= 500)) not valid;
 
+-- 異性スタッフ写真セレクト（オプション）。納品後、お客様と異なる性別のスタッフが一枚を選び、
+-- 運営画面から送る（/api/bookings/staff-pick）。お客様にメールが届き、マイページに表示される。
+alter table bookings add column if not exists staff_pick_note text;
+alter table bookings add column if not exists staff_pick_at timestamptz;
+
 -- チャットの新着メール通知の送信記録（同じ相手に10分に1通まで）。サーバー（service_role）専用。
 create table if not exists message_notifications (
   booking_id uuid not null references bookings(id) on delete cascade,

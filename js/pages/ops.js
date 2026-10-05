@@ -6,11 +6,11 @@ import {
   getPayoutCandidates, getGuaranteeClaimsForBookings, releasePayouts, getMonitorSlotsLeft, getBankAccountsForPhotographers,
   createPhotographerAccount, resetPhotographerPassword, markNoShow, getPhotographersForReview, setPhotographerVisibility,
   getReviewsForModeration, setReviewHidden,
-  getBookingsForOps, getBookingsNeedingAttention, opsCancelBooking, markRefunded, setPayoutHold,
+  getBookingsForOps, getBookingsNeedingAttention, opsCancelBooking, markRefunded, setPayoutHold, sendStaffPick,
 } from '../repo.js';
 import {
   AREAS, EXTRA_OPTIONS, OPS_CANCEL_REASONS, RESCHEDULABLE_STATUSES, photographerPayoutFor, noShowQuote, jstDateIso, addDaysToIso,
-  guaranteeBlocksPayout, guaranteeClaimDeadline, MONITOR_CAPACITY,
+  guaranteeBlocksPayout, guaranteeClaimDeadline, MONITOR_CAPACITY, OPPOSITE_SEX_OPTION_KEY, isValidDeliveryUrl,
 } from '../data.js';
 import { mountRescheduleModal } from '../rescheduleModal.js';
 import { safePhotoUrl } from '../util.js';
@@ -493,6 +493,10 @@ const REFUND_LABEL = { none: '返金なし', pending: '返金処理中', succeed
 const GENDER_LABEL = { male: '男性', female: '女性', other: '回答しない' };
 const yen = (n) => `¥${Number(n || 0).toLocaleString()}`;
 
+const hasStaffPickOption = (b) => (b.options || []).some((o) => o.key === OPPOSITE_SEX_OPTION_KEY);
+// Delivered, has the 異性スタッフ写真セレクト option, and the pick hasn't been sent yet.
+const needsStaffPick = (b) => b.status !== 'canceled' && !!b.delivered_at && hasStaffPickOption(b) && !b.staff_pick_at;
+
 function opsBookingCardHtml(b) {
   const optionLabels = (b.options || []).map((o) => (EXTRA_OPTIONS.find((x) => x.key === o.key) || {}).label).filter(Boolean);
   const active = RESCHEDULABLE_STATUSES.includes(b.status) || b.status === 'pending_payment';
@@ -502,6 +506,7 @@ function opsBookingCardHtml(b) {
   if (canAct && active) actions.push(`<button data-id="${b.id}" class="btn-ops-cancel pm-btn-danger-outline">キャンセル（返金）</button>`);
   if (noShowQuote(b).allowed) actions.push(`<button data-id="${b.id}" class="btn-ops-noshow pm-btn-danger-outline">遅刻キャンセル</button>`);
   if (b.status === 'canceled' && ['failed', 'pending'].includes(b.refund_status)) actions.push(`<button data-id="${b.id}" class="btn-ops-refunded pm-btn-outline">手動で返金済みにする</button>`);
+  if (needsStaffPick(b) || (b.staff_pick_at && hasStaffPickOption(b))) actions.push(`<button data-id="${b.id}" class="btn-ops-pick pm-btn-outline">${b.staff_pick_at ? 'おすすめを送り直す' : 'おすすめを送る'}</button>`);
   if (b.payout_hold) actions.push(`<button data-id="${b.id}" class="btn-ops-unhold pm-btn-outline">送金の保留を解除</button>`);
   else if (canAct && b.status !== 'canceled') actions.push(`<button data-id="${b.id}" class="btn-ops-hold pm-btn-outline" style="font-size:11px">送金を保留</button>`);
   const reasons = [
@@ -509,6 +514,9 @@ function opsBookingCardHtml(b) {
     b.status === 'canceled' && b.refund_status ? `${REFUND_LABEL[b.refund_status] || b.refund_status} ${yen(b.refund_amount)}` : '',
     b.payout_hold ? `<b style="color:var(--pm-warn-text)">送金保留：${escapeHtml(b.payout_hold_reason || '')}</b>` : '',
     b.refund_status === 'failed' ? '<b style="color:var(--pm-warn-text)">Stripeで手動返金が必要</b>' : '',
+    needsStaffPick(b) ? `<b style="color:var(--pm-warn-text)">異性スタッフ写真セレクト：未送信（${b.customer_gender === 'male' ? '女性' : b.customer_gender === 'female' ? '男性' : '異性の'}スタッフが選ぶ）</b>` : '',
+    b.staff_pick_at ? `異性スタッフのおすすめ送信済み（${b.staff_pick_at.slice(0, 10)}）` : '',
+    b.delivered_at && isValidDeliveryUrl(b.delivery_url) ? `納品：<a href="${escapeHtml(b.delivery_url)}" target="_blank" rel="noopener noreferrer">アルバムを開く</a>` : '',
     b.rescheduled_count ? `日程変更 ${b.rescheduled_count}回（変更前：${b.previous_booking_date} ${String(b.previous_start_time || '').slice(0, 5)}〜）` : '',
   ].filter(Boolean);
   return `
@@ -536,8 +544,10 @@ function opsBookingCardHtml(b) {
 
 async function loadBookings() {
   const today = jstDateIso();
-  const [list, attention] = await Promise.all([getBookingsForOps(addDaysToIso(today, -45)), getBookingsNeedingAttention()]);
+  const [list, needing] = await Promise.all([getBookingsForOps(addDaysToIso(today, -45)), getBookingsNeedingAttention()]);
   const visible = list.filter((b) => !(b.status === 'pending_payment' && Date.now() - new Date(b.created_at).getTime() > 60 * 60 * 1000));
+  // 要対応 also lists delivered shoots still waiting for their 異性スタッフ pick.
+  const attention = [...needing, ...visible.filter((b) => needsStaffPick(b) && !needing.some((n) => n.id === b.id))];
   const upcoming = visible.filter((b) => b.booking_date >= today && b.status !== 'canceled');
   const recent = visible.filter((b) => b.booking_date < today || b.status === 'canceled').reverse();
   const all = [...attention, ...visible];
@@ -580,6 +590,13 @@ async function loadBookings() {
     if (note === null) return;
     btn.disabled = true;
     try { await markRefunded(b.id, note); refresh(); } catch (err) { alert(err.message || '更新に失敗しました。'); btn.disabled = false; }
+  });
+  each('btn-ops-pick', async (b, btn) => {
+    const note = prompt(`「異性スタッフ写真セレクト」のおすすめを、${b.customer_name || ''} 様に送ります（メールとマイページに表示されます）。\nアルバムのリンク：${b.delivery_url || '-'}\n\nおすすめの写真（何枚目か・どの写真か）と、選んだ理由を入力してください。`, b.staff_pick_note || '');
+    if (note === null) return;
+    if (!note.trim()) { alert('内容を入力してください。'); return; }
+    btn.disabled = true;
+    try { await sendStaffPick(b.id, note.trim()); alert('お客様に送りました。'); refresh(); } catch (err) { alert(err.message || '送信に失敗しました。'); btn.disabled = false; }
   });
   each('btn-ops-unhold', async (b, btn) => {
     if (!confirm(`この予約のカメラマンへの送金の保留を解除します（理由：${b.payout_hold_reason || '-'}）。確認は済みましたか？`)) return;

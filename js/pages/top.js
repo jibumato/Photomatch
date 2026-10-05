@@ -56,7 +56,7 @@ document.getElementById('pm-steps').innerHTML = HOW_IT_WORKS.map((s) => `
   </div>`).join('');
 
 document.getElementById('pm-pricing').innerHTML = PRICING_PLANS.map((pl) => `
-  <a href="search.html" class="pm-card" style="display:block;border-radius:18px;padding:28px;text-decoration:none;color:inherit">
+  <a href="search.html?plan=${encodeURIComponent(pl.name)}" class="pm-card" style="display:block;border-radius:18px;padding:28px;text-decoration:none;color:inherit">
     <div style="font:700 15px var(--pm-font-body);margin-bottom:6px">${L(pl, 'name')}</div>
     ${pl.originalPrice ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
       <span style="font:600 14px var(--pm-font-num);color:var(--pm-text-muted);text-decoration:line-through">¥${pl.originalPrice}</span>

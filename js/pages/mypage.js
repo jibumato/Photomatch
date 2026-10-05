@@ -8,7 +8,7 @@ import { mountChatModal } from '../chat.js';
 import { mountSheetModal } from '../sheet.js';
 import { mountReviewModal } from '../reviewModal.js';
 import { mountRescheduleModal } from '../rescheduleModal.js';
-import { cancellationQuote, rescheduleQuote, RESCHEDULE_DENIED_MESSAGE, RESCHEDULE_OPTION_KEY, jstDateIso, isValidDeliveryUrl, guaranteeClaimDeadline } from '../data.js';
+import { cancellationQuote, rescheduleQuote, RESCHEDULE_DENIED_MESSAGE, RESCHEDULE_OPTION_KEY, jstDateIso, isValidDeliveryUrl, guaranteeClaimDeadline, PENDING_PAYMENT_HOLD_MIN, addDaysToIso } from '../data.js';
 
 mountLayout();
 
@@ -27,11 +27,7 @@ const STATUS_STYLE = {
 
 // Japan time, so a shoot doesn't move to 「過去の予約」 at 9:00 the next morning.
 function todayIso() { return jstDateIso(); }
-function addDaysIso(iso, days) {
-  const d = new Date(iso + 'T00:00:00');
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-}
+const addDaysIso = addDaysToIso;
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
@@ -134,7 +130,9 @@ function bookingCardHtml(b, meta, { history }) {
       actions.push(`<button data-booking-id="${b.id}" class="btn-reschedule" style="background:#fff;border:1.5px solid oklch(0.86 0.03 215);border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:oklch(0.4 0.06 235);cursor:pointer;white-space:nowrap">日程変更</button>`);
     }
     if (cancellable) actions.push(`<button data-booking-id="${b.id}" class="btn-cancel pm-btn-danger-outline">キャンセル</button>`);
-  } else if (meta.guarantee && meta.guarantee.status === 'approved') {
+  } else if (b.status !== 'canceled' && (!b.delivered_at || b.booking_date >= addDaysIso(todayIso(), -30) || (meta.guarantee && meta.guarantee.status === 'approved'))) {
+    // After the shoot the customer can still message the photographer — about
+    // delivery, or for 30 days after (and during a free reshoot).
     actions.push(chatBtnHtml(b.id, meta));
   }
 
@@ -149,6 +147,7 @@ function bookingCardHtml(b, meta, { history }) {
         <div style="font:13px var(--pm-font-body);color:oklch(0.45 0.02 235)">${b.booking_date}（${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}）</div>
         <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${b.plan_name} ・ ${priceLabel}</div>
         ${b.delivered_at && isValidDeliveryUrl(b.delivery_url) && b.status !== 'canceled' ? `<div style="margin-top:6px"><a href="${escapeHtml(b.delivery_url)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210)">📷 撮影データを見る（納品済み）↗</a></div>` : ''}
+        ${b.staff_pick_at && b.staff_pick_note && b.status !== 'canceled' ? `<div style="margin-top:6px;font:12px/1.7 var(--pm-font-body);color:oklch(0.35 0.02 235);background:var(--pm-bg-mint);border-radius:10px;padding:8px 12px;white-space:pre-wrap"><b>異性スタッフのおすすめ</b>\n${escapeHtml(b.staff_pick_note)}</div>` : ''}
         ${b.rescheduled_count > 0 && b.previous_booking_date && b.status !== 'canceled' ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">日程変更済み（変更前：${b.previous_booking_date} ${String(b.previous_start_time).slice(0, 5)}〜）</div>` : ''}
         ${b.status === 'canceled' && b.cancel_reason === 'no_show' ? '<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">集合時間に15分以上遅れたため、当日キャンセル扱いとなりました（利用規約第5条）</div>' : ''}
         ${b.status === 'canceled' && b.refund_amount > 0 ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">ご返金：¥${b.refund_amount.toLocaleString()}${b.refund_status === 'succeeded' ? '（カードへ返金済み）' : '（運営より手続き中）'}</div>` : ''}
@@ -255,13 +254,16 @@ async function load() {
   const session = await getSession();
   if (!session) { location.href = 'login.html?next=' + encodeURIComponent(location.href); return; }
 
-  const [profile, bookings] = await Promise.all([getProfile(), getMyBookings()]);
+  let [profile, bookings] = await Promise.all([getProfile(), getMyBookings()]);
   reshootsById = Object.fromEntries(bookings.filter((x) => x.reshoot_of).map((x) => [x.id, x]));
   document.getElementById('pm-loading').style.display = 'none';
   document.getElementById('pm-mypage').style.display = 'block';
   document.getElementById('pm-user-line').textContent = `${profile?.name || 'ゲスト ユーザー'}　（${profile?.email || session.user.email}）`;
 
   const today = todayIso();
+  // An unpaid checkout that timed out is not a booking; don't list it.
+  const holdMs = PENDING_PAYMENT_HOLD_MIN * 60 * 1000;
+  bookings = bookings.filter((b) => !(b.status === 'pending_payment' && Date.now() - new Date(b.created_at).getTime() > holdMs));
   const upcoming = bookings.filter((b) => b.booking_date >= today);
   const history = bookings.filter((b) => b.booking_date < today);
   const ids = bookings.map((b) => b.id);

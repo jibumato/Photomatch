@@ -283,6 +283,11 @@ export async function markRefunded(bookingId, note) {
   return callApi('/api/bookings/mark-refunded', { booking_id: bookingId, note }, '更新に失敗しました。');
 }
 
+// Ops: send the 異性スタッフ写真セレクト pick to the customer.
+export async function sendStaffPick(bookingId, note) {
+  return callApi('/api/bookings/staff-pick', { booking_id: bookingId, note }, '送信に失敗しました。');
+}
+
 export async function setPayoutHold(bookingId, hold, reason) {
   return callApi('/api/bookings/payout-hold', { booking_id: bookingId, hold, reason }, '更新に失敗しました。');
 }

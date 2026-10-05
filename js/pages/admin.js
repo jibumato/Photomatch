@@ -433,6 +433,19 @@ async function renderBankAccountSection(photographer) {
       errorEl.style.display = 'block';
       return;
     }
+    // Full-width digits are common on phones; normalize, then check the shape
+    // banks expect (振込に使う口座番号は7桁、名義はカタカナ).
+    fields.account_number = fields.account_number.replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+    if (!/^\d{7}$/.test(fields.account_number)) {
+      errorEl.textContent = '口座番号は7桁の数字で入力してください（7桁未満の場合は、先頭に0を付けてください）。';
+      errorEl.style.display = 'block';
+      return;
+    }
+    if (!/^[ァ-ヶー　 （）()．.・ヴ]+$/.test(fields.account_holder_name)) {
+      errorEl.textContent = '口座名義は、通帳の表記どおりカタカナで入力してください（例：ヤマダ タロウ）。';
+      errorEl.style.display = 'block';
+      return;
+    }
 
     btn.disabled = true;
     try {
