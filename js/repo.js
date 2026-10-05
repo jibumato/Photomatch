@@ -377,6 +377,18 @@ export async function submitGuaranteeClaim(claimId, note) {
     .update({ status: 'claimed', claim_note: note, claim_submitted_at: new Date().toISOString() })
     .eq('id', claimId);
   if (error) throw error;
+  notifyOpsOf('guarantee_claim', claimId);
+}
+
+// Tells ops by email about a claim / monitor application just submitted.
+// Best effort: the submission itself already succeeded.
+function notifyOpsOf(kind, id) {
+  callApi('/api/notify/ops', { kind, id }, '').catch(() => {});
+}
+
+// Customer: book the free reshoot of an approved マッチング数保証 claim.
+export async function createReshoot(claimId, bookingDate, startTime) {
+  return callApi('/api/guarantee/reshoot', { claim_id: claimId, booking_date: bookingDate, start_time: startTime }, '再撮影の予約に失敗しました。', '時間をおいて再度お試しください。');
 }
 
 export async function getGuaranteeClaimsForBookings(bookingIds) {
@@ -398,14 +410,10 @@ export async function getGuaranteeClaimsForReview() {
   return data;
 }
 
+// Ops only. Goes through a Function so the customer (and on approval the
+// photographer) are emailed the result.
 export async function reviewGuaranteeClaim(claimId, status, reviewNote) {
-  const session = await getSession();
-  if (!session) throw new Error('not signed in');
-  const { error } = await supabase
-    .from('guarantee_claims')
-    .update({ status, review_note: reviewNote, reviewed_at: new Date().toISOString(), reviewed_by: session.user.id })
-    .eq('id', claimId);
-  if (error) throw error;
+  return callApi('/api/guarantee/review', { claim_id: claimId, status, note: reviewNote }, '更新に失敗しました。');
 }
 
 // ---- bank accounts (カメラマンの報酬振込先) ----
@@ -460,6 +468,12 @@ export async function releasePayout(bookingId, note) {
   return callApi('/api/payouts/release', { booking_id: bookingId, note }, '更新に失敗しました。');
 }
 
+// Ops: 「まとめて振込済みにする」 — records several payouts and emails each
+// photographer one summary. Resolves to { results: [{ booking_id, ok, error }], released }.
+export async function releasePayouts(bookingIds, note) {
+  return callApi('/api/payouts/release-batch', { booking_ids: bookingIds, note }, '更新に失敗しました。');
+}
+
 // ops: every photographer (listed or not) with how many plans each has, for
 // the 掲載管理 screen. Both tables are publicly readable.
 export async function getPhotographersForReview() {
@@ -500,14 +514,22 @@ export async function resetPhotographerPassword(email) {
 export async function submitMonitorApplication({ hasExistingPhotos, currentApps, motivation, followUpOptIn }) {
   const session = await getSession();
   if (!session) throw new Error('not signed in');
-  const { error } = await supabase.from('monitor_applications').insert({
+  const { data, error } = await supabase.from('monitor_applications').insert({
     client_id: session.user.id,
     has_existing_photos: hasExistingPhotos,
     current_apps: currentApps,
     motivation,
     follow_up_opt_in: followUpOptIn,
-  });
+  }).select('id').single();
   if (error) throw error;
+  if (data && data.id) notifyOpsOf('monitor_application', data.id);
+}
+
+// Remaining monitor places (先着の定員 − 当選者). null if it can't be read.
+export async function getMonitorSlotsLeft() {
+  const { data, error } = await supabase.rpc('monitor_slots_left');
+  if (error) return null;
+  return typeof data === 'number' ? data : null;
 }
 
 export async function getMyMonitorApplications() {

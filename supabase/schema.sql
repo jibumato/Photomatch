@@ -719,6 +719,10 @@ begin
   if old.eligible_at > (now() at time zone 'Asia/Tokyo')::date then
     raise exception 'まだ申請できる日になっていません。';
   end if;
+  -- 申請できるのは、申請可能日から14日間（js/data.js の GUARANTEE_CLAIM_DAYS）。
+  if old.eligible_at + 14 < (now() at time zone 'Asia/Tokyo')::date then
+    raise exception '申請期限を過ぎています。';
+  end if;
   new.id := old.id;
   new.booking_id := old.booking_id;
   new.client_id := old.client_id;
@@ -730,6 +734,12 @@ begin
   return new;
 end;
 $$;
+
+-- 承認後の無料再撮影（/api/guarantee/reshoot）。お客様が日時を選ぶと、¥0 の予約を作る。
+-- ops_notified_at: 申請を運営にメールで知らせた日時（/api/notify/ops。1回だけ送る）。
+alter table guarantee_claims add column if not exists reshoot_booking_id uuid references bookings(id) on delete set null;
+alter table guarantee_claims add column if not exists ops_notified_at timestamptz;
+alter table bookings add column if not exists reshoot_of uuid references bookings(id) on delete set null;
 
 drop trigger if exists guarantee_claims_guard_trg on guarantee_claims;
 create trigger guarantee_claims_guard_trg
@@ -780,6 +790,20 @@ create policy "monitor_applications: ops review" on monitor_applications
   for update using (
     exists (select 1 from profiles where id = auth.uid() and role = 'ops')
   );
+
+alter table monitor_applications add column if not exists ops_notified_at timestamptz;
+
+-- 先着10名（js/data.js の MONITOR_CAPACITY）。当選（と撮影完了）の数から残り枠を返す。
+-- 応募者は他人の応募を読めないため、security definer で数だけを公開する。
+create or replace function monitor_slots_left()
+returns int
+language sql
+stable
+security definer set search_path = public
+as $$
+  select greatest(0, 10 - count(*))::int from monitor_applications where status in ('accepted', 'completed');
+$$;
+grant execute on function monitor_slots_left() to anon, authenticated;
 
 -- RLS can't restrict *which columns* an insert sets, so also narrow the
 -- table grant: an applicant can only ever supply these columns (status is

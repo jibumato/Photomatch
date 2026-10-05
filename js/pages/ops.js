@@ -3,13 +3,14 @@ import { requireRole, signOut, getSession } from '../auth.js';
 import {
   getGuaranteeClaimsForReview, reviewGuaranteeClaim,
   getMonitorApplicationsForReview, reviewMonitorApplication,
-  getPayoutCandidates, getGuaranteeClaimsForBookings, releasePayout, getBankAccountsForPhotographers,
+  getPayoutCandidates, getGuaranteeClaimsForBookings, releasePayouts, getMonitorSlotsLeft, getBankAccountsForPhotographers,
   createPhotographerAccount, resetPhotographerPassword, markNoShow, getPhotographersForReview, setPhotographerVisibility,
   getReviewsForModeration, setReviewHidden,
   getBookingsForOps, getBookingsNeedingAttention, opsCancelBooking, markRefunded, setPayoutHold,
 } from '../repo.js';
 import {
   AREAS, EXTRA_OPTIONS, OPS_CANCEL_REASONS, RESCHEDULABLE_STATUSES, photographerPayoutFor, noShowQuote, jstDateIso, addDaysToIso,
+  guaranteeBlocksPayout, guaranteeClaimDeadline, MONITOR_CAPACITY,
 } from '../data.js';
 import { mountRescheduleModal } from '../rescheduleModal.js';
 import { safePhotoUrl } from '../util.js';
@@ -52,7 +53,7 @@ function claimCardHtml(claim, { pending }) {
         </div>
         <div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">連絡先：${escapeHtml(booking.customer_contact || '-')}</div>
         <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">カメラマン：${escapeHtml(photographerName)} ・ ${booking.plan_name || ''} ・ 撮影日 ${booking.booking_date || '-'}</div>
-        <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">申込み：${(claim.applied_at || '').slice(0, 10)} ・ 申請可能日：${claim.eligible_at}</div>
+        <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">申込み：${(claim.applied_at || '').slice(0, 10)} ・ 申請可能日：${claim.eligible_at}〜${guaranteeClaimDeadline(claim)}${claim.reshoot_booking_id ? ' ・ 再撮影：予約済み' : (claim.status === 'approved' ? ' ・ 再撮影：お客様の日程選択待ち' : '')}</div>
       </div>
     </div>
     ${claim.claim_note ? `<div style="font:12px/1.7 var(--pm-font-body);color:oklch(0.4 0.02 235);background:var(--pm-bg-mint);border-radius:10px;padding:10px 12px;margin-bottom:10px">申請内容：${escapeHtml(claim.claim_note)}</div>` : ''}
@@ -93,6 +94,8 @@ function monitorCardHtml(app, { pending }) {
 
 async function loadMonitorApplications() {
   const apps = await getMonitorApplicationsForReview();
+  const accepted = apps.filter((a) => a.status === 'accepted' || a.status === 'completed').length;
+  document.getElementById('pm-monitor-capacity').textContent = `当選 ${accepted} / 定員 ${MONITOR_CAPACITY}名${accepted >= MONITOR_CAPACITY ? '（定員に達しました）' : `（残り ${MONITOR_CAPACITY - accepted}名）`}`;
   const pending = apps.filter((a) => a.status === 'applied');
   const others = apps.filter((a) => a.status !== 'applied');
 
@@ -401,14 +404,16 @@ function groupByPhotographer(bookings, bankAccounts) {
 }
 
 async function loadPayouts() {
-  const bookings = await getPayoutCandidates();
+  // ¥0 の無料再撮影は送金の対象外。
+  const bookings = (await getPayoutCandidates()).filter((b) => photographerPayoutFor(b) > 0);
   const claimsByBooking = await getGuaranteeClaimsForBookings(bookings.map((b) => b.id));
   const today = new Date();
   const ready = [];
   const waiting = [];
   bookings.forEach((b) => {
     const claim = claimsByBooking[b.id];
-    const disputed = claim && claim.status === 'claimed';
+    // 申請中、または申込み済みで申請期限前は送金しない（functions/_lib/payouts.js と同じ判定）。
+    const disputed = b.status !== 'canceled' && guaranteeBlocksPayout(claim);
     const pastWindow = today >= eligiblePayoutDate(b);
     // A shoot is paid out only once the photos were delivered.
     const delivered = b.status === 'canceled' || !!b.delivered_at;
@@ -442,9 +447,10 @@ async function loadPayouts() {
       if (!confirm(`${ids.length}件・合計¥${total}を銀行振込済みとして記録します（実際の振込は別途行ってください）。よろしいですか？`)) return;
       btn.disabled = true;
       try {
-        for (const id of ids) {
-          await releasePayout(id, '月次バッチ（月末締め・翌月25日払い）');
-        }
+        const res = await releasePayouts(ids, '月次バッチ（月末締め・翌月25日払い）');
+        const failed = res.results.filter((r) => !r.ok);
+        if (failed.length) alert(`${res.released}件を記録しました。${failed.length}件は記録できませんでした：\n${failed.map((f) => `・${f.error}`).join('\n')}`);
+        else alert(`${res.released}件を振込済みとして記録し、カメラマンにメールでお知らせしました。`);
         loadPayouts();
       } catch (err) {
         alert(err.message || '更新に失敗しました。');
@@ -596,11 +602,16 @@ async function load() {
   document.getElementById('pm-ops').style.display = 'block';
 
   loadSystemStatus();
-  await loadBookings();
-  await loadListings();
-  await loadReviews();
-  await loadMonitorApplications();
-  await loadPayouts();
+  // Each section loads on its own, so one failing (e.g. a column missing
+  // before schema.sql was re-run) doesn't leave the rest of the page empty.
+  const section = async (name, fn) => {
+    try { await fn(); } catch (err) { console.error(`${name} failed`, err); }
+  };
+  await section('予約の管理', loadBookings);
+  await section('掲載管理', loadListings);
+  await section('口コミ', loadReviews);
+  await section('モニター', loadMonitorApplications);
+  await section('送金', loadPayouts);
 
   const claims = await getGuaranteeClaimsForReview();
   const pending = claims.filter((c) => c.status === 'claimed');
@@ -618,14 +629,14 @@ async function load() {
 
   pendingEl.querySelectorAll('.btn-approve').forEach((btn) => {
     btn.addEventListener('click', async () => {
-      const note = prompt('承認コメント（依頼者に表示されます。任意）', '担当より別途チャットで再撮影日程をご連絡します。');
+      const note = prompt('承認すると、お客様に「マイページから再撮影の日程を選んでください」とメールが届き、カメラマンにも知らせます。\n承認コメント（お客様へのメールとマイページに表示されます。任意）', '');
       if (note === null) return;
       btn.disabled = true;
       try {
         await reviewGuaranteeClaim(btn.dataset.claimId, 'approved', note);
         load();
       } catch (err) {
-        alert('更新に失敗しました。');
+        alert(err.message || '更新に失敗しました。');
         console.error(err);
         btn.disabled = false;
       }
@@ -640,7 +651,7 @@ async function load() {
         await reviewGuaranteeClaim(btn.dataset.claimId, 'rejected', note);
         load();
       } catch (err) {
-        alert('更新に失敗しました。');
+        alert(err.message || '更新に失敗しました。');
         console.error(err);
         btn.disabled = false;
       }

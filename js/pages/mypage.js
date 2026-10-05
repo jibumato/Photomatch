@@ -2,13 +2,13 @@ import { mountLayout } from '../layout.js';
 import { getSession, getProfile, signOut } from '../auth.js';
 import {
   getMyBookings, cancelBooking, getMessageCounts, getReadTimestamps, getCounselingSheetsForBookings,
-  getGuaranteeClaimsForBookings, applyGuaranteeClaim, submitGuaranteeClaim, getMyReviewsByBooking,
+  getGuaranteeClaimsForBookings, applyGuaranteeClaim, submitGuaranteeClaim, getMyReviewsByBooking, createReshoot,
 } from '../repo.js';
 import { mountChatModal } from '../chat.js';
 import { mountSheetModal } from '../sheet.js';
 import { mountReviewModal } from '../reviewModal.js';
 import { mountRescheduleModal } from '../rescheduleModal.js';
-import { cancellationQuote, rescheduleQuote, RESCHEDULE_DENIED_MESSAGE, RESCHEDULE_OPTION_KEY, jstDateIso, isValidDeliveryUrl } from '../data.js';
+import { cancellationQuote, rescheduleQuote, RESCHEDULE_DENIED_MESSAGE, RESCHEDULE_OPTION_KEY, jstDateIso, isValidDeliveryUrl, guaranteeClaimDeadline } from '../data.js';
 
 mountLayout();
 
@@ -43,6 +43,8 @@ const chatBtnHtml = (bookingId, unread) => `
     ${unread.hasUnread ? `<span class="pm-unread-badge">${unread.unreadLabel}</span>` : ''}
   </button>`;
 
+let reshootsById = {};
+
 function guaranteeBlockHtml(b, claim) {
   if (b.status === 'canceled') return '';
   if (!claim) {
@@ -51,19 +53,30 @@ function guaranteeBlockHtml(b, claim) {
     </div>`;
   }
   const today = todayIso();
+  const deadline = guaranteeClaimDeadline(claim);
   if (claim.status === 'applied') {
     if (today < claim.eligible_at) {
-      return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px var(--pm-font-body);color:var(--pm-text-3)">マッチング数保証：申込み済み（${claim.eligible_at}以降に無料再撮影を申請できます）</div>`;
+      return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px var(--pm-font-body);color:var(--pm-text-3)">マッチング数保証：申込み済み（${claim.eligible_at}〜${deadline}の間に無料再撮影を申請できます）</div>`;
     }
-    return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint)">
+    if (today > deadline) {
+      return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px var(--pm-font-body);color:var(--pm-text-3)">マッチング数保証：申請期限（${deadline}）を過ぎました</div>`;
+    }
+    return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <button data-claim-id="${claim.id}" class="btn-guarantee-claim" style="background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer">無料再撮影を申請する</button>
+      <span style="font:12px var(--pm-font-body);color:var(--pm-text-3)">申請期限：${deadline}</span>
     </div>`;
   }
   if (claim.status === 'claimed') {
     return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px var(--pm-font-body);color:var(--pm-text-3)">マッチング数保証：<span style="font-weight:700;color:oklch(0.5 0.13 75)">審査中</span></div>`;
   }
   if (claim.status === 'approved') {
-    return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px/1.7 var(--pm-font-body);color:oklch(0.4 0.14 200)">マッチング数保証：<span style="font-weight:700">承認済み</span>${claim.review_note ? ' ・ ' + escapeHtml(claim.review_note) : ' ・ メッセージから再撮影日程をご相談ください'}</div>`;
+    const reshoot = claim.reshoot_booking_id && reshootsById[claim.reshoot_booking_id];
+    const booked = reshoot && reshoot.status !== 'canceled';
+    return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px/1.7 var(--pm-font-body);color:oklch(0.4 0.14 200)">マッチング数保証：<span style="font-weight:700">承認済み（無料再撮影）</span>${claim.review_note ? ' ・ ' + escapeHtml(claim.review_note) : ''}
+      ${booked
+        ? `<div style="color:var(--pm-text-3)">再撮影：${reshoot.booking_date} ${reshoot.start_time.slice(0, 5)}〜（予約済み。「今後の予約」に表示されています）</div>`
+        : `<div style="margin-top:8px"><button data-claim-id="${claim.id}" data-booking-id="${b.id}" class="btn-reshoot" style="background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer">再撮影の日程を選ぶ</button></div>`}
+    </div>`;
   }
   if (claim.status === 'rejected') {
     return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px/1.7 var(--pm-font-body);color:var(--pm-text-3)">マッチング数保証：対象外${claim.review_note ? ' ・ ' + escapeHtml(claim.review_note) : ''}</div>`;
@@ -103,7 +116,7 @@ function reviewBlockHtml(b, review) {
 function bookingCardHtml(b, meta, { history }) {
   const statusLabel = STATUS_LABEL[b.status] || b.status;
   const cancellable = !history && b.status !== 'canceled' && b.status !== 'completed' && cancellationQuote(b).allowed;
-  const priceLabel = `¥${b.total_price.toLocaleString()}（税込）`;
+  const priceLabel = b.reshoot_of ? '無料再撮影（マッチング数保証）' : `¥${b.total_price.toLocaleString()}（税込）`;
 
   const actions = [];
   if (!history) {
@@ -215,6 +228,12 @@ function wireCardEvents(root, bookingsById) {
       }
     });
   });
+  root.querySelectorAll('.btn-reshoot').forEach((el) => {
+    el.addEventListener('click', () => {
+      const b = bookingsById[el.dataset.bookingId];
+      reschedModal.open(b, () => load(), { reshootClaimId: el.dataset.claimId });
+    });
+  });
   root.querySelectorAll('.btn-guarantee-claim').forEach((el) => {
     el.addEventListener('click', async () => {
       const note = prompt('マッチング数に改善が見られなかった状況を簡単にご記入ください（未記入でも申請できます）。');
@@ -237,6 +256,7 @@ async function load() {
   if (!session) { location.href = 'login.html?next=' + encodeURIComponent(location.href); return; }
 
   const [profile, bookings] = await Promise.all([getProfile(), getMyBookings()]);
+  reshootsById = Object.fromEntries(bookings.filter((x) => x.reshoot_of).map((x) => [x.id, x]));
   document.getElementById('pm-loading').style.display = 'none';
   document.getElementById('pm-mypage').style.display = 'block';
   document.getElementById('pm-user-line').textContent = `${profile?.name || 'ゲスト ユーザー'}　（${profile?.email || session.user.email}）`;

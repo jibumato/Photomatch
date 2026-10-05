@@ -28,7 +28,7 @@ function bookingLines(b, photographerName, { forCustomer }) {
   return [
     forCustomer ? `カメラマン：${photographerName}` : null,
     `日時：${formatDate(b.booking_date)} ${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}`,
-    `プラン：${b.plan_name}${b.monitor_application_id ? '（モニター価格）' : ''}${forCustomer ? `（¥${b.plan_price.toLocaleString()}）` : ''}`,
+    `プラン：${b.plan_name}${b.monitor_application_id ? '（モニター価格）' : ''}${b.reshoot_of ? '（マッチング数保証による無料再撮影）' : ''}${forCustomer ? `（¥${b.plan_price.toLocaleString()}）` : ''}`,
     options.length ? `オプション：${options.join('、')}` : null,
     forCustomer ? `お支払い合計：¥${b.total_price.toLocaleString()}（税込）` : null,
     `撮影エリア：${b.area || '-'}`,

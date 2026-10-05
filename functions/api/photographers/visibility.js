@@ -10,6 +10,7 @@
 // 「審査済みカメラマン」 badge, and registers the standard plan set when the
 // photographer has none (a listing with no plans can't be booked).
 import { verifyUser, getProfile, restSelect, restInsert, restUpdate } from '../../_lib/supabaseAdmin.js';
+import { sendEmail } from '../../_lib/email.js';
 import { AREAS, PRICING_PLANS } from '../../../js/data.js';
 
 function jsonResponse(body, status = 200) {
@@ -82,9 +83,24 @@ export async function onRequestPost({ request, env }) {
     const patch = { is_visible: visible };
     if (visible && !photographer.verified_at) patch.verified_at = new Date().toISOString();
     await restUpdate(env, 'photographers', { id: `eq.${photographerId}` }, patch);
+    if (photographer.is_visible !== visible) await tellPhotographer(env, photographer, visible, new URL(request.url).origin);
     return jsonResponse({ success: true, plansAdded });
   } catch (err) {
     console.error('photographers/visibility failed', err);
     return jsonResponse({ error: '更新に失敗しました。時間をおいて再度お試しください。' }, 502);
+  }
+}
+
+// Let the photographer know their listing went live / was taken down.
+async function tellPhotographer(env, photographer, visible, origin) {
+  try {
+    if (!photographer.profile_id) return;
+    const [pro] = await restSelect(env, 'profiles', { id: `eq.${photographer.profile_id}`, select: 'email' });
+    if (!pro || !pro.email) return;
+    await sendEmail(env, visible
+      ? { to: pro.email, subject: '【PhotoMatch】プロフィールが公開されました', text: `${photographer.name} さん\n\nプロフィールを確認し、PhotoMatch に公開しました。検索ページ・プロフィールページに表示されています。\n\nお客様が予約できるのは、管理画面のシフトで「受付中」にした枠だけです（初期状態はすべて休み）。撮影できる日時を開けてください。\n${origin}/admin.html\n\n――――――――――\nPhotoMatch\nお問い合わせ：info.photomatch@gmail.com` }
+      : { to: pro.email, subject: '【PhotoMatch】プロフィールの掲載を停止しました', text: `${photographer.name} さん\n\n運営の判断により、PhotoMatch でのプロフィールの掲載を停止しました。新しい予約は受け付けなくなります（すでに入っている予約はそのままです）。\n\nご不明な点は、このメールにご返信ください。\n\n――――――――――\nPhotoMatch\nお問い合わせ：info.photomatch@gmail.com` });
+  } catch (err) {
+    console.error('visibility: photographer email failed', err);
   }
 }

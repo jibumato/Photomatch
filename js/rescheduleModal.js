@@ -2,7 +2,7 @@
 // 選べるのは、カメラマンが受け付けている空き枠（予約画面と同じ判定: js/availability.js）。
 // ルール（無料の範囲・あんしん振替プランの1回）の判定とサーバーでの確認は、
 // js/data.js の rescheduleQuote と /api/bookings/reschedule。
-import { getTakenSlots, getOpenShifts, rescheduleBooking } from './repo.js';
+import { getTakenSlots, getOpenShifts, rescheduleBooking, createReshoot } from './repo.js';
 import { SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, rescheduleQuote } from './data.js';
 import { takenIntervalsFrom, openSetFrom, canStartAt, timeToMinutes } from './availability.js';
 import { escapeHtml } from './util.js';
@@ -101,16 +101,19 @@ export function mountRescheduleModal(container) {
     if (!current || !current.dayIso || !current.time) return;
     const day = current.days.find((d) => d.iso === current.dayIso);
     const planNote = current.quote.usesPlan ? '\n\n「あんしん振替プラン」の無料の日程変更（1回）を使います。' : '';
-    if (!confirm(`日程を次のとおり変更します。\n\n${day.dateLabel}（${day.label}） ${current.time}〜${addMinutes(current.time, current.booking.duration_min)}${planNote}\n\nよろしいですか？`)) return;
+    const reshoot = current.reshootClaimId;
+    if (reshoot && !confirm(`次の日時で無料再撮影を予約します（お支払いは不要です）。\n\n${day.dateLabel}（${day.label}） ${current.time}〜${addMinutes(current.time, current.booking.duration_min)}\n\nよろしいですか？`)) return;
+    if (!reshoot && !confirm(`日程を次のとおり変更します。\n\n${day.dateLabel}（${day.label}） ${current.time}〜${addMinutes(current.time, current.booking.duration_min)}${planNote}\n\nよろしいですか？`)) return;
     const btn = $('resched-save');
     btn.disabled = true;
     showError('');
     try {
-      await rescheduleBooking(current.booking.id, current.dayIso, current.time);
+      if (reshoot) await createReshoot(reshoot, current.dayIso, current.time);
+      else await rescheduleBooking(current.booking.id, current.dayIso, current.time);
       const done = current.onDone;
       const asOps = current.asOps;
       close();
-      alert(asOps ? '日程を変更しました。お客様・カメラマンにメールで知らせました。' : '日程を変更しました。変更内容をメールでお送りしました。');
+      alert(reshoot ? '無料再撮影を予約しました。予約内容をメールでお送りしました。' : asOps ? '日程を変更しました。お客様・カメラマンにメールで知らせました。' : '日程を変更しました。変更内容をメールでお送りしました。');
       if (done) done();
     } catch (err) {
       showError(err.message || '日程変更に失敗しました。時間をおいて再度お試しください。');
@@ -145,11 +148,19 @@ export function mountRescheduleModal(container) {
 
   return {
     // asOps: the ops screen moving a booking for the customer — no fee/plan rules.
-    async open(booking, onDone, { asOps = false } = {}) {
-      const quote = asOps ? { allowed: true, usesPlan: false } : rescheduleQuote(booking);
-      current = { booking, quote, asOps, days: buildBookingDays(TOTAL_BOOKING_DAYS), taken: {}, openSet: new Set(), dayIso: null, time: null, onDone };
-      $('resched-booking-label').textContent = `${booking.photographer_name} ・ 現在：${booking.booking_date} ${booking.start_time.slice(0, 5)}〜${booking.end_time.slice(0, 5)}`;
-      $('resched-rule').textContent = asOps
+    // reshootClaimId: pick the date of the free reshoot of an approved
+    // マッチング数保証 claim (a new ¥0 booking with the same photographer/plan).
+    async open(booking, onDone, { asOps = false, reshootClaimId = null } = {}) {
+      const quote = asOps || reshootClaimId ? { allowed: true, usesPlan: false } : rescheduleQuote(booking);
+      current = { booking, quote, asOps, reshootClaimId, days: buildBookingDays(TOTAL_BOOKING_DAYS), taken: {}, openSet: new Set(), dayIso: null, time: null, onDone };
+      $('resched-title').textContent = reshootClaimId ? '無料再撮影の日程を選ぶ' : '日程を変更する';
+      $('resched-save').textContent = reshootClaimId ? 'この日時で予約する' : 'この日時に変更する';
+      $('resched-booking-label').textContent = reshootClaimId
+        ? `${booking.photographer_name} ・ 元の撮影：${booking.booking_date}（${booking.plan_name}）`
+        : `${booking.photographer_name} ・ 現在：${booking.booking_date} ${booking.start_time.slice(0, 5)}〜${booking.end_time.slice(0, 5)}`;
+      $('resched-rule').textContent = reshootClaimId
+        ? 'マッチング数保証による無料再撮影です。同じカメラマン・同じプランで、お支払いは不要です。カメラマンが受け付けている空き枠から選んでください。'
+        : asOps
         ? '運営として日程を変更します（料金・回数の制限はかかりません）。変更先は、カメラマンが受付中にしている空き枠から選べます。'
         : quote.usesPlan
         ? '撮影日の2日前からの日程変更です。「あんしん振替プラン」の無料の日程変更（1回）を使います。'

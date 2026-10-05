@@ -471,6 +471,21 @@ export const RESCHEDULE_DENIED_MESSAGE = {
   plan_used: '「あんしん振替プラン」の無料の日程変更は、1回までです。すでにご利用済みのため、これ以上は日程変更できません。',
 };
 
+// マッチング数保証：申請できるのは、撮影日＋30日（eligible_at）から14日間。
+// 申し込み済みの予約は、申請期限が過ぎる（または審査が終わる）まで送金しない。
+export const GUARANTEE_WINDOW_DAYS = 30;
+export const GUARANTEE_CLAIM_DAYS = 14;
+export const guaranteeClaimDeadline = (claim) => addDaysToIso(claim.eligible_at, GUARANTEE_CLAIM_DAYS);
+// 送金を止めるべき申請か（申請中、または申込み済みで期限内）。
+export function guaranteeBlocksPayout(claim, todayIso = jstDateIso()) {
+  if (!claim) return false;
+  if (claim.status === 'claimed') return true;
+  return claim.status === 'applied' && todayIso <= guaranteeClaimDeadline(claim);
+}
+
+// モニター価格の定員（schema.sql の monitor_slots_left() と同じ値）。
+export const MONITOR_CAPACITY = 10;
+
 // 運営によるキャンセルの理由（/api/bookings/ops-cancel と運営画面で共用）。
 export const OPS_CANCEL_REASONS = {
   photographer: 'カメラマンの都合により撮影ができなくなったため',

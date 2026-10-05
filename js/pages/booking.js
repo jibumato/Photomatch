@@ -566,7 +566,26 @@ function showConfirmForBooking(booking) {
     if (paidBookingId) {
       document.getElementById('pm-loading').remove();
       clearDraft();
-      const booking = await getBooking(paidBookingId);
+      // The redirect back from Stripe can arrive before the webhook has
+      // marked the booking paid: wait for it instead of claiming success.
+      let booking = await getBooking(paidBookingId);
+      if (booking.status === 'pending_payment') {
+        showStep('confirm');
+        document.querySelector('[data-i18n="booking.confirm.title"]').textContent = t('booking.confirm.checkingTitle');
+        document.getElementById('confirm-lead').textContent = t('booking.confirm.checkingLead');
+        for (let i = 0; i < 20 && booking.status === 'pending_payment'; i++) {
+          await new Promise((r) => setTimeout(r, 3000));
+          booking = await getBooking(paidBookingId);
+        }
+      }
+      if (booking.status === 'pending_payment' || booking.status === 'canceled') {
+        showStep('confirm');
+        document.querySelector('[data-i18n="booking.confirm.title"]').textContent = t(booking.status === 'canceled' ? 'booking.confirm.failedTitle' : 'booking.confirm.slowTitle');
+        document.getElementById('confirm-lead').textContent = t(booking.status === 'canceled' ? 'booking.confirm.failedLead' : 'booking.confirm.slowLead');
+        document.getElementById('confirm-details').closest('.pm-card').style.display = 'none';
+        return;
+      }
+      document.querySelector('[data-i18n="booking.confirm.title"]').textContent = t('booking.confirm.title');
       showConfirmForBooking(booking);
       return;
     }
