@@ -819,6 +819,24 @@ alter table bookings add column if not exists payout_note text; -- opsが銀行�
 -- 前日・当日 プラン料金の100%（オプション料金は全額返金）。返金は Stripe で自動。
 -- photographer_cancel_comp は当日キャンセルのときだけカメラマンへ払う補償（¥2,000）で、
 -- 通常の報酬と同じく payout_status で送金を管理する。
+-- 納品（/api/bookings/deliver）。カメラマンが撮影後にアルバムのリンク（https）を登録すると、
+-- お客様にメールで届き、マイページにも表示される。送金は納品済みの予約だけ確定できる。
+alter table bookings add column if not exists delivered_at timestamptz;
+alter table bookings add column if not exists delivery_url text;
+alter table bookings drop constraint if exists bookings_delivery_url_check;
+alter table bookings add constraint bookings_delivery_url_check
+  check (delivery_url is null or (delivery_url ~ '^https://' and length(delivery_url) <= 500)) not valid;
+
+-- チャットの新着メール通知の送信記録（同じ相手に10分に1通まで）。サーバー（service_role）専用。
+create table if not exists message_notifications (
+  booking_id uuid not null references bookings(id) on delete cascade,
+  recipient_role text not null check (recipient_role in ('client', 'pro')),
+  last_sent_at timestamptz not null default now(),
+  primary key (booking_id, recipient_role)
+);
+alter table message_notifications enable row level security;
+revoke all on message_notifications from anon, authenticated;
+
 -- 運営による対応（/api/bookings/ops-cancel・/api/bookings/payout-hold・Stripe Webhook）。
 --   ops: カメラマン都合・悪天候などで運営がキャンセルした（cancel_reason）
 --   payout_hold: チャージバック（不審請求の申し立て）や、Stripe 管理画面での返金があったため、

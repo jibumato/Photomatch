@@ -359,7 +359,7 @@ function payoutGroupHtml(group, { ready }) {
     const noShow = noShowQuote(b).allowed
       ? ` <button data-booking-id="${b.id}" class="btn-no-show" style="background:none;border:none;padding:0 0 0 6px;font:700 11px var(--pm-font-body);color:var(--pm-warn-text);text-decoration:underline;cursor:pointer">遅刻キャンセルにする</button>`
       : '';
-    return `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">・${b.booking_date} ${String(b.start_time || '').slice(0, 5)}　${what}　依頼者：${escapeHtml(b.customer_name || '-')}　¥${amount.toLocaleString()}${b.payout_hold ? `　<b style="color:var(--pm-warn-text)">送金保留中（${escapeHtml(b.payout_hold_reason || '')}）</b>` : ''}${noShow}</div>`;
+    return `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">・${b.booking_date} ${String(b.start_time || '').slice(0, 5)}　${what}　依頼者：${escapeHtml(b.customer_name || '-')}　¥${amount.toLocaleString()}${b.payout_hold ? `　<b style="color:var(--pm-warn-text)">送金保留中（${escapeHtml(b.payout_hold_reason || '')}）</b>` : ''}${b.status !== 'canceled' && !b.delivered_at ? '　<b style="color:var(--pm-warn-text)">未納品</b>' : ''}${noShow}</div>`;
   }).join('');
   return `
   <div class="pm-card" style="padding:18px 20px">
@@ -410,7 +410,9 @@ async function loadPayouts() {
     const claim = claimsByBooking[b.id];
     const disputed = claim && claim.status === 'claimed';
     const pastWindow = today >= eligiblePayoutDate(b);
-    (pastWindow && !disputed && !b.payout_hold ? ready : waiting).push(b);
+    // A shoot is paid out only once the photos were delivered.
+    const delivered = b.status === 'canceled' || !!b.delivered_at;
+    (pastWindow && !disputed && !b.payout_hold && delivered ? ready : waiting).push(b);
   });
 
   const photographerIds = [...new Set([...ready, ...waiting].map((b) => b.photographer_id))];

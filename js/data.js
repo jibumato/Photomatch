@@ -360,7 +360,16 @@ export const SLOT_TIMES = (() => {
 export const WEEKDAY_JP = ['日', '月', '火', '水', '木', '金', '土'];
 export const BOOKING_LEAD_DAYS = 3;
 export const TOTAL_BOOKING_DAYS = 30;
-export const JP_HOLIDAYS = ['2026-07-20'];
+// 日本の祝日（振替休日・国民の休日を含む）。カレンダーの色分けと、納品期限（営業日）の計算に使う。
+// 2028年以降は追記が必要。
+export const JP_HOLIDAYS = [
+  '2026-01-01', '2026-01-12', '2026-02-11', '2026-02-23', '2026-03-20', '2026-04-29', '2026-05-03', '2026-05-04',
+  '2026-05-05', '2026-05-06', '2026-07-20', '2026-08-11', '2026-09-21', '2026-09-22', '2026-09-23', '2026-10-12',
+  '2026-11-03', '2026-11-23',
+  '2027-01-01', '2027-01-11', '2027-02-11', '2027-02-23', '2027-03-21', '2027-03-22', '2027-04-29', '2027-05-03',
+  '2027-05-04', '2027-05-05', '2027-07-19', '2027-08-11', '2027-09-20', '2027-09-23', '2027-10-11', '2027-11-03',
+  '2027-11-23',
+];
 
 export function isoDate(d) {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -468,6 +477,26 @@ export const OPS_CANCEL_REASONS = {
   weather: '悪天候により撮影ができなくなったため',
   other: '運営の判断により',
 };
+
+// 納品期限（規約第6条：撮影日から最短翌日〜3営業日以内。スピード納品は翌営業日）。
+// 営業日は土日・祝日を除く日。
+export const SPEED_DELIVERY_OPTION_KEY = 'speed';
+export function addBusinessDays(iso, n) {
+  let d = iso;
+  let left = n;
+  while (left > 0) {
+    d = addDaysToIso(d, 1);
+    const dow = new Date(`${d}T00:00:00Z`).getUTCDay();
+    if (dow !== 0 && dow !== 6 && !JP_HOLIDAYS.includes(d)) left -= 1;
+  }
+  return d;
+}
+export function deliveryDueDate(booking) {
+  const speed = (booking.options || []).some((o) => o.key === SPEED_DELIVERY_OPTION_KEY);
+  return { date: addBusinessDays(booking.booking_date, speed ? 1 : 3), speed };
+}
+// 納品リンクとして受け付けるURL（https のみ）。
+export const isValidDeliveryUrl = (u) => /^https:\/\/[^\s<>"']{4,490}$/.test(String(u || ''));
 
 // 遅刻キャンセル（集合時間に15分以上遅れた場合。規約第5条）。運営が撮影開始後に
 // 処理し、当日キャンセルと同じ扱いにする：プラン料金の100%をいただき、

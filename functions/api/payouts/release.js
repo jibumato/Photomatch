@@ -47,6 +47,7 @@ export async function onRequestPost({ request, env }) {
   if (booking.payout_hold) return jsonResponse({ error: `この予約の送金は保留中です（${booking.payout_hold_reason || '理由未記入'}）。確認してから、運営画面「予約の管理」で保留を解除してください。` }, 400);
 
   if (!compensation) {
+    if (!booking.delivered_at) return jsonResponse({ error: 'まだ納品されていない予約です（カメラマンが「納品済みにする」を押すと送金できます）。' }, 400);
     const eligibleDate = new Date(`${booking.booking_date}T00:00:00+09:00`);
     eligibleDate.setDate(eligibleDate.getDate() + GUARANTEE_WINDOW_DAYS);
     if (new Date() < eligibleDate) {

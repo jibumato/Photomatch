@@ -1,6 +1,7 @@
-import { getMessages, sendMessage, subscribeToMessages, markRead } from './repo.js';
+import { getMessages, sendMessage, subscribeToMessages, markRead, notifyNewMessage } from './repo.js';
 
-export function mountChatModal(container) {
+// onClose: called after the modal closes (pages refresh their unread badges).
+export function mountChatModal(container, { onClose } = {}) {
   container.innerHTML = `
   <div class="pm-modal-overlay" id="chat-overlay">
     <div class="pm-modal-backdrop" id="chat-backdrop"></div>
@@ -36,8 +37,10 @@ export function mountChatModal(container) {
   let unsubscribe = null;
 
   function close() {
+    const wasOpen = overlay.classList.contains('is-open');
     overlay.classList.remove('is-open');
     if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+    if (wasOpen && onClose) onClose();
   }
   backdrop.addEventListener('click', close);
   closeBtn.addEventListener('click', close);
@@ -77,6 +80,7 @@ export function mountChatModal(container) {
     try {
       await sendMessage(bookingId, role, text);
       await markRead(bookingId, role);
+      notifyNewMessage(bookingId);
     } catch (err) {
       alert('送信に失敗しました。');
       console.error(err);

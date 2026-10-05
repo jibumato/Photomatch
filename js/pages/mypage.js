@@ -8,11 +8,11 @@ import { mountChatModal } from '../chat.js';
 import { mountSheetModal } from '../sheet.js';
 import { mountReviewModal } from '../reviewModal.js';
 import { mountRescheduleModal } from '../rescheduleModal.js';
-import { cancellationQuote, rescheduleQuote, RESCHEDULE_DENIED_MESSAGE, RESCHEDULE_OPTION_KEY } from '../data.js';
+import { cancellationQuote, rescheduleQuote, RESCHEDULE_DENIED_MESSAGE, RESCHEDULE_OPTION_KEY, jstDateIso, isValidDeliveryUrl } from '../data.js';
 
 mountLayout();
 
-const chatModal = mountChatModal(document.getElementById('pm-chat-mount'));
+const chatModal = mountChatModal(document.getElementById('pm-chat-mount'), { onClose: () => load() });
 const sheetModal = mountSheetModal(document.getElementById('pm-sheet-mount'));
 const reviewModal = mountReviewModal(document.getElementById('pm-review-mount'));
 const reschedModal = mountRescheduleModal(document.getElementById('pm-resched-mount'));
@@ -25,7 +25,8 @@ const STATUS_STYLE = {
   'キャンセル済': 'background:oklch(0.93 0.008 220);color:oklch(0.55 0.02 220)',
 };
 
-function todayIso() { return new Date().toISOString().slice(0, 10); }
+// Japan time, so a shoot doesn't move to 「過去の予約」 at 9:00 the next morning.
+function todayIso() { return jstDateIso(); }
 function addDaysIso(iso, days) {
   const d = new Date(iso + 'T00:00:00');
   d.setDate(d.getDate() + days);
@@ -134,6 +135,7 @@ function bookingCardHtml(b, meta, { history }) {
         </div>
         <div style="font:13px var(--pm-font-body);color:oklch(0.45 0.02 235)">${b.booking_date}（${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}）</div>
         <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${b.plan_name} ・ ${priceLabel}</div>
+        ${b.delivered_at && isValidDeliveryUrl(b.delivery_url) && b.status !== 'canceled' ? `<div style="margin-top:6px"><a href="${escapeHtml(b.delivery_url)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210)">📷 撮影データを見る（納品済み）↗</a></div>` : ''}
         ${b.rescheduled_count > 0 && b.previous_booking_date && b.status !== 'canceled' ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">日程変更済み（変更前：${b.previous_booking_date} ${String(b.previous_start_time).slice(0, 5)}〜）</div>` : ''}
         ${b.status === 'canceled' && b.cancel_reason === 'no_show' ? '<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">集合時間に15分以上遅れたため、当日キャンセル扱いとなりました（利用規約第5条）</div>' : ''}
         ${b.status === 'canceled' && b.refund_amount > 0 ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">ご返金：¥${b.refund_amount.toLocaleString()}${b.refund_status === 'succeeded' ? '（カードへ返金済み）' : '（運営より手続き中）'}</div>` : ''}

@@ -237,6 +237,17 @@ export async function getPhotographerBookings(photographerId) {
 
 // Goes through a Function (not a direct table update) so the cancellation
 // emails to the customer and photographer are always sent.
+// Photographer (or ops): record delivery with the album link; the customer is emailed.
+export async function deliverBooking(bookingId, deliveryUrl) {
+  return callApi('/api/bookings/deliver', { booking_id: bookingId, delivery_url: deliveryUrl }, '納品の登録に失敗しました。');
+}
+
+// After sending a chat message: let the server email the other party
+// (throttled there). Never throws — the message itself is already sent.
+export async function notifyNewMessage(bookingId) {
+  try { await callApi('/api/messages/notify', { booking_id: bookingId }, ''); } catch (e) { /* best effort */ }
+}
+
 // ---- ops: booking management (予約の管理) ----
 
 // Bookings from fromIso on (past shoots and cancellations included), with the
