@@ -11,8 +11,9 @@
 // confirmation. If nobody confirms within PHOTOGRAPHER_ACK_HOURS, ops is
 // alerted (/api/bookings/ack-check).
 import { RESCHEDULABLE_STATUSES } from '../../../js/data.js';
-import { verifyUser, restSelect, restUpdate } from '../../_lib/supabaseAdmin.js';
+import { verifyUser, restSelect } from '../../_lib/supabaseAdmin.js';
 import { verifyAckToken } from '../../_lib/ackToken.js';
+import { markAcked } from '../../_lib/bookingAck.js';
 
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -41,18 +42,6 @@ async function loadSigned(env, id, token) {
   const [booking] = await restSelect(env, 'bookings', { id: `eq.${id}`, select: '*' });
   if (!booking || !(await verifyAckToken(env, booking.id, booking.ack_requested_at, token))) return null;
   return booking;
-}
-
-// Marks the booking confirmed, only if it's still the same request (not
-// rescheduled since) and not confirmed yet.
-async function markAcked(env, booking) {
-  const updated = await restUpdate(
-    env,
-    'bookings',
-    { id: `eq.${booking.id}`, ack_requested_at: `eq.${booking.ack_requested_at}`, photographer_ack_at: 'is.null', status: `in.(${RESCHEDULABLE_STATUSES.join(',')})` },
-    { photographer_ack_at: new Date().toISOString() },
-  );
-  return updated[0] || null;
 }
 
 export async function onRequestGet({ request, env }) {
@@ -105,11 +94,7 @@ export async function onRequestPost({ request, env }) {
   if (!booking || !photographer || photographer.profile_id !== user.id) return jsonResponse({ error: '予約が見つかりません。' }, 404);
   if (!RESCHEDULABLE_STATUSES.includes(booking.status)) return jsonResponse({ error: 'この予約は確認の必要がありません（キャンセル済みなど）。' }, 409);
   if (booking.photographer_ack_at) return jsonResponse({ ok: true, photographer_ack_at: booking.photographer_ack_at });
-  // Bookings made before this feature have no request time; confirming them
-  // is still fine (and harmless).
-  const updated = booking.ack_requested_at
-    ? await markAcked(env, booking)
-    : (await restUpdate(env, 'bookings', { id: `eq.${booking.id}`, photographer_ack_at: 'is.null' }, { photographer_ack_at: new Date().toISOString() }))[0];
+  const updated = await markAcked(env, booking);
   if (!updated) return jsonResponse({ error: '予約の状態が変わりました。画面を読み込み直してください。' }, 409);
   return jsonResponse({ ok: true, photographer_ack_at: updated.photographer_ack_at });
 }

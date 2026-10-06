@@ -169,6 +169,8 @@ update profiles set role = 'ops' where email = 'info.photomatch@gmail.com';
 | チャージバック・Stripeでの返金・決済の取り消し | | | ○ |
 | カメラマンが3時間たっても予約を未確認 | | 再通知 ○ | ○ |
 
+LINE通知を設定したカメラマンには、カメラマン宛ての「予約確定・日程変更・キャンセル・遅刻キャンセル・未確認の再通知・お客様からのチャット」が、メールに加えてLINEでも届く（下記「LINE通知」）。
+
 予約確定・日程変更・キャンセルのメールには、カレンダー登録用のファイル（`photomatch-booking.ics`、お客様・カメラマン宛て）が付く。
 
 ## カメラマンの「確認しました」
@@ -199,3 +201,26 @@ node scripts/stamp-assets.mjs
 各 HTML の CSS/JS の URL に内容ハッシュ（`?v=…`）と import map を付け直す。これを忘れると、ブラウザに残った古い CSS / 翻訳ファイルと新しい HTML が組み合わさり、「top.hero.cta」のような翻訳キーがそのまま表示されたり、画像が巨大になったりする（`scripts/build-articles.mjs` を実行した場合は自動で行われる）。
 
 あわせて `_headers` で HTML/CSS/JS を毎回再検証（`no-cache`）にしている。Cloudflare の「キャッシュ → 設定 → ブラウザキャッシュ TTL」は「既存のヘッダーを尊重する」にしておくこと。
+
+## LINE通知（カメラマン向け）
+
+PhotoMatch の LINE公式アカウントから、カメラマンに予約などを LINE でお知らせする（Messaging API）。未設定のあいだは何も起きず、メールだけが届く。カメラマンは管理画面の「LINE通知」から、友だち追加とコードの送信で連携する。予約の通知の「確認しました」ボタンは LINE からも押せる。
+
+### 設定手順
+
+1. [LINE Official Account Manager](https://manager.line.biz/) で LINE公式アカウントを作り、「設定 → Messaging API」から Messaging API を有効にする。
+2. [LINE Developers](https://developers.line.biz/console/) で、そのチャネルを開く。
+   - 「チャネル基本設定」の **チャネルシークレット** を控える。
+   - 「Messaging API設定」で **チャネルアクセストークン（長期）** を発行して控える。
+   - 同じ画面で Webhook URL に `https://photo-match.jp/api/line/webhook` を入れ、「Webhookの利用」をオンにする（「検証」は手順4のあとで成功する）。
+3. LINE Official Account Manager の「応答設定」で、**応答メッセージをオフ**、**Webhook をオン** にする（オンのままだと、連携コードを送ったカメラマンに自動応答も届いてしまう）。
+4. Cloudflare Pages の「設定 → 環境変数」（本番）に次を追加し、再デプロイする。
+   - `LINE_CHANNEL_ACCESS_TOKEN`：チャネルアクセストークン（暗号化）
+   - `LINE_CHANNEL_SECRET`：チャネルシークレット（暗号化）
+   - `LINE_BOT_BASIC_ID`：アカウントのベーシックID（例 `@123abcde`。管理画面の友だち追加リンクに使う）
+5. Supabase で `supabase/schema.sql` を実行する（`line_links` / `line_link_codes` を作る）。
+
+### 送る通数について
+
+無料のコミュニケーションプランは月200通まで（超えるとその月は送れない。メールは届く）。1回のお知らせ（本文＋ボタン）は1通と数える。予約1件あたり確定・変更・キャンセルなどで1〜3通、チャットは同じ予約について10分に1通まで。届かなかったときは管理画面の「LINE通知」に警告が出る。
+

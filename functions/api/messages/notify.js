@@ -5,6 +5,7 @@
 // when the caller really did just send a message in that booking.
 import { verifyUser, restSelect, restUpsert } from '../../_lib/supabaseAdmin.js';
 import { sendEmail } from '../../_lib/email.js';
+import { pushToPhotographer, clip } from '../../_lib/line.js';
 
 const THROTTLE_MS = 10 * 60 * 1000;
 
@@ -54,6 +55,13 @@ export async function onRequestPost({ request, env }) {
   const from = senderRole === 'client' ? `依頼者（${booking.customer_name || 'お客様'}）` : `カメラマン（${(photographer && photographer.name) || ''}）`;
   const snippet = latest.text.length > 200 ? `${latest.text.slice(0, 200)}…` : latest.text;
   await restUpsert(env, 'message_notifications', { booking_id: bookingId, recipient_role: recipientRole, last_sent_at: new Date().toISOString() });
+  if (recipientRole === 'pro') {
+    // Also on the photographer's LINE, if linked (same 10-minute throttle).
+    await pushToPhotographer(env, booking.photographer_id, [
+      { type: 'text', text: clip(`【メッセージ】${booking.customer_name || 'お客様'} 様（${booking.booking_date.slice(5).replace('-', '/')} ${booking.start_time.slice(0, 5)}〜の予約）\n\n${snippet}`, 4900) },
+      { type: 'text', text: `返信は管理画面から\n${origin}/admin.html` },
+    ]);
+  }
   try {
     await sendEmail(env, {
       to: recipient.email,

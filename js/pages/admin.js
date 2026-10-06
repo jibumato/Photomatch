@@ -3,7 +3,7 @@ import { requireRole, signOut } from '../auth.js';
 import {
   getMyPhotographerRow, getOpenShifts, openShifts, closeShifts,
   getPhotographerBookings, getMessageCounts, getReadTimestamps,
-  getBankAccount, saveBankAccount, getCounselingSheetsForBookings, deliverBooking, ackBooking,
+  getBankAccount, saveBankAccount, getCounselingSheetsForBookings, deliverBooking, ackBooking, lineLink,
 } from '../repo.js';
 import { mountChatModal } from '../chat.js';
 import { loadDailyWeather } from '../weather.js';
@@ -427,6 +427,74 @@ function bankAccountFormHtml(account) {
 
 const escapeAttr = escapeHtml;
 
+// ---- LINE通知（予約や依頼者からのメッセージをLINEでも受け取る） ----
+// Hidden until LINE is set up on the server (/api/line/link reports it).
+let linePoll = null;
+
+async function renderLineSection() {
+  const el = document.getElementById('pm-line-section');
+  let status;
+  try {
+    status = await lineLink('status');
+  } catch (err) {
+    return; // keep the section hidden; email notifications still work
+  }
+  if (!status.configured) return;
+  el.style.display = 'block';
+  const title = '<div style="font:700 15px var(--pm-font-body);margin-bottom:6px">LINE通知</div>';
+  const note = (t) => `<p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 12px">${t}</p>`;
+  if (status.linked) {
+    if (linePoll) { clearInterval(linePoll); linePoll = null; }
+    el.innerHTML = `${title}
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="padding:3px 10px;border-radius:100px;font:700 11px var(--pm-font-body);background:oklch(0.94 0.07 150);color:oklch(0.4 0.12 155)">連携済み</span>
+      <span style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${escapeHtml(new Date(status.linked_at).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }))}</span></div>
+      ${note('予約の確定・日程変更・キャンセル、依頼者からのメッセージをLINEでもお知らせします（メールも引き続き届きます）。予約の通知の「確認しました」ボタンは、LINEからも押せます。')}
+      ${status.last_error_at ? `<p style="font:12px/1.7 var(--pm-font-body);color:var(--pm-warn-text);margin:0 0 12px">最近のLINE通知が届けられませんでした（${escapeHtml(new Date(status.last_error_at).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }))}）。PhotoMatchのLINEをブロックしていないか確認してください。届かない場合は、連携を解除して設定し直してください。</p>` : ''}
+      <button class="pm-btn-outline" id="line-unlink-btn" style="font-size:12px">連携を解除する</button>`;
+    document.getElementById('line-unlink-btn').addEventListener('click', async (e) => {
+      if (!confirm('LINE通知の連携を解除します。よろしいですか？（メールの通知は引き続き届きます）')) return;
+      e.currentTarget.disabled = true;
+      try { await lineLink('unlink'); } catch (err) { alert(err.message); }
+      renderLineSection();
+    });
+    return;
+  }
+  el.innerHTML = `${title}
+    ${note('予約や依頼者からのメッセージを、LINEでも受け取れます。メールに気づきにくい方はぜひ設定してください。')}
+    <div id="line-steps"></div>
+    <button class="pm-btn pm-btn-primary" id="line-start-btn" style="align-self:flex-start">LINEと連携する</button>`;
+  document.getElementById('line-start-btn').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    let issued;
+    try {
+      issued = await lineLink('code');
+    } catch (err) {
+      alert(err.message);
+      btn.disabled = false;
+      return;
+    }
+    btn.style.display = 'none';
+    const linkBtn = (href, label) => (href ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener" class="pm-btn-outline" style="display:inline-flex;font-size:13px;text-decoration:none">${label}</a>` : '');
+    document.getElementById('line-steps').innerHTML = `
+      <ol style="font:13px/1.9 var(--pm-font-body);color:oklch(0.35 0.02 235);margin:0 0 12px;padding-left:20px">
+        <li style="margin-bottom:10px">PhotoMatchのLINE公式アカウントを友だち追加します。<div style="margin-top:6px">${linkBtn(issued.add_friend_url, '友だち追加')}</div></li>
+        <li>下のコードを、トークでそのまま送信します（30分有効）。<div style="font:800 24px/1.4 var(--pm-font-num);letter-spacing:2px;margin:6px 0">${escapeHtml(issued.code)}</div>${linkBtn(issued.send_code_url, 'LINEでコードを送信')}</li>
+      </ol>
+      <p id="line-waiting" style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin:0">送信すると、この画面が自動で「連携済み」に切り替わります。</p>`;
+    // Watch for the webhook to finish linking (up to the code's 30 minutes).
+    const until = Date.now() + 30 * 60e3;
+    if (linePoll) clearInterval(linePoll);
+    linePoll = setInterval(async () => {
+      if (Date.now() > until) { clearInterval(linePoll); linePoll = null; return; }
+      try {
+        const s = await lineLink('status');
+        if (s.linked) renderLineSection();
+      } catch (err) { /* keep waiting */ }
+    }, 4000);
+  });
+}
+
 async function renderBankAccountSection(photographer) {
   const el = document.getElementById('pm-bank-account-section');
   const account = await getBankAccount(photographer.id);
@@ -499,6 +567,7 @@ async function init() {
   document.getElementById('pm-admin').style.display = 'block';
   mountProfileEditor(document.getElementById('pm-profile-section'), photographer, profile.id);
   renderBankAccountSection(photographer);
+  renderLineSection();
 
   const [bookings] = await Promise.all([getPhotographerBookings(state.photographerId), loadShifts(), loadWeather()]);
   state.bookings = bookings;
