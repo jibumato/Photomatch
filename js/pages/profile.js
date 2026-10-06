@@ -1,6 +1,6 @@
 import { mountLayout } from '../layout.js';
 import { getPhotographer, getPlans, getReviews, isBookable } from '../repo.js';
-import { t, areaText, localizedField, planNameText, planDescText, discountLabelText, reviewsCountLabel, taxIncludedSuffix } from '../i18n.js';
+import { t, getLang, areaText, localizedField, planNameText, planDescText, discountLabelText, reviewsCountLabel, taxIncludedSuffix } from '../i18n.js';
 import { escapeHtml, safePhotoUrl, hasRating } from '../util.js';
 
 mountLayout();
@@ -82,7 +82,7 @@ function instagramLinkHtml(raw) {
     document.getElementById('pm-reviews').innerHTML = reviews.map((rv) => `
       <div style="border:1px solid var(--pm-border-soft);border-radius:14px;padding:16px">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="font:600 13px var(--pm-font-body)">${escapeHtml(rv.reviewer_name)}${rv.created_at ? `<span style="font:400 11px var(--pm-font-num);color:var(--pm-text-muted);margin-left:8px">${escapeHtml(String(rv.created_at).slice(0, 10))}</span>` : ''}</span>
+          <span style="font:600 13px var(--pm-font-body)">${escapeHtml(rv.reviewer_name === '匿名のお客様' && getLang() === 'en' ? 'Anonymous customer' : rv.reviewer_name)}${rv.created_at ? `<span style="font:400 11px var(--pm-font-num);color:var(--pm-text-muted);margin-left:8px">${escapeHtml(String(rv.created_at).slice(0, 10))}</span>` : ''}</span>
           <span style="font:13px var(--pm-font-body);color:var(--pm-star)">${starsLabel(rv.stars)}</span>
         </div>
         <div style="font:13px/1.7 var(--pm-font-body);color:oklch(0.45 0.02 235)">${escapeHtml(rv.comment || '')}</div>
