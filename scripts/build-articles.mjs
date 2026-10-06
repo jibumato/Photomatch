@@ -37,14 +37,14 @@ function relatedHtml(current) {
   const others = COLUMN_ARTICLES.filter((a) => a.id !== current.id).slice(0, 3);
   return `
   <section class="pm-wrap-narrow" style="padding:0 clamp(20px,5vw,32px)">
-    <h2 style="font:700 17px var(--pm-font-body);margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid var(--pm-border-soft)">ほかのコラム</h2>
+    <h2 data-i18n="column.related" style="font:700 17px var(--pm-font-body);margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid var(--pm-border-soft)">ほかのコラム</h2>
     <div style="display:flex;flex-direction:column;gap:12px">
-${others.map((a) => `      <a href="${pageFor(a.id)}" class="pm-card" style="display:block;padding:16px 18px;text-decoration:none;color:inherit">
+${others.map((a) => `      <a href="${pageFor(a.id)}" data-col-card="${a.id}" class="pm-card" style="display:block;padding:16px 18px;text-decoration:none;color:inherit">
         <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px">
-          <span style="font:700 11px var(--pm-font-body);color:oklch(0.48 0.1 210);background:oklch(0.95 0.03 205);padding:3px 10px;border-radius:100px">${esc(a.tag)}</span>
-          <span style="font:11px var(--pm-font-body);color:var(--pm-text-muted)">読了 約${a.readMin}分</span>
+          <span data-col-tag style="font:700 11px var(--pm-font-body);color:oklch(0.48 0.1 210);background:oklch(0.95 0.03 205);padding:3px 10px;border-radius:100px">${esc(a.tag)}</span>
+          <span data-col-readmin="${a.readMin}" style="font:11px var(--pm-font-body);color:var(--pm-text-muted)">読了 約${a.readMin}分</span>
         </div>
-        <div style="font:700 15px/1.6 var(--pm-font-body)">${esc(a.title)}</div>
+        <div data-col-title style="font:700 15px/1.6 var(--pm-font-body)">${esc(a.title)}</div>
       </a>`).join('\n')}
     </div>
   </section>`;
@@ -99,28 +99,28 @@ ${JSON.stringify(jsonLd, null, 2)}
 
 <main>
   <section class="pm-wrap-narrow" style="padding:24px clamp(20px,5vw,32px) 0">
-    <a class="pm-back-link" href="column.html">← コラム一覧に戻る</a>
+    <a class="pm-back-link" href="column.html" data-i18n="column.backToList">← コラム一覧に戻る</a>
   </section>
 
-  <article class="pm-wrap-narrow" style="padding:20px clamp(20px,5vw,32px) 0">
+  <article class="pm-wrap-narrow" data-col-article="${article.id}" style="padding:20px clamp(20px,5vw,32px) 0">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-      <span style="font:700 11px var(--pm-font-body);color:oklch(0.48 0.1 210);background:oklch(0.95 0.03 205);padding:4px 10px;border-radius:100px">${esc(article.tag)}</span>
-      <span style="font:12px var(--pm-font-body);color:var(--pm-text-muted)">読了 約${article.readMin}分</span>
+      <span data-col-tag style="font:700 11px var(--pm-font-body);color:oklch(0.48 0.1 210);background:oklch(0.95 0.03 205);padding:4px 10px;border-radius:100px">${esc(article.tag)}</span>
+      <span data-col-readmin="${article.readMin}" style="font:12px var(--pm-font-body);color:var(--pm-text-muted)">読了 約${article.readMin}分</span>
     </div>
-    <h1 style="font:700 clamp(24px,5vw,32px)/1.5 var(--pm-font-body);margin:0 0 20px">${esc(article.title)}</h1>
-    <div style="font:15px/1.9 var(--pm-font-body);color:oklch(0.32 0.02 235);background:oklch(0.97 0.015 210);border-left:3px solid oklch(0.7 0.12 210);border-radius:0 12px 12px 0;padding:18px 20px;margin-bottom:36px">${esc(article.lead)}</div>
-${article.sections.map((s) => `    <div style="margin-bottom:36px">
-      <h2 style="font:700 19px var(--pm-font-body);margin:0 0 12px;padding-bottom:12px;border-bottom:1px solid var(--pm-border-soft)">${esc(s.h)}</h2>
-      <p style="font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0">${esc(s.b)}</p>
+    <h1 data-col-title style="font:700 clamp(24px,5vw,32px)/1.5 var(--pm-font-body);margin:0 0 20px">${esc(article.title)}</h1>
+    <div data-col-lead style="font:15px/1.9 var(--pm-font-body);color:oklch(0.32 0.02 235);background:oklch(0.97 0.015 210);border-left:3px solid oklch(0.7 0.12 210);border-radius:0 12px 12px 0;padding:18px 20px;margin-bottom:36px">${esc(article.lead)}</div>
+${article.sections.map((s, i) => `    <div style="margin-bottom:36px">
+      <h2 data-col-h="${i}" style="font:700 19px var(--pm-font-body);margin:0 0 12px;padding-bottom:12px;border-bottom:1px solid var(--pm-border-soft)">${esc(s.h)}</h2>
+      <p data-col-b="${i}" style="font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0">${esc(s.b)}</p>
     </div>`).join('\n')}
   </article>
 
   <section style="max-width:800px;margin:48px auto 0;padding:0 clamp(20px,5vw,32px) 48px">
     <div style="background:linear-gradient(135deg, oklch(0.28 0.04 240), oklch(0.36 0.08 228));color:#fff;border-radius:20px;padding:clamp(32px,7vw,48px) clamp(24px,5vw,40px);text-align:center">
       <div style="font:700 13px var(--pm-font-body);color:oklch(0.78 0.1 200);letter-spacing:0.06em;margin-bottom:10px">READY?</div>
-      <h2 style="font:700 clamp(20px,4.5vw,26px)/1.6 var(--pm-font-body);margin:0 0 14px">その一枚、プロと45分で。</h2>
-      <p style="font:14px/1.9 var(--pm-font-body);color:oklch(0.85 0.01 220);margin:0 0 28px">名古屋・岐阜・一宮エリアの審査済みカメラマンが、アプリ映えする自然な1枚を撮影します。</p>
-      <a class="pm-btn pm-btn-primary pm-btn-lg" style="background:#fff;color:oklch(0.24 0.05 245)" href="search.html">撮影を予約する</a>
+      <h2 data-i18n="column.cta.title" style="font:700 clamp(20px,4.5vw,26px)/1.6 var(--pm-font-body);margin:0 0 14px">その一枚、プロと45分で。</h2>
+      <p data-i18n="column.cta.body" style="font:14px/1.9 var(--pm-font-body);color:oklch(0.85 0.01 220);margin:0 0 28px">名古屋・岐阜エリアの審査済みカメラマンが、アプリ映えする自然な1枚を撮影します。</p>
+      <a class="pm-btn pm-btn-primary pm-btn-lg" data-i18n="column.cta.button" style="background:#fff;color:oklch(0.24 0.05 245)" href="search.html">撮影を予約する</a>
     </div>
   </section>
 ${relatedHtml(article)}

@@ -10,7 +10,7 @@ import {
   MONITOR_PLAN_NAMES, monitorPriceFor, areasFor, meetingPointForArea, mapUrlFor,
   CUSTOMER_GENDERS, needsGenderForOptions,
 } from '../data.js';
-import { t, tf, L, getLang, areaText, planNameText, planDescText, discountLabelText, taxIncludedSuffix } from '../i18n.js';
+import { t, tf, L, getLang, areaText, weekdayText, planNameText, planDescText, discountLabelText, taxIncludedSuffix } from '../i18n.js';
 
 mountLayout();
 
@@ -239,7 +239,7 @@ function renderAreaInfo() {
   el.innerHTML = `
     <span class="pm-note-title">${tf('booking.slot.areaInfoTitle', { area: areaText(area.label) })}</span>
     <div style="font:12px/1.7 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:6px">${L(area, 'desc')}</div>
-    <div style="font:13px/1.7 var(--pm-font-body);color:oklch(0.3 0.02 235)"><b>${t('booking.slot.meetingPoint')}</b>${escapeHtml(mp.detail)}</div>
+    <div style="font:13px/1.7 var(--pm-font-body);color:oklch(0.3 0.02 235)"><b>${t('booking.slot.meetingPoint')}</b>${escapeHtml(L(mp, 'detail'))}</div>
     <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font:700 12px var(--pm-font-body)">
       <a href="${mapUrlFor(mp)}" target="_blank" rel="noopener noreferrer" style="color:oklch(0.45 0.14 210)">${t('booking.slot.meetingMap')} ↗</a>
       <a href="meeting-points.html" target="_blank" rel="noopener" style="color:oklch(0.45 0.14 210)">${t('booking.slot.meetingMore')} ↗</a>
@@ -265,7 +265,7 @@ function renderSlotGrid() {
     const w = state.weather && state.weather[i];
     const wi = weatherIconFor(w ? w.code : null);
     const pop = w && w.pop != null ? w.pop + '%' : '';
-    html += `<div class="pm-cal-daylabel" style="color:${d.labelColor}">${d.label}<br><span style="font:400 11px var(--pm-font-num);color:var(--pm-text-3)">${d.dateLabel}</span><br><span style="font:700 17px var(--pm-font-body);color:${wi.color}">${wi.icon}</span> <span style="font:600 11px var(--pm-font-body);color:var(--pm-text-3)">${pop}</span></div>`;
+    html += `<div class="pm-cal-daylabel" style="color:${d.labelColor}">${weekdayText(d.label)}<br><span style="font:400 11px var(--pm-font-num);color:var(--pm-text-3)">${d.dateLabel}</span><br><span style="font:700 17px var(--pm-font-body);color:${wi.color}">${wi.icon}</span> <span style="font:600 11px var(--pm-font-body);color:var(--pm-text-3)">${pop}</span></div>`;
   });
 
   SLOT_TIMES.forEach((time, slotIndex) => {
@@ -282,7 +282,7 @@ function renderSlotGrid() {
       // buttons — the rest are informational, not actions, so they stay plain
       // divs and don't add noise to the tab order.
       html += bookable
-        ? `<button type="button" class="pm-cal-cell pm-unbutton" data-day="${d.index}" data-slot="${slotIndex}" data-bookable="true" aria-label="${d.dateLabel}（${d.label}） ${time}〜" style="background:${bg};color:${color};cursor:pointer;font-weight:700;border:0;padding:0;width:100%">${mark}</button>`
+        ? `<button type="button" class="pm-cal-cell pm-unbutton" data-day="${d.index}" data-slot="${slotIndex}" data-bookable="true" aria-label="${getLang() === 'en' ? `${d.dateLabel} (${weekdayText(d.label)}) ${time}` : `${d.dateLabel}（${d.label}） ${time}〜`}" style="background:${bg};color:${color};cursor:pointer;font-weight:700;border:0;padding:0;width:100%">${mark}</button>`
         : `<div class="pm-cal-cell" style="background:${bg};color:${color};cursor:not-allowed;font-weight:400">${mark}</div>`;
     });
   });
@@ -322,7 +322,7 @@ function goContactStep() {
   const s = currentSummary();
   document.getElementById('contact-summary').innerHTML = tf('booking.contact.summary', {
     name: state.photographer.name, plan: planNameText(s.plan.name), duration: s.plan.duration_min,
-    date: s.d.dateLabel, day: s.d.label, start: s.startTime, end: s.endTime, area: areaText(s.areaLabel),
+    date: s.d.dateLabel, day: weekdayText(s.d.label), start: s.startTime, end: s.endTime, area: areaText(s.areaLabel),
   });
   document.getElementById('f-name').value = state.name;
   document.getElementById('f-email').value = state.email;
@@ -484,8 +484,8 @@ function renderPaymentSummary() {
       <span style="font:700 13px var(--pm-font-body);color:oklch(0.35 0.03 220)">${t('booking.contact.total')}</span>
       <span style="font:700 22px var(--pm-font-num);color:oklch(0.3 0.03 240)">¥${s.grandTotal.toLocaleString()}</span>
     </div>
-    ${meetingPointForArea(s.areaLabel) ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:4px">${tf('booking.payment.meetingLine', { detail: escapeHtml(meetingPointForArea(s.areaLabel).detail) })}</div>` : ''}
-    <div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${tf('booking.payment.locationLine', { name: escapeHtml(state.photographer.name), area: areaText(s.areaLabel), date: s.d.dateLabel, day: s.d.label, start: s.startTime, end: s.endTime })}</div>`;
+    ${meetingPointForArea(s.areaLabel) ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:4px">${tf('booking.payment.meetingLine', { detail: escapeHtml(L(meetingPointForArea(s.areaLabel), 'detail')) })}</div>` : ''}
+    <div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${tf('booking.payment.locationLine', { name: escapeHtml(state.photographer.name), area: areaText(s.areaLabel), date: s.d.dateLabel, day: weekdayText(s.d.label), start: s.startTime, end: s.endTime })}</div>`;
   document.getElementById('payment-submit-label').textContent = tf('booking.payment.submitLabel', { total: `¥${s.grandTotal.toLocaleString()}` });
 }
 

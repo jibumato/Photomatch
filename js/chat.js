@@ -1,6 +1,10 @@
+import { t, getLang } from './i18n.js';
+import { jaText } from './i18n/mypage.js';
 import { getMessages, sendMessage, subscribeToMessages, markRead, notifyNewMessage } from './repo.js';
 
 // onClose: called after the modal closes (pages refresh their unread badges).
+// The chat is shared with the photographer/ops screens, which stay Japanese:
+// only the customer's side ('client') follows the visitor's language.
 export function mountChatModal(container, { onClose } = {}) {
   container.innerHTML = `
   <div class="pm-modal-overlay" id="chat-overlay">
@@ -11,12 +15,12 @@ export function mountChatModal(container, { onClose } = {}) {
           <div id="chat-partner" style="font:700 15px var(--pm-font-body);color:oklch(0.24 0.02 245)"></div>
           <div id="chat-meta" style="font:11px var(--pm-font-body);color:var(--pm-text-3)"></div>
         </div>
-        <button class="pm-modal-close" id="chat-close">×</button>
+        <button class="pm-modal-close" id="chat-close" aria-label="${t('chat.close')}">×</button>
       </div>
       <div class="pm-chat-body" id="chat-body"></div>
       <div class="pm-chat-input-row">
-        <textarea class="pm-chat-input" id="chat-draft" rows="1" placeholder="メッセージを入力…"></textarea>
-        <button class="pm-chat-send" id="chat-send" aria-label="送信">
+        <textarea class="pm-chat-input" id="chat-draft" rows="1" placeholder="${t('chat.placeholder')}"></textarea>
+        <button class="pm-chat-send" id="chat-send" aria-label="${t('chat.send')}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
         </button>
       </div>
@@ -34,6 +38,8 @@ export function mountChatModal(container, { onClose } = {}) {
 
   let bookingId = null;
   let role = 'client';
+  const tr = (key) => (role === 'client' ? t(key) : jaText(key));
+  const dot = () => (role === 'client' && getLang() === 'en' ? '·' : '・');
   let unsubscribe = null;
 
   function close() {
@@ -52,7 +58,7 @@ export function mountChatModal(container, { onClose } = {}) {
 
   function renderMessages(messages) {
     if (!messages.length) {
-      bodyEl.innerHTML = '<div class="pm-empty">まだメッセージはありません。<br>気軽にごあいさつしてみましょう。</div>';
+      bodyEl.innerHTML = `<div class="pm-empty">${tr('chat.empty')}</div>`;
       return;
     }
     bodyEl.innerHTML = messages.map((m) => {
@@ -60,7 +66,7 @@ export function mountChatModal(container, { onClose } = {}) {
       return `<div class="pm-chat-row ${mine ? 'mine' : ''}">
         <div style="max-width:80%">
           <div class="pm-chat-bubble">${escapeHtml(m.text)}</div>
-          <div class="pm-chat-meta">${mine ? 'あなた' : (role === 'client' ? 'カメラマン' : '依頼者')} ・ ${timeLabel(m.created_at)}</div>
+          <div class="pm-chat-meta">${mine ? tr('chat.you') : (role === 'client' ? tr('chat.photographer') : tr('chat.client'))} ${dot()} ${timeLabel(m.created_at)}</div>
         </div>
       </div>`;
     }).join('');
@@ -82,7 +88,7 @@ export function mountChatModal(container, { onClose } = {}) {
       await markRead(bookingId, role);
       notifyNewMessage(bookingId);
     } catch (err) {
-      alert('送信に失敗しました。');
+      alert(tr('chat.sendFailed'));
       console.error(err);
     }
   }
@@ -96,15 +102,19 @@ export function mountChatModal(container, { onClose } = {}) {
       bookingId = id;
       role = chatRole;
       partnerEl.textContent = partnerLabel;
-      metaEl.textContent = (chatRole === 'client' ? 'カメラマンとのチャット' : '依頼者とのチャット') + ' ・ ' + bookingLabel;
-      bodyEl.innerHTML = '<div class="pm-loading">読み込み中…</div>';
+      const sep = ` ${dot()} `;
+      metaEl.textContent = (chatRole === 'client' ? tr('chat.withPhotographer') : tr('chat.withClient')) + sep + bookingLabel;
+      draftEl.placeholder = tr('chat.placeholder');
+      sendBtn.setAttribute('aria-label', tr('chat.send'));
+      closeBtn.setAttribute('aria-label', tr('chat.close'));
+      bodyEl.innerHTML = `<div class="pm-loading">${tr('chat.loading')}</div>`;
       overlay.classList.add('is-open');
       try {
         messages = await getMessages(id);
         renderMessages(messages);
         await markRead(id, role);
       } catch (err) {
-        bodyEl.innerHTML = '<div class="pm-empty">メッセージの取得に失敗しました。</div>';
+        bodyEl.innerHTML = `<div class="pm-empty">${tr('chat.loadFailed')}</div>`;
         console.error(err);
       }
       if (unsubscribe) unsubscribe();

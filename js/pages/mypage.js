@@ -1,3 +1,5 @@
+import '../i18n/mypage.js';
+import { t, tf, getLang, planNameText } from '../i18n.js';
 import { mountLayout } from '../layout.js';
 import { getSession, getProfile, signOut } from '../auth.js';
 import {
@@ -17,13 +19,18 @@ const sheetModal = mountSheetModal(document.getElementById('pm-sheet-mount'));
 const reviewModal = mountReviewModal(document.getElementById('pm-review-mount'));
 const reschedModal = mountRescheduleModal(document.getElementById('pm-resched-mount'));
 
-const STATUS_LABEL = { pending_payment: '決済待ち', paid: '確定', confirmed: '確定', requested: '依頼中', completed: '完了', canceled: 'キャンセル済' };
 const STATUS_STYLE = {
-  '確定': 'background:oklch(0.94 0.06 200);color:oklch(0.4 0.14 200)',
-  '依頼中': 'background:oklch(0.95 0.05 85);color:oklch(0.5 0.13 75)',
-  '完了': 'background:oklch(0.93 0.01 220);color:oklch(0.45 0.02 235)',
-  'キャンセル済': 'background:oklch(0.93 0.008 220);color:oklch(0.55 0.02 220)',
+  paid: 'background:oklch(0.94 0.06 200);color:oklch(0.4 0.14 200)',
+  confirmed: 'background:oklch(0.94 0.06 200);color:oklch(0.4 0.14 200)',
+  requested: 'background:oklch(0.95 0.05 85);color:oklch(0.5 0.13 75)',
+  completed: 'background:oklch(0.93 0.01 220);color:oklch(0.45 0.02 235)',
+  canceled: 'background:oklch(0.93 0.008 220);color:oklch(0.55 0.02 220)',
 };
+const STATUS_KEYS = ['pending_payment', 'paid', 'confirmed', 'requested', 'completed', 'canceled'];
+const statusLabel = (status) => (STATUS_KEYS.includes(status) ? t('mypage.status.' + status) : status);
+const yen = (n) => `¥${n.toLocaleString()}`;
+const timeOf = (v) => String(v).slice(0, 5);
+const noteSep = getLang() === 'en' ? ' · ' : ' ・ ';
 
 // Japan time, so a shoot doesn't move to 「過去の予約」 at 9:00 the next morning.
 function todayIso() { return jstDateIso(); }
@@ -35,7 +42,7 @@ function escapeHtml(s) {
 const chatBtnHtml = (bookingId, unread) => `
   <button data-booking-id="${bookingId}" class="btn-chat" style="position:relative;display:flex;align-items:center;gap:6px;background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer;white-space:nowrap">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.9-.9L3 21l1.9-5.6A8.5 8.5 0 1 1 21 11.5z"></path></svg>
-    メッセージ
+    ${t('mypage.btn.message')}
     ${unread.hasUnread ? `<span class="pm-unread-badge">${unread.unreadLabel}</span>` : ''}
   </button>`;
 
@@ -45,37 +52,37 @@ function guaranteeBlockHtml(b, claim) {
   if (b.status === 'canceled') return '';
   if (!claim) {
     return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint)">
-      <button data-booking-id="${b.id}" data-date="${b.booking_date}" class="btn-guarantee-apply" style="background:#fff;border:1.5px solid oklch(0.86 0.03 215);border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:oklch(0.4 0.06 235);cursor:pointer">マッチング数保証に申し込む</button>
+      <button data-booking-id="${b.id}" data-date="${b.booking_date}" class="btn-guarantee-apply" style="background:#fff;border:1.5px solid oklch(0.86 0.03 215);border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:oklch(0.4 0.06 235);cursor:pointer">${t('mypage.gu.apply')}</button>
     </div>`;
   }
   const today = todayIso();
   const deadline = guaranteeClaimDeadline(claim);
   if (claim.status === 'applied') {
     if (today < claim.eligible_at) {
-      return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px var(--pm-font-body);color:var(--pm-text-3)">マッチング数保証：申込み済み（${claim.eligible_at}〜${deadline}の間に無料再撮影を申請できます）</div>`;
+      return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px var(--pm-font-body);color:var(--pm-text-3)">${tf('mypage.gu.appliedWait', { from: claim.eligible_at, to: deadline })}</div>`;
     }
     if (today > deadline) {
-      return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px var(--pm-font-body);color:var(--pm-text-3)">マッチング数保証：申請期限（${deadline}）を過ぎました</div>`;
+      return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px var(--pm-font-body);color:var(--pm-text-3)">${tf('mypage.gu.expired', { deadline })}</div>`;
     }
     return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <button data-claim-id="${claim.id}" class="btn-guarantee-claim" style="background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer">無料再撮影を申請する</button>
-      <span style="font:12px var(--pm-font-body);color:var(--pm-text-3)">申請期限：${deadline}</span>
+      <button data-claim-id="${claim.id}" class="btn-guarantee-claim" style="background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer">${t('mypage.gu.claimBtn')}</button>
+      <span style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${tf('mypage.gu.deadline', { deadline })}</span>
     </div>`;
   }
   if (claim.status === 'claimed') {
-    return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px var(--pm-font-body);color:var(--pm-text-3)">マッチング数保証：<span style="font-weight:700;color:oklch(0.5 0.13 75)">審査中</span></div>`;
+    return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px var(--pm-font-body);color:var(--pm-text-3)">${t('mypage.gu.prefix')}<span style="font-weight:700;color:oklch(0.5 0.13 75)">${t('mypage.gu.reviewing')}</span></div>`;
   }
   if (claim.status === 'approved') {
     const reshoot = claim.reshoot_booking_id && reshootsById[claim.reshoot_booking_id];
     const booked = reshoot && reshoot.status !== 'canceled';
-    return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px/1.7 var(--pm-font-body);color:oklch(0.4 0.14 200)">マッチング数保証：<span style="font-weight:700">承認済み（無料再撮影）</span>${claim.review_note ? ' ・ ' + escapeHtml(claim.review_note) : ''}
+    return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px/1.7 var(--pm-font-body);color:oklch(0.4 0.14 200)">${t('mypage.gu.prefix')}<span style="font-weight:700">${t('mypage.gu.approved')}</span>${claim.review_note ? noteSep + escapeHtml(claim.review_note) : ''}
       ${booked
-        ? `<div style="color:var(--pm-text-3)">再撮影：${reshoot.booking_date} ${reshoot.start_time.slice(0, 5)}〜（予約済み。「今後の予約」に表示されています）</div>`
-        : `<div style="margin-top:8px"><button data-claim-id="${claim.id}" data-booking-id="${b.id}" class="btn-reshoot" style="background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer">再撮影の日程を選ぶ</button></div>`}
+        ? `<div style="color:var(--pm-text-3)">${tf('mypage.gu.reshootBooked', { date: reshoot.booking_date, time: timeOf(reshoot.start_time) })}</div>`
+        : `<div style="margin-top:8px"><button data-claim-id="${claim.id}" data-booking-id="${b.id}" class="btn-reshoot" style="background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer">${t('mypage.gu.pickReshoot')}</button></div>`}
     </div>`;
   }
   if (claim.status === 'rejected') {
-    return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px/1.7 var(--pm-font-body);color:var(--pm-text-3)">マッチング数保証：対象外${claim.review_note ? ' ・ ' + escapeHtml(claim.review_note) : ''}</div>`;
+    return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px/1.7 var(--pm-font-body);color:var(--pm-text-3)">${t('mypage.gu.prefix')}${t('mypage.gu.rejected')}${claim.review_note ? noteSep + escapeHtml(claim.review_note) : ''}</div>`;
   }
   return '';
 }
@@ -92,8 +99,8 @@ function reviewBlockHtml(b, review) {
   const wrap = 'margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint)';
   if (!review) {
     return `<div style="${wrap};display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <span style="font:12px/1.7 var(--pm-font-body);color:var(--pm-text-3)">ご利用ありがとうございました。撮影の感想をお寄せください。</span>
-      <button data-booking-id="${b.id}" class="btn-review" style="background:#fff;border:1.5px solid oklch(0.86 0.03 215);border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:oklch(0.4 0.06 235);cursor:pointer">レビューを書く</button>
+      <span style="font:12px/1.7 var(--pm-font-body);color:var(--pm-text-3)">${t('mypage.review.thanks')}</span>
+      <button data-booking-id="${b.id}" class="btn-review" style="background:#fff;border:1.5px solid oklch(0.86 0.03 215);border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:oklch(0.4 0.06 235);cursor:pointer">${t('mypage.review.write')}</button>
     </div>`;
   }
   const filled = '★'.repeat(review.stars);
@@ -101,18 +108,18 @@ function reviewBlockHtml(b, review) {
   return `<div style="${wrap}">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div style="font:13px var(--pm-font-body);color:var(--pm-star)">${filled}<span style="color:oklch(0.85 0.01 220)">${empty}</span>
-        <span style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-left:6px">レビュー投稿済み</span></div>
-      <button data-booking-id="${b.id}" class="btn-review" style="background:none;border:none;font:700 12px var(--pm-font-body);color:oklch(0.45 0.14 210);text-decoration:underline;cursor:pointer">編集・削除</button>
+        <span style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-left:6px">${t('mypage.review.posted')}</span></div>
+      <button data-booking-id="${b.id}" class="btn-review" style="background:none;border:none;font:700 12px var(--pm-font-body);color:oklch(0.45 0.14 210);text-decoration:underline;cursor:pointer">${t('mypage.review.edit')}</button>
     </div>
     ${review.comment ? `<div style="font:12px/1.7 var(--pm-font-body);color:oklch(0.4 0.02 235);margin-top:6px;white-space:pre-wrap">${escapeHtml(review.comment)}</div>` : ''}
-    ${review.is_hidden ? '<div style="font:11px var(--pm-font-body);color:oklch(0.5 0.13 75);margin-top:6px">※運営により非表示になっています。</div>' : ''}
+    ${review.is_hidden ? `<div style="font:11px var(--pm-font-body);color:oklch(0.5 0.13 75);margin-top:6px">${t('mypage.review.hidden')}</div>` : ''}
   </div>`;
 }
 
 function bookingCardHtml(b, meta, { history }) {
-  const statusLabel = STATUS_LABEL[b.status] || b.status;
+  const statusText = statusLabel(b.status);
   const cancellable = !history && b.status !== 'canceled' && b.status !== 'completed' && cancellationQuote(b).allowed;
-  const priceLabel = b.reshoot_of ? '無料再撮影（マッチング数保証）' : `¥${b.total_price.toLocaleString()}（税込）`;
+  const priceLabel = b.reshoot_of ? t('mypage.freeReshoot') : tf('mypage.priceTaxIncl', { amount: b.total_price.toLocaleString() });
 
   const actions = [];
   if (!history) {
@@ -120,16 +127,16 @@ function bookingCardHtml(b, meta, { history }) {
     actions.push(`
       <button data-booking-id="${b.id}" class="btn-sheet" style="display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid oklch(0.86 0.03 215);border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:oklch(0.4 0.06 235);cursor:pointer;white-space:nowrap">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-        ${meta.sheetDone ? 'カウンセリング済' : '事前カウンセリング'}
+        ${meta.sheetDone ? t('mypage.btn.counselingDone') : t('mypage.btn.counseling')}
         ${meta.sheetDone ? '<span style="color:oklch(0.6 0.14 150);font:700 13px var(--pm-font-num)">✓</span>' : ''}
       </button>`);
     // 日程変更: 3日前まで誰でも無料。2日前からは「あんしん振替プラン」加入者の1回のみ。
     // 条件を満たさないときも、プラン加入者には理由が分かるようボタンは残す。
     const hasReschedulePlan = (b.options || []).some((o) => o.key === RESCHEDULE_OPTION_KEY);
     if (cancellable && (rescheduleQuote(b).allowed || hasReschedulePlan)) {
-      actions.push(`<button data-booking-id="${b.id}" class="btn-reschedule" style="background:#fff;border:1.5px solid oklch(0.86 0.03 215);border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:oklch(0.4 0.06 235);cursor:pointer;white-space:nowrap">日程変更</button>`);
+      actions.push(`<button data-booking-id="${b.id}" class="btn-reschedule" style="background:#fff;border:1.5px solid oklch(0.86 0.03 215);border-radius:100px;padding:9px 16px;font:700 12px var(--pm-font-body);color:oklch(0.4 0.06 235);cursor:pointer;white-space:nowrap">${t('mypage.btn.reschedule')}</button>`);
     }
-    if (cancellable) actions.push(`<button data-booking-id="${b.id}" class="btn-cancel pm-btn-danger-outline">キャンセル</button>`);
+    if (cancellable) actions.push(`<button data-booking-id="${b.id}" class="btn-cancel pm-btn-danger-outline">${t('mypage.btn.cancel')}</button>`);
   } else if (b.status !== 'canceled' && (!b.delivered_at || b.booking_date >= addDaysIso(todayIso(), -30) || (meta.guarantee && meta.guarantee.status === 'approved'))) {
     // After the shoot the customer can still message the photographer — about
     // delivery, or for 30 days after (and during a free reshoot).
@@ -142,15 +149,15 @@ function bookingCardHtml(b, meta, { history }) {
       <div style="min-width:0">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
           <span style="font:700 15px var(--pm-font-body)">${escapeHtml(b.photographer_name)}</span>
-          <span style="padding:3px 10px;border-radius:100px;font:700 11px var(--pm-font-body);white-space:nowrap;${STATUS_STYLE[statusLabel] || ''}">${statusLabel}</span>
+          <span style="padding:3px 10px;border-radius:100px;font:700 11px var(--pm-font-body);white-space:nowrap;${STATUS_STYLE[b.status] || ''}">${statusText}</span>
         </div>
-        <div style="font:13px var(--pm-font-body);color:oklch(0.45 0.02 235)">${b.booking_date}（${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}）</div>
-        <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${b.plan_name} ・ ${priceLabel}</div>
-        ${b.delivered_at && isValidDeliveryUrl(b.delivery_url) && b.status !== 'canceled' ? `<div style="margin-top:6px"><a href="${escapeHtml(b.delivery_url)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210)">📷 撮影データを見る（納品済み）↗</a></div>` : ''}
-        ${b.staff_pick_at && b.staff_pick_note && b.status !== 'canceled' ? `<div style="margin-top:6px;font:12px/1.7 var(--pm-font-body);color:oklch(0.35 0.02 235);background:var(--pm-bg-mint);border-radius:10px;padding:8px 12px;white-space:pre-wrap"><b>異性スタッフのおすすめ</b>\n${escapeHtml(b.staff_pick_note)}</div>` : ''}
-        ${b.rescheduled_count > 0 && b.previous_booking_date && b.status !== 'canceled' ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">日程変更済み（変更前：${b.previous_booking_date} ${String(b.previous_start_time).slice(0, 5)}〜）</div>` : ''}
-        ${b.status === 'canceled' && b.cancel_reason === 'no_show' ? '<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">集合時間に15分以上遅れたため、当日キャンセル扱いとなりました（利用規約第5条）</div>' : ''}
-        ${b.status === 'canceled' && b.refund_amount > 0 ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">ご返金：¥${b.refund_amount.toLocaleString()}${b.refund_status === 'succeeded' ? '（カードへ返金済み）' : '（運営より手続き中）'}</div>` : ''}
+        <div style="font:13px var(--pm-font-body);color:oklch(0.45 0.02 235)">${tf('mypage.dateLine', { date: b.booking_date, start: timeOf(b.start_time), end: timeOf(b.end_time) })}</div>
+        <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${tf('mypage.planLine', { plan: escapeHtml(planNameText(b.plan_name)), price: priceLabel })}</div>
+        ${b.delivered_at && isValidDeliveryUrl(b.delivery_url) && b.status !== 'canceled' ? `<div style="margin-top:6px"><a href="${escapeHtml(b.delivery_url)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210)">${t('mypage.delivery.link')}</a></div>` : ''}
+        ${b.staff_pick_at && b.staff_pick_note && b.status !== 'canceled' ? `<div style="margin-top:6px;font:12px/1.7 var(--pm-font-body);color:oklch(0.35 0.02 235);background:var(--pm-bg-mint);border-radius:10px;padding:8px 12px;white-space:pre-wrap"><b>${t('mypage.staffPick')}</b>\n${escapeHtml(b.staff_pick_note)}</div>` : ''}
+        ${b.rescheduled_count > 0 && b.previous_booking_date && b.status !== 'canceled' ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${tf('mypage.rescheduledFrom', { date: b.previous_booking_date, time: timeOf(b.previous_start_time) })}</div>` : ''}
+        ${b.status === 'canceled' && b.cancel_reason === 'no_show' ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${t('mypage.noShowNote')}</div>` : ''}
+        ${b.status === 'canceled' && b.refund_amount > 0 ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${tf(b.refund_status === 'succeeded' ? 'mypage.refund.done' : 'mypage.refund.pending', { amount: b.refund_amount.toLocaleString() })}</div>` : ''}
       </div>
       ${actions.length ? `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${actions.join('')}</div>` : ''}
     </div>
@@ -163,13 +170,13 @@ function wireCardEvents(root, bookingsById) {
   root.querySelectorAll('.btn-chat').forEach((el) => {
     el.addEventListener('click', () => {
       const b = bookingsById[el.dataset.bookingId];
-      chatModal.open(b.id, 'client', b.photographer_name, `${b.booking_date} ${b.start_time.slice(0, 5)}〜`);
+      chatModal.open(b.id, 'client', b.photographer_name, tf('mypage.chatLabel', { date: b.booking_date, start: timeOf(b.start_time) }));
     });
   });
   root.querySelectorAll('.btn-sheet').forEach((el) => {
     el.addEventListener('click', () => {
       const b = bookingsById[el.dataset.bookingId];
-      sheetModal.open(b.id, `${b.booking_date} ${b.start_time.slice(0, 5)}〜 ・ ${b.photographer_name}さん`);
+      sheetModal.open(b.id, tf('mypage.sheetLabel', { date: b.booking_date, start: timeOf(b.start_time), name: b.photographer_name }));
     });
   });
   root.querySelectorAll('.btn-cancel').forEach((el) => {
@@ -177,26 +184,25 @@ function wireCardEvents(root, bookingsById) {
       const b = bookingsById[el.dataset.bookingId];
       const quote = cancellationQuote(b);
       if (!quote.allowed) {
-        alert('撮影開始時刻を過ぎたため、マイページからはキャンセルできません。お問い合わせください。');
+        alert(t('mypage.cancel.started'));
         return;
       }
-      const yen = (n) => `¥${n.toLocaleString()}`;
       const message = b.status === 'pending_payment'
-        ? 'お支払い前のご予約をキャンセルします。よろしいですか？'
-        : `このご予約をキャンセルします。\n\nキャンセル料：${yen(quote.fee)}\nご返金額：${yen(quote.refund)}\n\n※キャンセル料はプラン料金にかかり、オプション料金は全額返金します。\n※一度キャンセルすると取り消せません。\n\nキャンセルしますか？`;
+        ? t('mypage.cancel.confirmUnpaid')
+        : tf('mypage.cancel.confirm', { fee: yen(quote.fee), refund: yen(quote.refund) });
       if (!confirm(message)) return;
       el.disabled = true;
       try {
         const result = await cancelBooking(el.dataset.bookingId);
         if (result && result.refund > 0) {
           alert(result.refund_status === 'succeeded'
-            ? `キャンセルしました。${yen(result.refund)}をご利用のカードへ返金しました（明細への反映まで数日〜2週間ほどかかる場合があります）。`
-            : `キャンセルしました。${yen(result.refund)}のご返金は、運営より順次お手続きします。`);
+            ? tf('mypage.cancel.doneCard', { refund: yen(result.refund) })
+            : tf('mypage.cancel.donePending', { refund: yen(result.refund) }));
         }
         load();
       } catch (err) {
         el.disabled = false;
-        alert(err.message || 'キャンセル処理に失敗しました。');
+        alert(err.message || t('mypage.cancel.failed'));
         console.error(err);
       }
     });
@@ -205,7 +211,7 @@ function wireCardEvents(root, bookingsById) {
     el.addEventListener('click', () => {
       const b = bookingsById[el.dataset.bookingId];
       const quote = rescheduleQuote(b);
-      if (!quote.allowed) { alert(RESCHEDULE_DENIED_MESSAGE[quote.reason] || 'このご予約は日程変更できません。'); return; }
+      if (!quote.allowed) { alert(getLang() === 'en' ? t('mypage.reschedDenied.' + (RESCHEDULE_DENIED_MESSAGE[quote.reason] ? quote.reason : 'default')) : (RESCHEDULE_DENIED_MESSAGE[quote.reason] || t('mypage.reschedDenied.default'))); return; }
       reschedModal.open(b, () => load());
     });
   });
@@ -217,12 +223,12 @@ function wireCardEvents(root, bookingsById) {
   });
   root.querySelectorAll('.btn-guarantee-apply').forEach((el) => {
     el.addEventListener('click', async () => {
-      if (!confirm('マッチング数保証に申し込みます。\n撮影日から30日後、マッチング数の改善が見られない場合に無料再撮影を申請できます。\n納品写真をマッチングアプリのメイン写真に設定したことをご確認のうえ、お申し込みください。\n\n申し込みますか？')) return;
+      if (!confirm(t('mypage.gu.applyConfirm'))) return;
       try {
         await applyGuaranteeClaim(el.dataset.bookingId, addDaysIso(el.dataset.date, 30));
         load();
       } catch (err) {
-        alert('申し込みに失敗しました。');
+        alert(t('mypage.gu.applyFailed'));
         console.error(err);
       }
     });
@@ -235,13 +241,13 @@ function wireCardEvents(root, bookingsById) {
   });
   root.querySelectorAll('.btn-guarantee-claim').forEach((el) => {
     el.addEventListener('click', async () => {
-      const note = prompt('マッチング数に改善が見られなかった状況を簡単にご記入ください（未記入でも申請できます）。');
+      const note = prompt(t('mypage.gu.claimPrompt'));
       if (note === null) return;
       try {
         await submitGuaranteeClaim(el.dataset.claimId, note || '');
         load();
       } catch (err) {
-        alert('申請に失敗しました。');
+        alert(t('mypage.gu.claimFailed'));
         console.error(err);
       }
     });
@@ -258,7 +264,7 @@ async function load() {
   reshootsById = Object.fromEntries(bookings.filter((x) => x.reshoot_of).map((x) => [x.id, x]));
   document.getElementById('pm-loading').style.display = 'none';
   document.getElementById('pm-mypage').style.display = 'block';
-  document.getElementById('pm-user-line').textContent = `${profile?.name || 'ゲスト ユーザー'}　（${profile?.email || session.user.email}）`;
+  document.getElementById('pm-user-line').textContent = tf('mypage.userLine', { name: profile?.name || t('mypage.guestName'), email: profile?.email || session.user.email });
 
   const today = todayIso();
   // An unpaid checkout that timed out is not a booking; don't list it.
@@ -288,13 +294,13 @@ async function load() {
   const upcomingEl = document.getElementById('pm-upcoming');
   upcomingEl.innerHTML = upcoming.length
     ? upcoming.map((b) => bookingCardHtml(b, metaFor(b.id), { history: false })).join('')
-    : '<div class="pm-empty">今後のご予約はありません。</div>';
+    : `<div class="pm-empty">${t('mypage.emptyUpcoming')}</div>`;
   wireCardEvents(upcomingEl, bookingsById);
 
   const historyEl = document.getElementById('pm-history');
   historyEl.innerHTML = history.length
     ? history.map((b) => bookingCardHtml(b, metaFor(b.id), { history: true })).join('')
-    : '<div class="pm-empty">撮影履歴はまだありません。</div>';
+    : `<div class="pm-empty">${t('mypage.emptyHistory')}</div>`;
   wireCardEvents(historyEl, bookingsById);
 }
 
@@ -304,6 +310,6 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 });
 
 load().catch((err) => {
-  document.getElementById('pm-loading').textContent = '予約情報の取得に失敗しました。';
+  document.getElementById('pm-loading').textContent = t('mypage.loadFailed');
   console.error(err);
 });

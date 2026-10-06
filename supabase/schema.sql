@@ -129,6 +129,13 @@ alter table photographers add column if not exists is_paused boolean not null de
 -- 本人確認・接客研修を終えて運営が承認した日時。サイトの「審査済」バッジはこれが入っている
 -- カメラマンだけに表示する。運営だけが書き込む（/api/photographers/visibility）。
 alter table photographers add column if not exists verified_at timestamptz;
+-- 撮影実績（件数）。検索一覧・プロフィールに「実績250+」のように表示する。
+-- 自己申告で書き換えられないよう、本人用の update 権限には含めない（運営がSQLで更新）。
+-- 例）update photographers set shoot_count = 300 where id = 'p1';
+alter table photographers add column if not exists shoot_count integer;
+update photographers set shoot_count = 250 where id = 'p1' and shoot_count is null; -- TAKUMI
+update photographers set shoot_count = 100 where id = 'p2' and shoot_count is null; -- 夏目むぎ
+
 -- すでに公開されている実在のカメラマンは、確認済みとして印を付ける（デモ用の p3〜p6 は除く）。
 update photographers set verified_at = now()
   where verified_at is null and is_visible is not false and id not in ('p3', 'p4', 'p5', 'p6');

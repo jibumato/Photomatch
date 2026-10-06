@@ -1,7 +1,7 @@
 import { mountLayout } from '../layout.js';
 import { listPhotographers } from '../repo.js';
-import { AREAS, PRICING_PLANS } from '../data.js';
-import { getLang, t, areaText, localizedField, reviewsCountLabel, planNameText } from '../i18n.js';
+import { AREAS, HIDDEN_AREAS, PRICING_PLANS } from '../data.js';
+import { getLang, t, tf, areaText, localizedField, reviewsCountLabel, planNameText } from '../i18n.js';
 import { escapeHtml, safePhotoUrl, hasRating } from '../util.js';
 
 mountLayout();
@@ -14,6 +14,13 @@ const planParam = PRICING_PLANS.some((pl) => pl.name === new URLSearchParams(loc
 const STRIPE_BG = 'repeating-linear-gradient(135deg, oklch(0.9 0.05 200) 0px, oklch(0.9 0.05 200) 12px, oklch(0.96 0.03 210) 12px, oklch(0.96 0.03 210) 24px)';
 
 const state = { all: [], area: '', femaleOnly: false, englishOnly: false, sort: 'recommended' };
+
+// 撮影実績（photographers.shoot_count、運営だけが設定）。「実績250+」のように表示する。
+function shootsBadge(p) {
+  const n = Number(p.shoot_count);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  return `<span class="pm-badge" style="background:oklch(0.95 0.05 80);color:oklch(0.42 0.1 70)">${tf('badge.shoots', { n })}</span>`;
+}
 
 function cardHtml(p) {
   const photoUrl = safePhotoUrl(p.photo_url);
@@ -31,6 +38,7 @@ function cardHtml(p) {
         <div style="display:flex;gap:6px;flex-shrink:0">
           ${p.speaks_english ? `<span class="pm-badge" style="background:oklch(0.94 0.05 245);color:oklch(0.42 0.14 250)">${t('search.badge.english')}</span>` : ''}
           ${p.verified_at ? `<span class="pm-badge">${t('search.badge.verified')}</span>` : ''}
+          ${shootsBadge(p)}
         </div>
       </div>
       <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${escapeHtml(areaText(p.area) || '')}</div>
@@ -148,7 +156,8 @@ function render() {
 
 (async () => {
   try {
-    state.all = await listPhotographers();
+    // 対応を休止しているエリア（HIDDEN_AREAS）のカメラマンは出さない。
+    state.all = (await listPhotographers()).filter((p) => !HIDDEN_AREAS.includes(p.area));
     document.getElementById('pm-loading').style.display = 'none';
 
     const params = new URLSearchParams(location.search);

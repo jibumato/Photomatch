@@ -46,7 +46,12 @@ for (const name of readdirSync(ROOT).filter((n) => n.endsWith('.html'))) {
   let html = before.replace(/(href|src)="((?:css|js)\/[^"?]+\.(?:css|js))(?:\?v=[^"]*)?"/g, (m, attr, path) => (
     hashFor[path] ? `${attr}="${path}?v=${hashFor[path]}"` : m
   ));
-  html = html.replace(new RegExp(`${MAP_START}[\\s\\S]*?${MAP_END}\\n?`), '');
+  // 何度実行しても1つだけになるよう、既存のブロックはすべて取り除く（括弧を含むので文字列で探す）。
+  while (html.includes(MAP_START) && html.includes(MAP_END)) {
+    const a = html.indexOf(MAP_START);
+    const b = html.indexOf(MAP_END, a) + MAP_END.length;
+    html = html.slice(0, a) + html.slice(html[b] === '\n' ? b + 1 : b);
+  }
   if (html.includes('type="module"')) {
     // The import map must come before the first module script.
     html = html.replace('</head>', `${mapBlock}\n</head>`);

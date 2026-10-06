@@ -17,7 +17,7 @@ document.getElementById('pm-stats').innerHTML = STATS.map((s) => `
 // seen by people who leave before the full 実績 section further down.
 document.getElementById('pm-hero-proof').innerHTML = STATS.map((s) => `
   <span style="white-space:nowrap">${L(s, 'label')} <b style="font:800 15px var(--pm-font-num);color:oklch(0.45 0.14 210)">${s.value}</b></span>`).join('<span style="color:var(--pm-text-muted);margin:0 10px">／</span>')
-  + `<a href="#results-section" style="display:block;margin-top:4px;font:11px var(--pm-font-body);color:var(--pm-text-muted);text-decoration:underline">${getLang() === 'en' ? '※ lead photographer’s track record' : '※代表カメラマンの実績です'}</a>`;
+  + `<a href="#results-section" style="display:block;margin-top:4px;font:11px var(--pm-font-body);color:var(--pm-text-muted);text-decoration:underline">${getLang() === 'en' ? '※ track record of our photographers (see below)' : '※カメラマンの実績の合計です（詳細は下記）'}</a>`;
 
 const painsList = getLang() === 'en' ? TARGET_PAINS_EN : TARGET_PAINS;
 document.getElementById('pm-pains').innerHTML = painsList.map((p) => `
