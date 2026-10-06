@@ -142,6 +142,7 @@ const DICT = {
   'search.sort.reviews': { ja: 'レビューが多い順', en: 'Most Reviewed' },
   'search.filter.areaAll': { ja: 'すべて', en: 'All' },
   'search.badge.verified': { ja: '審査済', en: 'Verified' },
+  'badge.shoots': { ja: '実績{n}+', en: '{n}+ shoots' },
   'search.badge.english': { ja: '英語対応', en: 'English OK' },
   'search.empty.reset': { ja: '条件をリセットする', en: 'Reset filters' },
   'search.empty.title': { ja: '条件に合うカメラマンが見つかりませんでした。', en: 'No photographers match those filters.' },

@@ -1,6 +1,6 @@
 import { mountLayout } from '../layout.js';
 import { getPhotographer, getPlans, getReviews, isBookable } from '../repo.js';
-import { t, getLang, areaText, localizedField, planNameText, planDescText, discountLabelText, reviewsCountLabel, taxIncludedSuffix } from '../i18n.js';
+import { t, tf, getLang, areaText, localizedField, planNameText, planDescText, discountLabelText, reviewsCountLabel, taxIncludedSuffix } from '../i18n.js';
 import { escapeHtml, safePhotoUrl, hasRating } from '../util.js';
 
 mountLayout();
@@ -41,6 +41,7 @@ function instagramLinkHtml(raw) {
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap">
           <h1 style="font:700 28px var(--pm-font-body);margin:0">${escapeHtml(photographer.name)}</h1>
           ${photographer.verified_at ? `<span class="pm-badge">${t('profile.badge.verified')}</span>` : ''}
+          ${Number(photographer.shoot_count) > 0 ? `<span class="pm-badge" style="background:oklch(0.95 0.05 80);color:oklch(0.42 0.1 70)">${tf('badge.shoots', { n: Number(photographer.shoot_count) })}</span>` : ''}
           ${photographer.speaks_english ? `<span class="pm-badge" style="background:oklch(0.94 0.05 245);color:oklch(0.42 0.14 250)">${t('profile.badge.english')}</span>` : ''}
         </div>
         <div style="font:14px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${escapeHtml(areaText(photographer.area) || '')}</div>
