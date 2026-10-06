@@ -35,6 +35,17 @@
   flex-shrink: 0; gap: 4px; flex-direction: column;
 }
 .pm-menu-btn span { width: 18px; height: 2px; background: oklch(0.3 0.02 240); border-radius: 2px; }
+/* Narrow phones (≤380px): the logo, language toggle and menu button don't fit
+   side by side, which made the whole page scroll sideways. Shrink them a bit. */
+@media (max-width: 380px) {
+  .pm-header-inner { gap: 8px; padding: 0 14px; }
+  .pm-logo { gap: 6px; }
+  .pm-logo .pm-logo-icon { width: 26px; height: 26px; }
+  .pm-logo .pm-logo-type { height: 18px; }
+  .pm-mobile-actions { gap: 6px; }
+  .pm-lang-toggle { padding: 6px 10px; }
+  .pm-menu-btn { width: 40px; height: 40px; }
+}
 .pm-mobile-panel {
   border-top: 1px solid var(--pm-border-soft); padding: 8px clamp(20px,5vw,32px) 20px;
   display: flex; flex-direction: column; background: var(--pm-bg);
@@ -211,3 +222,52 @@
 .pm-empty { text-align: center; padding: 40px 20px; color: var(--pm-text-muted); font: 13px/1.9 var(--pm-font-body); }
 .pm-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid oklch(1 0 0 / 0.5); border-top-color: #fff; border-radius: 50%; animation: pm-spin .7s linear infinite; }
 .pm-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: oklch(0.2 0.02 250); color: #fff; padding: 12px 20px; border-radius: 100px; font: 13px var(--pm-font-body); z-index: 2000; box-shadow: 0 10px 30px oklch(0 0 0 / 0.25); }
+
+/* ---------- top: hero（写真で見せるファーストビュー） ---------- */
+.pm-hero2 { position: relative; overflow: hidden; background: linear-gradient(180deg, oklch(0.95 0.035 205) 0%, oklch(0.975 0.02 215) 55%, oklch(0.99 0.006 220) 100%); }
+.pm-hero2-glow { position: absolute; border-radius: 50%; pointer-events: none; }
+.pm-hero2-glow--a { top: -90px; right: -70px; width: 440px; height: 440px; background: radial-gradient(circle, oklch(0.86 0.1 195 / 0.5), transparent 70%); animation: pm-drift 15s ease-in-out infinite; }
+.pm-hero2-glow--b { bottom: -130px; left: -50px; width: 380px; height: 380px; background: radial-gradient(circle, oklch(0.8 0.1 240 / 0.3), transparent 70%); animation: pm-drift2 19s ease-in-out infinite; }
+.pm-hero2-grid {
+  position: relative; max-width: 1120px; margin: 0 auto; padding: 18px 20px 28px;
+  display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "photos" "act"; gap: 14px;
+}
+.pm-hero2-head { grid-area: head; }
+.pm-hero2-photos { grid-area: photos; }
+.pm-hero2-act { grid-area: act; }
+.pm-hero2-badge { display: inline-flex; align-items: center; gap: 7px; background: oklch(1 0 0 / 0.75); border: 1px solid oklch(0.85 0.05 205); color: oklch(0.44 0.1 220); font: 700 12px var(--pm-font-body); padding: 6px 13px; border-radius: 100px; margin-bottom: 12px; }
+.pm-hero2-badge > span:first-child { width: 6px; height: 6px; border-radius: 50%; background: oklch(0.72 0.14 200); }
+.pm-hero2-title { font: 900 clamp(27px, 7.4vw, 50px)/1.35 var(--pm-font-hand); margin: 0 0 10px; letter-spacing: 0.01em; color: oklch(0.24 0.03 245); }
+.pm-hero2-hl { background: linear-gradient(120deg, oklch(0.64 0.15 200), oklch(0.56 0.16 245)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.pm-hero2-lead { font: clamp(14px, 3.6vw, 17px)/1.8 var(--pm-font-body); color: var(--pm-text-2); margin: 0; }
+/* スマホ：写真は横にスクロールする帯。2枚と少しが見え、続きがあると分かる */
+.pm-hero2-photos { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; margin: 0 -20px; padding: 2px 20px 6px; scrollbar-width: none; }
+.pm-hero2-photos::-webkit-scrollbar { display: none; }
+.pm-hero2-photos figure { position: relative; flex: 0 0 min(36vw, 200px); margin: 0; scroll-snap-align: start; border-radius: 16px; overflow: hidden; aspect-ratio: 3 / 4; box-shadow: 0 10px 24px oklch(0.45 0.08 230 / 0.18); background: var(--pm-bg-mint); }
+.pm-hero2-photos img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pm-hero2-photos figcaption { position: absolute; left: 8px; bottom: 8px; background: oklch(0.2 0.02 245 / 0.62); color: #fff; font: 700 11px var(--pm-font-body); padding: 4px 9px; border-radius: 100px; backdrop-filter: blur(4px); }
+.pm-hero2-chips { list-style: none; margin: 0 0 14px; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.pm-hero2-chips li { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 5px; background: #fff; border: 1px solid var(--pm-border); border-radius: 12px; padding: 7px 10px; }
+.pm-hero2-chips b { font: 800 15px var(--pm-font-num); color: oklch(0.42 0.14 215); }
+.pm-hero2-chips span { font: 11px/1.4 var(--pm-font-body); color: var(--pm-text-3); }
+.pm-hero2-ctas { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.pm-hero2-ctas .pm-btn-lg { display: inline-flex; align-items: center; gap: 8px; flex: 1 1 auto; justify-content: center; }
+.pm-hero2-ctas .pm-btn-lg small { font: 700 11px var(--pm-font-body); background: oklch(1 0 0 / 0.22); border-radius: 100px; padding: 2px 8px; }
+.pm-hero2-sublink { font: 700 13px var(--pm-font-body); color: oklch(0.45 0.14 210); text-decoration: underline; text-underline-offset: 3px; }
+.pm-hero2-proof { margin-top: 12px; font: 600 12px var(--pm-font-body); color: var(--pm-text-2); }
+/* PC：左にコピーと判断材料、右に写真を2×2で */
+@media (min-width: 861px) {
+  .pm-hero2-grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); grid-template-areas: "head photos" "act photos"; column-gap: 56px; row-gap: 22px; align-items: end; padding: 64px 32px 72px; }
+  .pm-hero2-head { align-self: end; }
+  .pm-hero2-act { align-self: start; }
+  .pm-hero2-badge { margin-bottom: 18px; }
+  .pm-hero2-title { margin-bottom: 16px; }
+  .pm-hero2-photos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; overflow: visible; margin: 0; padding: 0; }
+  .pm-hero2-photos figure { flex: none; max-width: none; }
+  .pm-hero2-photos figure:nth-child(even) { transform: translateY(28px); }
+  .pm-hero2-chips { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .pm-hero2-chips li { flex-direction: column; align-items: flex-start; padding: 9px 12px; }
+  .pm-hero2-chips b { font-size: 17px; }
+  .pm-hero2-ctas .pm-btn-lg { flex: 0 0 auto; }
+}
+@media (prefers-reduced-motion: reduce) { .pm-hero2-glow { animation: none; } }
