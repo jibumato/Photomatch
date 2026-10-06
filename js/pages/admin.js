@@ -3,7 +3,7 @@ import { requireRole, signOut } from '../auth.js';
 import {
   getMyPhotographerRow, getOpenShifts, openShifts, closeShifts,
   getPhotographerBookings, getMessageCounts, getReadTimestamps,
-  getBankAccount, saveBankAccount, getCounselingSheetsForBookings, deliverBooking,
+  getBankAccount, saveBankAccount, getCounselingSheetsForBookings, deliverBooking, ackBooking,
 } from '../repo.js';
 import { mountChatModal } from '../chat.js';
 import { loadDailyWeather } from '../weather.js';
@@ -11,6 +11,7 @@ import { mountProfileEditor } from '../profileEditor.js';
 import {
   AREAS, SLOT_TIMES, TOTAL_BOOKING_DAYS, WEEKDAY_JP, PENDING_PAYMENT_HOLD_MIN, buildBookingDays, weatherIconFor,
   EXTRA_OPTIONS, COUNSELING_QUESTIONS, meetingPointForArea, deliveryDueDate, photographerPayoutFor, isValidDeliveryUrl, jstDateIso,
+  awaitingPhotographerAck, PHOTOGRAPHER_ACK_HOURS,
 } from '../data.js';
 import { takenIntervalsFrom, openSetFrom, cellState as slotState } from '../availability.js';
 import { escapeHtml } from '../util.js';
@@ -226,11 +227,16 @@ function bookingCardHtml(b, meta) {
   }
   const payout = photographerPayoutFor(b);
   if (payout) lines.push(`報酬：${yen(payout)}　${b.payout_status === 'released' ? '送金済み' : '未送金'}`);
+  const awaitingAck = awaitingPhotographerAck(b);
+  if (awaitingAck) lines.push(`<b style="color:var(--pm-warn-text)">未確認：内容を確認したら「確認しました」を押してください（${PHOTOGRAPHER_ACK_HOURS}時間以内に確認がない場合、運営からご連絡します）</b>`);
+  else if (b.photographer_ack_at && !canceled) lines.push(`確認済み（${new Date(b.photographer_ack_at).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}）`);
 
   const btn = 'display:flex;align-items:center;gap:6px;border-radius:100px;padding:9px 14px;font:700 12px var(--pm-font-body);cursor:pointer;white-space:nowrap';
-  const actions = [`<button data-booking-id="${b.id}" class="btn-chat" style="position:relative;${btn};background:var(--pm-brand-grad-soft);border:none;color:#fff">
+  const actions = [];
+  if (awaitingAck) actions.push(`<button data-booking-id="${b.id}" class="btn-ack" style="${btn};background:var(--pm-brand-grad);border:none;color:#fff">確認しました</button>`);
+  actions.push(`<button data-booking-id="${b.id}" class="btn-chat" style="position:relative;${btn};background:var(--pm-brand-grad-soft);border:none;color:#fff">
       メッセージ${meta.hasUnread ? `<span class="pm-unread-badge">${meta.unreadLabel}</span>` : ''}
-    </button>`];
+    </button>`);
   if (!canceled) {
     actions.push(`<button data-booking-id="${b.id}" class="btn-sheet-view" style="${btn};background:#fff;border:1.5px solid oklch(0.86 0.03 215);color:oklch(0.4 0.06 235)">カウンセリング${meta.sheetDone ? '（回答あり）' : '（未回答）'}</button>`);
     if (shootStarted(b)) actions.push(`<button data-booking-id="${b.id}" class="btn-deliver" style="${btn};background:#fff;border:1.5px solid oklch(0.62 0.14 210);color:oklch(0.4 0.12 215)">${b.delivered_at ? '納品リンクを変更' : '納品する'}</button>`);
@@ -239,6 +245,7 @@ function bookingCardHtml(b, meta) {
   <div class="pm-card" style="padding:18px 20px;${canceled ? 'background:var(--pm-bg)' : ''}">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
       <span style="font:700 15px var(--pm-font-body)">${escapeHtml(b.customer_name || '依頼者')}</span>
+      ${awaitingAck ? '<span style="padding:3px 10px;border-radius:100px;font:700 11px var(--pm-font-body);white-space:nowrap;background:oklch(0.95 0.06 70);color:oklch(0.45 0.13 55)">未確認</span>' : ''}
       <span style="padding:3px 10px;border-radius:100px;font:700 11px var(--pm-font-body);white-space:nowrap;${STATUS_STYLE[statusLabel] || 'background:oklch(0.94 0.04 210);color:oklch(0.4 0.1 220)'}">${escapeHtml(statusLabel)}</span>
     </div>
     <div style="font:12px/1.8 var(--pm-font-body);color:var(--pm-text-3)">${lines.map((l, i) => `<div style="${i === 0 ? 'font:13px var(--pm-font-body);color:oklch(0.35 0.02 235)' : ''}">${l}</div>`).join('')}</div>
@@ -286,6 +293,17 @@ async function renderBookings() {
       chatModal.open(b.id, 'pro', b.customer_name || '依頼者', `${b.booking_date} ${b.start_time.slice(0, 5)}〜`);
     });
   });
+  el.querySelectorAll('.btn-ack').forEach((btn) => btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    try {
+      await ackBooking(btn.dataset.bookingId);
+      state.bookings = await getPhotographerBookings(state.photographerId);
+      await renderBookings();
+    } catch (err) {
+      alert(err.message || '確認の登録に失敗しました。');
+      btn.disabled = false;
+    }
+  }));
   el.querySelectorAll('.btn-sheet-view').forEach((btn) => btn.addEventListener('click', () => openSheetView(find(btn))));
   el.querySelectorAll('.btn-deliver').forEach((btn) => btn.addEventListener('click', async () => {
     const b = find(btn);

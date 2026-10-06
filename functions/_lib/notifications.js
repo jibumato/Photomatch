@@ -1,9 +1,11 @@
 // Booking confirmed / canceled notifications, sent to the customer, the
 // photographer and ops at the same time. Never throws: a mail failure must
 // not break the payment webhook or the cancel request that triggered it.
-import { meetingPointForArea, EXTRA_OPTIONS, WEEKDAY_JP } from '../../js/data.js';
-import { restSelect } from './supabaseAdmin.js';
+import { meetingPointForArea, EXTRA_OPTIONS, WEEKDAY_JP, PHOTOGRAPHER_ACK_HOURS } from '../../js/data.js';
+import { restSelect, restUpdate } from './supabaseAdmin.js';
 import { sendEmail } from './email.js';
+import { bookingIcs, icsAttachment } from './ics.js';
+import { ackUrl } from './ackToken.js';
 
 const CANCEL_POLICY = '撮影日の3日前まで：無料 ／ 2日前：プラン料金の50% ／ 前日・当日：プラン料金の100%（オプション料金は全額返金）';
 const CONTACT = 'info.photomatch@gmail.com';
@@ -131,11 +133,37 @@ function opsMessage(kind, b, photographerName, origin) {
   };
 }
 
+// Kinds that put a (new) date on the photographer's calendar: these ask the
+// photographer to press 「確認しました」 again and carry an .ics file.
+const ACK_KINDS = ['confirmed', 'rescheduled', 'ops_rescheduled'];
+const CANCEL_KINDS = ['canceled', 'ops_canceled'];
+
+// Adds a paragraph just above the common footer of a message.
+function withExtra(text, extra, origin) {
+  return text.replace(FOOTER(origin), `\n${extra}\n${FOOTER(origin)}`);
+}
+
+function photographerAckText(link) {
+  return `■予約の確認をお願いします\n内容を確認したら、下のリンクを開いて「確認しました」を押してください（管理画面の予約一覧からも押せます）。${PHOTOGRAPHER_ACK_HOURS}時間以内に確認がない場合は、運営からご連絡します。\n${link}`;
+}
+
+function calendarText(kind) {
+  if (kind === 'confirmed') return '■カレンダーへの登録\n添付のファイル（photomatch-booking.ics）を開くと、カレンダーに予定を追加できます（前日と1時間前に通知されます）。';
+  if (CANCEL_KINDS.includes(kind)) return '■カレンダーについて\nカレンダーに登録済みの場合は、予定を削除してください（添付のファイルを開くと削除できるカレンダーもあります）。';
+  return '■カレンダーへの登録\nカレンダーに登録済みの場合は、変更前の予定を削除し、添付のファイル（photomatch-booking.ics）を開いて登録し直してください。';
+}
+
 // kind: 'confirmed' | 'canceled' | 'no_show' | 'rescheduled' | 'ops_canceled' | 'ops_rescheduled'
 export async function notifyBooking(env, bookingId, kind, origin) {
   try {
-    const [booking] = await restSelect(env, 'bookings', { id: `eq.${bookingId}`, select: '*' });
+    let [booking] = await restSelect(env, 'bookings', { id: `eq.${bookingId}`, select: '*' });
     if (!booking) return;
+    if (ACK_KINDS.includes(kind)) {
+      // A new date to confirm: start (or restart) the photographer's 確認 clock.
+      const now = new Date().toISOString();
+      const [updated] = await restUpdate(env, 'bookings', { id: `eq.${bookingId}` }, { ack_requested_at: now, photographer_ack_at: null, ack_alerted_at: null });
+      booking = { ...booking, ...(updated || {}), ack_requested_at: now, photographer_ack_at: null, ack_alerted_at: null };
+    }
     const [photographer] = await restSelect(env, 'photographers', {
       id: `eq.${booking.photographer_id}`, select: 'name,profile_id',
     });
@@ -145,6 +173,17 @@ export async function notifyBooking(env, bookingId, kind, origin) {
 
     const photographerName = (photographer && photographer.name) || 'カメラマン';
     const msg = messages(kind, booking, photographerName, origin);
+    const attach = { customer: [], photographer: [] };
+    if (ACK_KINDS.includes(kind)) {
+      msg.photographer.text = withExtra(msg.photographer.text, photographerAckText(await ackUrl(env, origin, booking)), origin);
+    }
+    if (ACK_KINDS.includes(kind) || CANCEL_KINDS.includes(kind)) {
+      const method = CANCEL_KINDS.includes(kind) ? 'CANCEL' : 'PUBLISH';
+      for (const who of ['customer', 'photographer']) {
+        attach[who].push(icsAttachment(bookingIcs(booking, { photographerName, audience: who, method, origin })));
+        msg[who].text = withExtra(msg[who].text, calendarText(kind), origin);
+      }
+    }
     const customerEmail = emailOf(booking.client_id);
     const photographerEmail = photographer && photographer.profile_id ? emailOf(photographer.profile_id) : null;
 
@@ -152,8 +191,8 @@ export async function notifyBooking(env, bookingId, kind, origin) {
       console.warn(`notifyBooking: photographer ${booking.photographer_id} has no linked account email; not notified`);
     }
     const sends = [];
-    if (customerEmail) sends.push(sendEmail(env, { to: customerEmail, ...msg.customer }));
-    if (photographerEmail) sends.push(sendEmail(env, { to: photographerEmail, ...msg.photographer }));
+    if (customerEmail) sends.push(sendEmail(env, { to: customerEmail, ...msg.customer, attachments: attach.customer }));
+    if (photographerEmail) sends.push(sendEmail(env, { to: photographerEmail, ...msg.photographer, attachments: attach.photographer }));
     sends.push(sendEmail(env, { to: env.OPS_EMAIL || CONTACT, ...opsMessage(kind, booking, photographerName, origin) }));
     const results = await Promise.allSettled(sends);
     results.filter((r) => r.status === 'rejected').forEach((r) => console.error('notifyBooking send failed', r.reason));
@@ -170,5 +209,41 @@ export async function notifyOps(env, subject, text, origin) {
     await sendEmail(env, { to: env.OPS_EMAIL || CONTACT, subject: `【PhotoMatch運営】${subject}`, text: `${text}\n\n${origin}/ops.html\n` });
   } catch (err) {
     console.error('notifyOps failed', err);
+  }
+}
+
+// The photographer hasn't pressed 「確認しました」 within PHOTOGRAPHER_ACK_HOURS:
+// tell ops (to call them) and remind the photographer once more. Returns true
+// when the ops email went out. Called by /api/bookings/ack-check.
+export async function notifyAckOverdue(env, booking, origin) {
+  try {
+    const [photographer] = await restSelect(env, 'photographers', { id: `eq.${booking.photographer_id}`, select: 'name,profile_id' });
+    const photographerName = (photographer && photographer.name) || 'カメラマン';
+    const [profile] = photographer && photographer.profile_id
+      ? await restSelect(env, 'profiles', { id: `eq.${photographer.profile_id}`, select: 'email' })
+      : [];
+    const when = `${formatDate(booking.booking_date)} ${booking.start_time.slice(0, 5)}〜`;
+    const link = await ackUrl(env, origin, booking);
+    const sends = [sendEmail(env, {
+      to: env.OPS_EMAIL || CONTACT,
+      subject: `【PhotoMatch運営】カメラマンが予約を未確認です（${shortDate(booking.booking_date)} ${booking.start_time.slice(0, 5)}〜 ${photographerName}）`,
+      text: `${photographerName} さんが、${PHOTOGRAPHER_ACK_HOURS}時間たっても予約を確認していません。電話などで連絡を取り、予約に気づいているか確認してください。\n\n予約ID：${booking.id}\n確認を依頼した日時：${new Date(booking.ack_requested_at).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}\nカメラマンの連絡先：${(profile && profile.email) || '（アカウント未連携）'}\n依頼者：${booking.customer_name} 様\n${bookingLines(booking, photographerName, { forCustomer: true })}\n\n${origin}/ops.html\n`,
+    })];
+    if (profile && profile.email) {
+      sends.push(sendEmail(env, {
+        to: profile.email,
+        subject: `【PhotoMatch】予約の確認をお願いします（${shortDate(booking.booking_date)} ${booking.start_time.slice(0, 5)}〜）`,
+        text: `${photographerName} さん\n\n以下の予約が、まだ確認されていません。内容を確認して、下のリンクから「確認しました」を押してください。\n\n依頼者：${booking.customer_name} 様\n日時：${when}\n${bookingLines(booking, photographerName, { forCustomer: false })}\n\n${link}\n${FOOTER(origin)}`,
+      }));
+    }
+    const [opsResult] = await Promise.allSettled(sends);
+    if (opsResult.status === 'rejected') {
+      console.error('notifyAckOverdue: ops email failed', opsResult.reason);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('notifyAckOverdue failed', err);
+    return false;
   }
 }

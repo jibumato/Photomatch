@@ -167,6 +167,18 @@ update profiles set role = 'ops' where email = 'info.photomatch@gmail.com';
 | 掲載の承認・停止 | | ○ | |
 | 報酬の振込を記録 | | ○ | |
 | チャージバック・Stripeでの返金・決済の取り消し | | | ○ |
+| カメラマンが3時間たっても予約を未確認 | | 再通知 ○ | ○ |
+
+予約確定・日程変更・キャンセルのメールには、カレンダー登録用のファイル（`photomatch-booking.ics`、お客様・カメラマン宛て）が付く。
+
+## カメラマンの「確認しました」
+
+予約の確定・日程変更のたびに、カメラマンに「確認しました」を押してもらう（メールのリンク、または管理画面の予約一覧のボタン）。
+
+- メールのリンクは開いただけでは確認にならない（メールのセキュリティチェックがリンクを自動で開くため）。開いた先のページでボタンを押すと確認になる。日程変更のあとは、古いメールのリンクは使えない。
+- 確認を依頼してから3時間（`js/data.js` の `PHOTOGRAPHER_ACK_HOURS`）たっても押されなければ、運営にメールが届き、カメラマンにも再度お知らせが届く（1つの依頼につき1回）。運営画面「予約の管理」にも「カメラマン未確認」と表示される。
+- チェックは Supabase の pg_cron から10分ごとに `/api/bookings/ack-check` を呼んで行う（`supabase/schema.sql` を実行すると登録される。pg_cron / pg_net 拡張は Supabase の Database → Extensions で有効にできる）。登録状況は SQL Editor で `select * from cron.job;`、実行結果は `select * from cron.job_run_details order by start_time desc limit 10;` で確認できる。
+- この機能より前の予約は、確認の対象外。
 
 ## Stripe Webhook の設定
 
