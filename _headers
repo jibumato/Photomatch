@@ -1,0 +1,12 @@
+# Cloudflare Pages response headers.
+#
+# HTML, CSS and JS are revalidated on every load (a cheap 304 when unchanged),
+# so a deploy is picked up immediately and a new page never runs with an old
+# stylesheet or translation file. The HTML also carries ?v=<hash> URLs from
+# scripts/stamp-assets.mjs as a second safeguard.
+/*
+  Cache-Control: no-cache
+
+# Images and fonts rarely change; let browsers keep them for a day.
+/assets/*
+  Cache-Control: public, max-age=86400
