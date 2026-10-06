@@ -1,6 +1,6 @@
 import { mountLayout } from '../layout.js';
 import { listPhotographers } from '../repo.js';
-import { AREAS, PRICING_PLANS } from '../data.js';
+import { AREAS, HIDDEN_AREAS, PRICING_PLANS } from '../data.js';
 import { getLang, t, areaText, localizedField, reviewsCountLabel, planNameText } from '../i18n.js';
 import { escapeHtml, safePhotoUrl, hasRating } from '../util.js';
 
@@ -148,7 +148,8 @@ function render() {
 
 (async () => {
   try {
-    state.all = await listPhotographers();
+    // 対応を休止しているエリア（HIDDEN_AREAS）のカメラマンは出さない。
+    state.all = (await listPhotographers()).filter((p) => !HIDDEN_AREAS.includes(p.area));
     document.getElementById('pm-loading').style.display = 'none';
 
     const params = new URLSearchParams(location.search);

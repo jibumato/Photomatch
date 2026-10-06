@@ -4,7 +4,7 @@
 // a Stripe Checkout Session for it and returns its URL for the browser to
 // redirect to.
 import {
-  AREAS, SLOT_TIMES, MONITOR_PLAN_NAMES, monitorPriceFor, monitorBookingCounts, areasFor,
+  AREAS, SLOT_TIMES, MONITOR_PLAN_NAMES, monitorPriceFor, monitorBookingCounts, areasFor, HIDDEN_AREAS,
   EXTRA_OPTIONS, CHECKOUT_EXPIRES_MIN, isValidCustomerGender, needsGenderForOptions,
 } from '../../../js/data.js';
 import { verifyUser, restSelect, restInsert, restUpdate } from '../../_lib/supabaseAdmin.js';
@@ -62,6 +62,9 @@ export async function onRequestPost({ request, env }) {
   // since this is the actual point of no return (money changes hands).
   if (photographerRow.is_visible === false || photographerRow.is_paused === true) {
     return jsonResponse({ error: '現在、このカメラマンは新規のご予約受付を休止しています。' }, 409);
+  }
+  if (HIDDEN_AREAS.includes(photographerRow.area)) {
+    return jsonResponse({ error: '現在、このカメラマンの担当エリアでは新規のご予約受付を休止しています。' }, 409);
   }
   if (!areasFor(photographerRow.area).some((a) => a.label === areaLabel)) {
     return jsonResponse({ error: 'このカメラマンの担当エリア外のため、ご予約できません。' }, 400);

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>集合場所 | PhotoMatch</title>
-<meta name="description" content="名古屋・岐阜・一宮の集合場所と、撮影当日の流れ・持ち物・服装のご案内です。予約後の詳細はサイト内チャットでもご案内します。">
+<title data-i18n="meeting.pageTitle">集合場所 | PhotoMatch</title>
+<meta name="description" content="名古屋・岐阜の集合場所と、撮影当日の流れ・持ち物・服装のご案内です。予約後の詳細はサイト内チャットでもご案内します。">
 <link rel="icon" href="assets/photomatch-icon-transparent.png">
 <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
 <link rel="stylesheet" href="css/base.css?v=4a95132642">
@@ -17,8 +17,8 @@
     "/js/availability.js": "/js/availability.js?v=6c98651534",
     "/js/chat.js": "/js/chat.js?v=fb1fe358b9",
     "/js/config.js": "/js/config.js?v=e841133368",
-    "/js/data.js": "/js/data.js?v=4566f55a7d",
-    "/js/i18n.js": "/js/i18n.js?v=ebbedd197f",
+    "/js/data.js": "/js/data.js?v=ff39095603",
+    "/js/i18n.js": "/js/i18n.js?v=aa8666eceb",
     "/js/layout.js": "/js/layout.js?v=b4870f3512",
     "/js/pages/admin.js": "/js/pages/admin.js?v=098b3901a6",
     "/js/pages/booking.js": "/js/pages/booking.js?v=1c05a7362d",
@@ -34,49 +34,9 @@
     "/js/pages/pro-login.js": "/js/pages/pro-login.js?v=3ae32cde71",
     "/js/pages/profile.js": "/js/pages/profile.js?v=35e2517d15",
     "/js/pages/reset-password.js": "/js/pages/reset-password.js?v=40375debb3",
-    "/js/pages/search.js": "/js/pages/search.js?v=179a6a9788",
+    "/js/pages/search.js": "/js/pages/search.js?v=632d837a3f",
     "/js/pages/terms.js": "/js/pages/terms.js?v=cb040d8e06",
-    "/js/pages/top.js": "/js/pages/top.js?v=525a1cd3ab",
-    "/js/profileEditor.js": "/js/profileEditor.js?v=56cd2d2c43",
-    "/js/repo.js": "/js/repo.js?v=a14657fcd4",
-    "/js/rescheduleModal.js": "/js/rescheduleModal.js?v=54e41cb7d0",
-    "/js/reviewModal.js": "/js/reviewModal.js?v=ec878c7264",
-    "/js/sheet.js": "/js/sheet.js?v=0224ba7789",
-    "/js/supabaseClient.js": "/js/supabaseClient.js?v=6e8b41def3",
-    "/js/util.js": "/js/util.js?v=7532352c60",
-    "/js/weather.js": "/js/weather.js?v=308937ac5b"
-  }
-}
-</script>
-<!-- asset-versions:end -->
-<!-- asset-versions:start (scripts/stamp-assets.mjs) -->
-<script type="importmap">
-{
-  "imports": {
-    "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
-    "/js/availability.js": "/js/availability.js?v=6c98651534",
-    "/js/chat.js": "/js/chat.js?v=fb1fe358b9",
-    "/js/config.js": "/js/config.js?v=e841133368",
-    "/js/data.js": "/js/data.js?v=4566f55a7d",
-    "/js/i18n.js": "/js/i18n.js?v=e144cc84b0",
-    "/js/layout.js": "/js/layout.js?v=b4870f3512",
-    "/js/pages/admin.js": "/js/pages/admin.js?v=098b3901a6",
-    "/js/pages/booking.js": "/js/pages/booking.js?v=1c05a7362d",
-    "/js/pages/column-article.js": "/js/pages/column-article.js?v=1395394bb8",
-    "/js/pages/column.js": "/js/pages/column.js?v=3741b0aa18",
-    "/js/pages/email-confirmed.js": "/js/pages/email-confirmed.js?v=2b519bae27",
-    "/js/pages/login.js": "/js/pages/login.js?v=27b43e27ba",
-    "/js/pages/meeting-points.js": "/js/pages/meeting-points.js?v=ecf0a3bc72",
-    "/js/pages/monitor.js": "/js/pages/monitor.js?v=5b0d9af764",
-    "/js/pages/mypage.js": "/js/pages/mypage.js?v=e385b4158e",
-    "/js/pages/ops-login.js": "/js/pages/ops-login.js?v=91fbd27662",
-    "/js/pages/ops.js": "/js/pages/ops.js?v=ad9d2502e3",
-    "/js/pages/pro-login.js": "/js/pages/pro-login.js?v=3ae32cde71",
-    "/js/pages/profile.js": "/js/pages/profile.js?v=35e2517d15",
-    "/js/pages/reset-password.js": "/js/pages/reset-password.js?v=40375debb3",
-    "/js/pages/search.js": "/js/pages/search.js?v=179a6a9788",
-    "/js/pages/terms.js": "/js/pages/terms.js?v=cb040d8e06",
-    "/js/pages/top.js": "/js/pages/top.js?v=525a1cd3ab",
+    "/js/pages/top.js": "/js/pages/top.js?v=82790136d7",
     "/js/profileEditor.js": "/js/profileEditor.js?v=56cd2d2c43",
     "/js/repo.js": "/js/repo.js?v=a14657fcd4",
     "/js/rescheduleModal.js": "/js/rescheduleModal.js?v=54e41cb7d0",
@@ -96,30 +56,30 @@
 
 <main>
   <section class="pm-wrap-narrow" style="padding:24px clamp(20px,5vw,32px) 0">
-    <a class="pm-back-link" href="index.html">← トップに戻る</a>
-    <h1 style="font:700 26px var(--pm-font-body);margin:16px 0 4px">集合場所</h1>
-    <p style="color:var(--pm-text-3);font:14px/1.9 var(--pm-font-body);margin:0 0 20px">対応エリアごとの集合場所です。予約完了後、詳細はサイト内チャットでもご案内します。</p>
+    <a class="pm-back-link" href="index.html" data-i18n="static.back">← トップに戻る</a>
+    <h1 style="font:700 26px var(--pm-font-body);margin:16px 0 4px" data-i18n="meeting.title">集合場所</h1>
+    <p style="color:var(--pm-text-3);font:14px/1.9 var(--pm-font-body);margin:0 0 20px" data-i18n="meeting.lead">対応エリアごとの集合場所です。予約完了後、詳細はサイト内チャットでもご案内します。</p>
   </section>
 
   <section class="pm-wrap-narrow" style="padding:0 clamp(20px,5vw,32px) 80px;display:flex;flex-direction:column;gap:24px">
-    <div class="pm-note-box">
+    <div class="pm-note-box" data-i18n="meeting.late">
       集合時間に15分以上遅れた場合、キャンセル扱いとなることがあり、その際の返金はできません。時間に余裕を持ってお越しください。
     </div>
 
     <div class="pm-card" style="padding:24px">
-      <h2 style="font:700 18px var(--pm-font-body);margin:0 0 18px">撮影当日について</h2>
+      <h2 style="font:700 18px var(--pm-font-body);margin:0 0 18px" data-i18n="meeting.day.title">撮影当日について</h2>
       <div style="display:flex;flex-direction:column;gap:16px">
         <div>
-          <div style="font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210);margin-bottom:6px">当日の流れ</div>
-          <p style="font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0">集合場所でご挨拶・撮影イメージの確認 → 撮影(ポーズや表情はカメラマンがリード) → その場で解散。レタッチ済みデータは後日メールでお届けします。</p>
+          <div style="font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210);margin-bottom:6px" data-i18n="meeting.day.flow.h">当日の流れ</div>
+          <p style="font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0" data-i18n="meeting.day.flow.b">集合場所でご挨拶・撮影イメージの確認 → 撮影(ポーズや表情はカメラマンがリード) → その場で解散。レタッチ済みデータは後日メールでお届けします。</p>
         </div>
         <div>
-          <div style="font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210);margin-bottom:6px">持ち物</div>
-          <p style="font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0">特別な持ち物は不要です。着替えたい服があれば他1〜2着、リップやヘアアイテムなど身だしなみを整えるものがあると安心です。</p>
+          <div style="font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210);margin-bottom:6px" data-i18n="meeting.day.bring.h">持ち物</div>
+          <p style="font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0" data-i18n="meeting.day.bring.b">特別な持ち物は不要です。着替えたい服があれば他1〜2着、リップやヘアアイテムなど身だしなみを整えるものがあると安心です。</p>
         </div>
         <div>
-          <div style="font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210);margin-bottom:6px">服装アドバイス</div>
-          <p style="font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0">清潔感のある普段着がおすすめです。白・ネイビー・ベージュなど明るめの無地は写真映えします。過度な柄物や暗い色は避けると仕上がりが良くなります。</p>
+          <div style="font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210);margin-bottom:6px" data-i18n="meeting.day.wear.h">服装アドバイス</div>
+          <p style="font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0" data-i18n="meeting.day.wear.b">清潔感のある普段着がおすすめです。白・ネイビー・ベージュなど明るめの無地は写真映えします。過度な柄物や暗い色は避けると仕上がりが良くなります。</p>
         </div>
       </div>
     </div>

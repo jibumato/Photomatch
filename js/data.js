@@ -7,8 +7,12 @@
 export const AREAS = [
   { key: 'nagoya', label: '名古屋エリア', labelEn: 'Nagoya Area', desc: '栄・名駅など都心のロケーション', descEn: 'Central locations like Sakae and Nagoya Station', lat: 35.1706, lon: 136.9086 },
   { key: 'gifu', label: '岐阜エリア', labelEn: 'Gifu Area', desc: '長良川や街並みを背景に', descEn: 'Scenic backdrops along the Nagara River', lat: 35.4233, lon: 136.7606 },
-  { key: 'ichinomiya', label: '一宮エリア', labelEn: 'Ichinomiya Area', desc: '落ち着いた雰囲気のスナップ', descEn: 'Relaxed, low-key snapshots', lat: 35.3039, lon: 136.8033 },
 ];
+
+// 担当カメラマンがいないため、一宮は対応エリアから外している。再開するときは、
+// AREAS と MEETING_POINTS に一宮を戻し、HIDDEN_AREAS から外す。
+// HIDDEN_AREAS のエリアを担当エリアにしているカメラマンは、検索一覧に出さない。
+export const HIDDEN_AREAS = ['一宮エリア'];
 
 // 予約で選べる撮影エリア。カメラマンの担当エリア（photographers.area）だけに絞る。
 // 担当エリアが AREAS にない（未設定など）ときは、予約できなくならないよう全エリアを返す。
@@ -29,7 +33,7 @@ export const SHOT_TYPES = [
 // （不実証広告規制）。実証後に「※モニター◯名の実績」等の注記付きで戻す。
 // 平均評価は、実際のレビューが集まるまで掲出しない（以前の「4.8」はダミーだった）。
 export const STATS = [
-  { value: '250+', label: '名古屋エリア撮影実績', labelEn: 'Nagoya-area shoots completed' },
+  { value: '350+', label: '名古屋エリア撮影実績', labelEn: 'Nagoya-area shoots completed' },
 ];
 
 // 実在のお客様の口コミだけを入れる。空の間は、トップの「利用者の口コミ」欄ごと
@@ -99,63 +103,71 @@ export const SAFETY_POINTS = [
 export const LEGAL_PAGES = {
   company: {
     title: '運営会社',
+    titleEn: 'Company Information',
     intro: 'PhotoMatch（フォトマッチ）の運営情報です。',
+    introEn: 'Operating information for PhotoMatch.',
     rows: [
-      { k: '運営', v: 'PhotoMatch運営事務局' },
-      { k: '所在地', v: '愛知県名古屋市港区（請求があれば遅滞なく開示します）' },
-      { k: '事業内容', v: 'マッチングアプリ向け出張撮影のマッチングサービスの運営' },
-      { k: '対応エリア', v: '名古屋中心部・岐阜・一宮' },
-      { k: 'お問い合わせ', v: 'info.photomatch@gmail.com' },
+      { k: '運営', v: 'PhotoMatch運営事務局', kEn: 'Operator', vEn: 'PhotoMatch Operations Office' },
+      { k: '所在地', v: '愛知県名古屋市港区（請求があれば遅滞なく開示します）', kEn: 'Address', vEn: 'Minato-ku, Nagoya, Aichi (full address disclosed without delay upon request)' },
+      { k: '事業内容', v: 'マッチングアプリ向け出張撮影のマッチングサービスの運営', kEn: 'Business', vEn: 'Operation of a matching service for on-location photo shoots for dating apps' },
+      { k: '対応エリア', v: '名古屋中心部・岐阜', kEn: 'Service Area', vEn: 'Central Nagoya and Gifu' },
+      { k: 'お問い合わせ', v: 'info.photomatch@gmail.com', kEn: 'Contact', vEn: 'info.photomatch@gmail.com' },
     ],
   },
   tokushoho: {
     title: '特定商取引法に基づく表記',
+    titleEn: 'Notation Based on the Act on Specified Commercial Transactions',
     intro: '特定商取引法第11条に基づき表示します。',
+    introEn: 'Displayed pursuant to Article 11 of the Act on Specified Commercial Transactions.',
     rows: [
-      { k: '販売事業者', v: 'PhotoMatch運営事務局' },
-      { k: '運営責任者', v: '下山 慧 / 粂川 拓海' },
-      { k: '所在地', v: '愛知県名古屋市港区（請求があれば遅滞なく開示します）' },
-      { k: '連絡先', v: 'info.photomatch@gmail.com' },
-      { k: '電話番号', v: '請求があった場合、遅滞なく開示します（お問い合わせはメールにて承ります）' },
-      { k: '販売価格', v: '各プランページに税込で表示します（スマホプラン¥6,800〜）' },
-      { k: '商品代金以外の費用', v: '交通費等が発生する場合は予約前に明示します' },
-      { k: '支払方法', v: 'クレジットカード（Stripe）／予約時に全額をお支払いいただきます' },
-      { k: '役務の提供時期', v: 'ご予約いただいた撮影日時に提供します' },
-      { k: 'キャンセル', v: '撮影日の3日前まで無料／2日前 プラン料金の50%／前日・当日 プラン料金の100%（オプション料金は全額返金。返金はお支払いのカードへ）' },
+      { k: '販売事業者', v: 'PhotoMatch運営事務局', kEn: 'Seller', vEn: 'PhotoMatch Operations Office' },
+      { k: '運営責任者', v: '下山 慧 / 粂川 拓海', kEn: 'Person Responsible for Operations', vEn: '下山 慧 / 粂川 拓海' },
+      { k: '所在地', v: '愛知県名古屋市港区（請求があれば遅滞なく開示します）', kEn: 'Address', vEn: 'Minato-ku, Nagoya, Aichi (full address disclosed without delay upon request)' },
+      { k: '連絡先', v: 'info.photomatch@gmail.com', kEn: 'Contact', vEn: 'info.photomatch@gmail.com' },
+      { k: '電話番号', v: '請求があった場合、遅滞なく開示します（お問い合わせはメールにて承ります）', kEn: 'Phone Number', vEn: 'Disclosed without delay upon request (we handle inquiries by email)' },
+      { k: '販売価格', v: '各プランページに税込で表示します（スマホプラン¥6,800〜）', kEn: 'Prices', vEn: 'Shown on each plan page, tax included (Smartphone Plan from ¥6,800)' },
+      { k: '商品代金以外の費用', v: '交通費等が発生する場合は予約前に明示します', kEn: 'Charges Other Than the Price', vEn: 'If transportation or other costs apply, we will state them before you book' },
+      { k: '支払方法', v: 'クレジットカード（Stripe）／予約時に全額をお支払いいただきます', kEn: 'Payment Method', vEn: 'Credit card (Stripe) / full payment is taken at the time of booking' },
+      { k: '役務の提供時期', v: 'ご予約いただいた撮影日時に提供します', kEn: 'Service Timing', vEn: 'Provided at the shoot date and time you booked' },
+      { k: 'キャンセル', v: '撮影日の3日前まで無料／2日前 プラン料金の50%／前日・当日 プラン料金の100%（オプション料金は全額返金。返金はお支払いのカードへ）', kEn: 'Cancellation', vEn: 'Free up to 3 days before the shoot date / 2 days before: 50% of the plan price / the day before or the day of: 100% of the plan price (option fees are refunded in full; refunds go to the card used for payment)' },
     ],
   },
   privacy: {
     title: 'プライバシーポリシー',
+    titleEn: 'Privacy Policy',
     intro: 'PhotoMatch（以下「当サービス」）は、お客様の個人情報を以下の方針に基づき取り扱います。',
+    introEn: 'PhotoMatch (the "Service") handles your personal information in accordance with the policy below.',
     sections: [
-      { h: '1. 取得する情報', b: 'お名前、性別（「異性スタッフ写真セレクト」の担当判定に使用します）、連絡先（メール・電話番号）、予約内容、撮影データ、決済に必要な情報などを取得します。' },
-      { h: '2. 利用目的', b: '予約の管理・カメラマンとの調整・撮影データの納品・お問い合わせ対応・サービス改善のために利用します。' },
-      { h: '3. 第三者提供', b: '撮影の実施に必要な範囲で担当カメラマンに共有するほかは、法令に基づく場合を除き第三者へ提供しません。' },
-      { h: '4. 決済情報の取り扱い', b: 'クレジットカード情報は決済代行事業者（Stripe）が安全に処理し、当サービスはカード番号を保持しません。' },
-      { h: '5. 撮影データ', b: '納品データはお客様に帰属します。事前の許諾なく広告等に二次利用することはありません。' },
-      { h: '6. お問い合わせ', b: '個人情報の開示・訂正・削除のご要望は info.photomatch@gmail.com までご連絡ください。' },
+      { h: '1. 取得する情報', b: 'お名前、性別（「異性スタッフ写真セレクト」の担当判定に使用します）、連絡先（メール・電話番号）、予約内容、撮影データ、決済に必要な情報などを取得します。', hEn: '1. Information We Collect', bEn: 'We collect your name, gender (used to assign staff for the "Opposite-Gender Staff Pick" option), contact details (email and phone number), booking details, photo data, and information needed for payment.' },
+      { h: '2. 利用目的', b: '予約の管理・カメラマンとの調整・撮影データの納品・お問い合わせ対応・サービス改善のために利用します。', hEn: '2. Purposes of Use', bEn: 'We use this information to manage bookings, coordinate with your photographer, deliver your photos, respond to inquiries, and improve the Service.' },
+      { h: '3. 第三者提供', b: '撮影の実施に必要な範囲で担当カメラマンに共有するほかは、法令に基づく場合を除き第三者へ提供しません。', hEn: '3. Disclosure to Third Parties', bEn: 'We share information with your assigned photographer only as far as needed to carry out the shoot. Otherwise we do not provide it to third parties, except where required by law.' },
+      { h: '4. 決済情報の取り扱い', b: 'クレジットカード情報は決済代行事業者（Stripe）が安全に処理し、当サービスはカード番号を保持しません。', hEn: '4. Handling of Payment Information', bEn: 'Credit card information is processed securely by our payment provider, Stripe. We do not store your card number.' },
+      { h: '5. 撮影データ', b: '納品データはお客様に帰属します。事前の許諾なく広告等に二次利用することはありません。', hEn: '5. Photo Data', bEn: 'Delivered photos belong to you. We will not reuse them in advertising or elsewhere without your prior consent.' },
+      { h: '6. お問い合わせ', b: '個人情報の開示・訂正・削除のご要望は info.photomatch@gmail.com までご連絡ください。', hEn: '6. Contact', bEn: 'To request disclosure, correction, or deletion of your personal information, please contact info.photomatch@gmail.com.' },
     ],
   },
   terms: {
     title: '利用規約',
+    titleEn: 'Terms of Service',
     intro: 'この利用規約（以下「本規約」）は、PhotoMatch運営事務局（以下「当社」）が提供する出張写真撮影マッチングサービス「PhotoMatch」（以下「本サービス」）の利用条件を定めるものです。本サービスをご利用いただくお客様（以下「お客様」）は、本規約に同意のうえご利用ください。',
+    introEn: 'These Terms of Service (the "Terms") set out the conditions for using "PhotoMatch" (the "Service"), an on-location photo shoot matching service provided by the PhotoMatch Operations Office ("we" or "us"). Customers who use the Service ("you") are asked to agree to these Terms before using it.',
     sections: [
-      { h: '第1条（本サービスの概要）', b: '本サービスは、お客様とカメラマンとの間で撮影日時・場所を調整し、マッチングアプリ用プロフィール写真を中心とした出張撮影を提供するものです。撮影場所の使用許可等の手配は、当社またはカメラマンが行います。' },
-      { h: '第2条（申込みと契約成立）', b: 'お客様は、サイト上の空き枠カレンダーから希望日時・プランを選択し、必要事項を入力のうえお申込みください。決済が完了した時点で契約が成立し、予約が確定します。' },
-      { h: '第3条（支払方法）', b: '利用料金は、予約確定時にサイト上のクレジットカード決済（Stripe）にて全額をお支払いいただきます。表示価格はすべて税込です。当日の追加料金は発生しません。' },
-      { h: '第4条（変更・キャンセル）', b: '撮影日の3日前まで：無料でキャンセル・日程変更が可能です。撮影日の2日前から撮影開始前までの日程変更は、「あんしん振替プラン」にご加入のお客様に限り、1回まで無料で可能です（未加入の場合はキャンセルとなります）。撮影日の2日前：プラン料金の50%をキャンセル料として申し受けます。撮影日の前日・当日：プラン料金の100%をキャンセル料として申し受けます。オプション料金はキャンセル料の対象外とし、全額返金します。キャンセル料を差し引いた金額は、お支払いに使われたクレジットカードへ返金します。キャンセル・日程変更はマイページから承ります（撮影開始時刻以降のキャンセル・日程変更はお問い合わせください）。' },
-      { h: '第5条（遅刻）', b: '集合時間に15分以上遅れて指定場所にお越しいただいた場合、当日キャンセルとして扱い、前条に定めるキャンセル料（返金なし）を申し受けます。15分未満の遅刻の場合も、撮影時間の短縮など提供内容を変更させていただくことがあり、この場合も返金・代金の減額は行いません。' },
-      { h: '第6条（データの納品）', b: '撮影データは、撮影日から最短翌日〜3営業日以内に、Googleフォトのアルバムリンクを電子メールにてお送りする方法で納品します。お客様はGoogleフォトの利用規約に同意のうえご使用ください。納品後のデータ保存期間は撮影月の翌々月末日までとし、それを超える保存について当社は責任を負いません。' },
-      { h: '第7条（システム障害等の免責）', b: 'Googleフォトその他当社が利用するシステムの中断・停止等、当社の責によらない事由により本サービスの提供またはデータ納品が遅延・不能となった場合、当社はその責任を負いません。' },
-      { h: '第8条（マッチング数保証・再撮影補償）', b: '事前申請のうえ納品写真をマッチングアプリのメイン写真に設定し、1ヶ月運用してもマッチング数に改善が見られない場合、サイト経由でご予約いただいたお客様に限り、同一プランでの再撮影を無償で承ります。適用条件の詳細はサポートまでお問い合わせください。' },
-      { h: '第9条（不可抗力・返金）', b: '天災・悪天候その他お客様および当社いずれの責にも帰さない事由により撮影が不能となった場合は、日程変更または返金にて対応します。専ら当社の責に帰すべき事由により本サービスの提供が不能となった場合は、お客様の選択により日程変更または全額返金を行います。' },
-      { h: '第10条（知的財産）', b: '当社は、納品する写真データについて、第三者の権利を侵害していないことその他一切について保証するものではありません。撮影データの私的利用の範囲を超える二次利用（商用利用等）については別途ご相談ください。' },
-      { h: '第11条（個人情報の取扱い）', b: '当社は、お客様からお預かりする個人情報を、個人情報保護方針に従い適切に取り扱います。' },
-      { h: '第12条（禁止事項）', b: 'お客様は、次の行為を行ってはならないものとします。（1）他人になりすましての申込み（2）虚偽の情報の申告（3）カメラマンまたは当社との連絡を正当な理由なく途絶する行為（4）カメラマンと当社を介さず直接取引を行う行為（5）カメラマンまたは他の利用者への迷惑行為・ハラスメント（6）法令または公序良俗に反する行為。違反が確認された場合、当社は契約解除・本サービス提供の中止を行うことができ、利用料金の返還は行いません。' },
-      { h: '第13条（反社会的勢力の排除）', b: 'お客様は、自身が暴力団員その他反社会的勢力に該当しないことを表明・確約するものとします。該当することが判明した場合、当社は通知・催告を要せず契約を解除でき、この場合キャンセルとみなし第4条を準用します。' },
-      { h: '第14条（損害賠償）', b: '当社の責に帰すべき事由によりお客様に損害が生じた場合、当社の賠償責任は、お客様から受領した利用料金を上限とします。ただし当社の故意または重過失による場合はこの限りではありません。' },
-      { h: '第15条（規約の改定）', b: '当社は、本規約を改定することがあります。改定後の規約は、本サービスサイトへの掲載その他適切な方法で周知した時点から効力を生じるものとします。' },
-      { h: '第16条（準拠法・管轄）', b: '本規約の準拠法は日本法とし、本サービスに関して紛争が生じた場合、名古屋地方裁判所を第一審の専属的合意管轄裁判所とします。' },
+      { h: '第1条（本サービスの概要）', b: '本サービスは、お客様とカメラマンとの間で撮影日時・場所を調整し、マッチングアプリ用プロフィール写真を中心とした出張撮影を提供するものです。撮影場所の使用許可等の手配は、当社またはカメラマンが行います。', hEn: 'Article 1 (Overview of the Service)', bEn: 'The Service coordinates the shoot date, time, and location between you and a photographer, and provides on-location photo shoots centered on profile photos for dating apps. Arrangements such as permission to use a shooting location are handled by us or the photographer.' },
+      { h: '第2条（申込みと契約成立）', b: 'お客様は、サイト上の空き枠カレンダーから希望日時・プランを選択し、必要事項を入力のうえお申込みください。決済が完了した時点で契約が成立し、予約が確定します。', hEn: 'Article 2 (Booking and Formation of Contract)', bEn: 'Choose your preferred date, time, and plan from the availability calendar on the site, enter the required details, and submit your booking. The contract is formed, and your booking confirmed, when payment is completed.' },
+      { h: '第3条（支払方法）', b: '利用料金は、予約確定時にサイト上のクレジットカード決済（Stripe）にて全額をお支払いいただきます。表示価格はすべて税込です。当日の追加料金は発生しません。', hEn: 'Article 3 (Payment)', bEn: 'The fee is paid in full by credit card (Stripe) on the site when your booking is confirmed. All displayed prices include tax. No additional charges are made on the day.' },
+      { h: '第4条（変更・キャンセル）', b: '撮影日の3日前まで：無料でキャンセル・日程変更が可能です。撮影日の2日前から撮影開始前までの日程変更は、「あんしん振替プラン」にご加入のお客様に限り、1回まで無料で可能です（未加入の場合はキャンセルとなります）。撮影日の2日前：プラン料金の50%をキャンセル料として申し受けます。撮影日の前日・当日：プラン料金の100%をキャンセル料として申し受けます。オプション料金はキャンセル料の対象外とし、全額返金します。キャンセル料を差し引いた金額は、お支払いに使われたクレジットカードへ返金します。キャンセル・日程変更はマイページから承ります（撮影開始時刻以降のキャンセル・日程変更はお問い合わせください）。', hEn: 'Article 4 (Changes and Cancellation)', bEn: 'Up to 3 days before the shoot date: you can cancel or reschedule free of charge. From 2 days before the shoot date until the shoot starts, rescheduling is free, once only, for customers who have the "Peace-of-Mind Reschedule Plan" (without the plan, it is treated as a cancellation). 2 days before the shoot date: a cancellation fee of 50% of the plan price applies. The day before or the day of the shoot: a cancellation fee of 100% of the plan price applies. Option fees are not subject to cancellation fees and are refunded in full. The amount after deducting the cancellation fee is refunded to the credit card used for payment. Cancellations and rescheduling are handled from My Page (for cancellations or rescheduling after the shoot start time, please contact us).' },
+      { h: '第5条（遅刻）', b: '集合時間に15分以上遅れて指定場所にお越しいただいた場合、当日キャンセルとして扱い、前条に定めるキャンセル料（返金なし）を申し受けます。15分未満の遅刻の場合も、撮影時間の短縮など提供内容を変更させていただくことがあり、この場合も返金・代金の減額は行いません。', hEn: 'Article 5 (Lateness)', bEn: 'If you arrive at the designated place 15 minutes or more after the meeting time, it is treated as a same-day cancellation and the cancellation fee set out in the previous article applies (no refund). Even if you are less than 15 minutes late, we may have to change what we provide, for example by shortening the shoot; in that case, no refund or fee reduction is given.' },
+      { h: '第6条（データの納品）', b: '撮影データは、撮影日から最短翌日〜3営業日以内に、Googleフォトのアルバムリンクを電子メールにてお送りする方法で納品します。お客様はGoogleフォトの利用規約に同意のうえご使用ください。納品後のデータ保存期間は撮影月の翌々月末日までとし、それを超える保存について当社は責任を負いません。', hEn: 'Article 6 (Delivery of Photos)', bEn: 'Photos are delivered by emailing a Google Photos album link, between the day after the shoot at the earliest and 3 business days after the shoot date. Please use Google Photos in accordance with its terms of service. Delivered photos are kept until the last day of the second month after the month of the shoot, and we are not responsible for storage beyond that.' },
+      { h: '第7条（システム障害等の免責）', b: 'Googleフォトその他当社が利用するシステムの中断・停止等、当社の責によらない事由により本サービスの提供またはデータ納品が遅延・不能となった場合、当社はその責任を負いません。', hEn: 'Article 7 (Disclaimer for System Failures)', bEn: 'We are not liable if provision of the Service or delivery of photos is delayed or becomes impossible due to causes beyond our control, such as an interruption or outage of Google Photos or another system we use.' },
+      { h: '第8条（マッチング数保証・再撮影補償）', b: '事前申請のうえ納品写真をマッチングアプリのメイン写真に設定し、1ヶ月運用してもマッチング数に改善が見られない場合、サイト経由でご予約いただいたお客様に限り、同一プランでの再撮影を無償で承ります。適用条件の詳細はサポートまでお問い合わせください。', hEn: 'Article 8 (Match-Count Guarantee and Reshoot Compensation)', bEn: 'If, after applying in advance, you set a delivered photo as your main dating-app photo, use it for one month, and see no improvement in your match count, we will reshoot with the same plan free of charge. This applies only to customers who booked through the site. Please contact support for the detailed conditions.' },
+      { h: '第9条（不可抗力・返金）', b: '天災・悪天候その他お客様および当社いずれの責にも帰さない事由により撮影が不能となった場合は、日程変更または返金にて対応します。専ら当社の責に帰すべき事由により本サービスの提供が不能となった場合は、お客様の選択により日程変更または全額返金を行います。', hEn: 'Article 9 (Force Majeure and Refunds)', bEn: 'If a shoot becomes impossible due to natural disasters, bad weather, or other causes attributable to neither you nor us, we will reschedule or refund. If the Service becomes impossible to provide due to causes solely attributable to us, we will reschedule or give a full refund, at your choice.' },
+      { h: '第10条（知的財産）', b: '当社は、納品する写真データについて、第三者の権利を侵害していないことその他一切について保証するものではありません。撮影データの私的利用の範囲を超える二次利用（商用利用等）については別途ご相談ください。', hEn: 'Article 10 (Intellectual Property)', bEn: 'We do not warrant that delivered photos do not infringe third-party rights, or give any other warranty about them. Please contact us separately about any use beyond personal use (such as commercial use).' },
+      { h: '第11条（個人情報の取扱い）', b: '当社は、お客様からお預かりする個人情報を、個人情報保護方針に従い適切に取り扱います。', hEn: 'Article 11 (Handling of Personal Information)', bEn: 'We handle the personal information you entrust to us appropriately, in accordance with our privacy policy.' },
+      { h: '第12条（禁止事項）', b: 'お客様は、次の行為を行ってはならないものとします。（1）他人になりすましての申込み（2）虚偽の情報の申告（3）カメラマンまたは当社との連絡を正当な理由なく途絶する行為（4）カメラマンと当社を介さず直接取引を行う行為（5）カメラマンまたは他の利用者への迷惑行為・ハラスメント（6）法令または公序良俗に反する行為。違反が確認された場合、当社は契約解除・本サービス提供の中止を行うことができ、利用料金の返還は行いません。', hEn: 'Article 12 (Prohibited Acts)', bEn: 'You must not do any of the following: (1) apply while impersonating another person; (2) give false information; (3) cut off contact with the photographer or us without good reason; (4) deal directly with the photographer without going through us; (5) harass or cause trouble for the photographer or other users; (6) act in violation of laws or public order and morals. If a violation is confirmed, we may terminate the contract and stop providing the Service, and fees paid will not be refunded.' },
+      { h: '第13条（反社会的勢力の排除）', b: 'お客様は、自身が暴力団員その他反社会的勢力に該当しないことを表明・確約するものとします。該当することが判明した場合、当社は通知・催告を要せず契約を解除でき、この場合キャンセルとみなし第4条を準用します。', hEn: 'Article 13 (Exclusion of Antisocial Forces)', bEn: 'You represent and warrant that you are not an organized crime group member or other antisocial force. If this is found to be untrue, we may terminate the contract without notice or demand; in that case it is treated as a cancellation and Article 4 applies accordingly.' },
+      { h: '第14条（損害賠償）', b: '当社の責に帰すべき事由によりお客様に損害が生じた場合、当社の賠償責任は、お客様から受領した利用料金を上限とします。ただし当社の故意または重過失による場合はこの限りではありません。', hEn: 'Article 14 (Damages)', bEn: 'If you suffer damage due to a cause attributable to us, our liability is limited to the fees we received from you. This does not apply in cases of our intentional misconduct or gross negligence.' },
+      { h: '第15条（規約の改定）', b: '当社は、本規約を改定することがあります。改定後の規約は、本サービスサイトへの掲載その他適切な方法で周知した時点から効力を生じるものとします。', hEn: 'Article 15 (Amendments to the Terms)', bEn: 'We may amend these Terms. Amended Terms take effect when published on the Service site or otherwise announced by appropriate means.' },
+      { h: '第16条（準拠法・管轄）', b: '本規約の準拠法は日本法とし、本サービスに関して紛争が生じた場合、名古屋地方裁判所を第一審の専属的合意管轄裁判所とします。', hEn: 'Article 16 (Governing Law and Jurisdiction)', bEn: 'These Terms are governed by the laws of Japan. Any dispute relating to the Service is subject to the exclusive jurisdiction of the Nagoya District Court as the court of first instance.' },
     ],
   },
   // カメラマン向け（ログイン画面・管理画面のフッターの下からリンク）。
@@ -211,14 +223,12 @@ export const FAQS = [
     aEn: "Clean, everyday clothes work best. Light, plain colors like white, navy, or beige photograph well — busy patterns and dark colors tend to work less well." },
 ];
 
-// label は AREAS 定数（名古屋／岐阜／一宮）と揃える。駅名としての
-// 「尾張一宮駅」はそのまま（正式な駅名のため）。
+// label は AREAS 定数（名古屋／岐阜）と揃える。
 export const MEETING_POINTS = [
   // mapQuery は緯度経度で固定（同名店舗が他にもあり得るテキスト検索より確実なため）。
   // 出典: https://www.google.com/maps/place/.../@35.1719812,136.909068,...
-  { key: 'nagoya', label: '名古屋', detail: 'ファミリーマート オアシス21前店 前（〒461-0005 愛知県名古屋市東区東桜1丁目10-33）', mapQuery: '35.1719812,136.909068' },
-  { key: 'gifu1', label: '岐阜', detail: 'ドトールコーヒーショップ アスティ岐阜店 前', mapQuery: 'ドトールコーヒーショップ アスティ岐阜店' },
-  { key: 'ichinomiya', label: '一宮', detail: '尾張一宮駅 北口広場前', mapQuery: '尾張一宮駅 北口' },
+  { key: 'nagoya', label: '名古屋', labelEn: 'Nagoya', detail: 'ファミリーマート オアシス21前店 前（〒461-0005 愛知県名古屋市東区東桜1丁目10-33）', detailEn: 'In front of FamilyMart Oasis 21 Mae store (1-10-33 Higashisakura, Higashi-ku, Nagoya, Aichi 461-0005)', mapQuery: '35.1719812,136.909068' },
+  { key: 'gifu1', label: '岐阜', labelEn: 'Gifu', detail: 'ドトールコーヒーショップ アスティ岐阜店 前', detailEn: 'In front of Doutor Coffee Shop Asty Gifu store', mapQuery: 'ドトールコーヒーショップ アスティ岐阜店' },
 ];
 
 // 撮影エリア（AREAS の label、例「名古屋エリア」）に対応する集合場所。
@@ -240,17 +250,25 @@ export const OPPOSITE_SEX_OPTION_KEY = 'oppositeSexPick';
 export const needsGenderForOptions = (optionKeys) => (optionKeys || []).includes(OPPOSITE_SEX_OPTION_KEY);
 
 export const MONITOR_CONDITIONS = [
-  '名古屋・岐阜・一宮いずれかの集合場所での撮影に来場できる方',
+  '名古屋・岐阜いずれかの集合場所での撮影に来場できる方',
   '現在マッチングアプリで使用中の写真がある方（施策前後の変化の比較にご協力いただきます）',
   '撮影から約1ヶ月後を目安に、任意のアンケートへのご協力をお願いできる方（回答は必須ではありません）',
   'PhotoMatchの実績紹介（お名前・個人が特定できる情報は伏せた状態）にご協力いただける方',
 ];
 
 export const MONITOR_STEPS = [
-  { step: '1', title: '応募フォームから申し込み', desc: 'このページの応募フォームから必要事項をご入力ください。' },
-  { step: '2', title: '審査結果のご連絡', desc: '先着順・簡単な審査の上、当選可否をメールでご連絡します（定員に達し次第、締め切りとなります）。' },
-  { step: '3', title: '通常フローで撮影日を予約', desc: '当選後、通常の予約フローからご都合の良い日時をお選びいただけます。' },
-  { step: '4', title: '撮影・任意アンケート', desc: '撮影から約1ヶ月後を目安に、マッチング数の変化について任意のアンケートにご協力いただきます。' },
+  { step: '1', title: '応募フォームから申し込み', titleEn: 'Apply with the form', desc: 'このページの応募フォームから必要事項をご入力ください。', descEn: 'Fill in the application form on this page.' },
+  { step: '2', title: '審査結果のご連絡', titleEn: 'We email you the result', desc: '先着順・簡単な審査の上、当選可否をメールでご連絡します（定員に達し次第、締め切りとなります）。', descEn: 'Applications are reviewed first-come, first-served with a simple screening, and we email you the result (applications close once the limit is reached).' },
+  { step: '3', title: '通常フローで撮影日を予約', titleEn: 'Book your shoot as usual', desc: '当選後、通常の予約フローからご都合の良い日時をお選びいただけます。', descEn: 'Once you are selected, choose a date and time that suits you through the regular booking flow.' },
+  { step: '4', title: '撮影・任意アンケート', titleEn: 'Shoot and optional survey', desc: '撮影から約1ヶ月後を目安に、マッチング数の変化について任意のアンケートにご協力いただきます。', descEn: 'About one month after your shoot, we ask you to take an optional survey about how your match numbers changed.' },
+];
+
+// MONITOR_CONDITIONS と同じ順番の英語版（表示専用）。
+export const MONITOR_CONDITIONS_EN = [
+  'You can come to a meeting point in Nagoya or Gifu for your shoot',
+  'You have photos you are currently using on a dating app (we will ask for your help comparing before and after)',
+  'You are willing to take an optional survey about one month after your shoot (responding is not required)',
+  'You are happy for us to feature your results in PhotoMatch case studies (your name and any identifying details are withheld)',
 ];
 
 export const COLUMN_ARTICLES = [
@@ -261,7 +279,7 @@ export const COLUMN_ARTICLES = [
     sections: [
       { h: '名古屋で写真を用意する3つの方法', b: '①自撮り：無料だが不自然になりやすく、他撮りに比べマッチ率が落ちる傾向。②スタジオの婚活写真：クオリティは高いが¥20,000〜30,000と高額で、背景も証明写真的になりがち。③出張ロケ撮影：街なかの自然光で撮るため“アプリらしい”自然な1枚になり、費用も抑えられます。' },
       { h: 'なぜ屋外ロケがマッチングアプリ向きなのか', b: 'マッチングアプリのメイン写真で好まれるのは、スタジオの作り込んだ写真より「休日にたまたま撮れたような自然体の1枚」。栄の街並みや鶴舞公園の緑を背景にすると、清潔感と親しみやすさが同時に伝わります。' },
-      { h: '名古屋・岐阜・一宮エリアなら最短45分', b: 'PhotoMatchは名古屋を拠点に岐阜・一宮まで対応。栄や大須など集合しやすい場所で待ち合わせ、撮影は45分で完結します。仕事帰りや休日のスキマ時間で撮影でき、写真は最短翌日〜3営業日でお届けします。' },
+      { h: '名古屋・岐阜エリアなら最短45分', b: 'PhotoMatchは名古屋を拠点に岐阜まで対応。栄や大須など集合しやすい場所で待ち合わせ、撮影は45分で完結します。仕事帰りや休日のスキマ時間で撮影でき、写真は最短翌日〜3営業日でお届けします。' },
     ],
   },
   {
@@ -321,7 +339,7 @@ export const COLUMN_ARTICLES = [
     sections: [
       { h: 'スタジオ撮影の相場は¥20,000〜30,000', b: 'スタジオの婚活写真はヘアメイクや台紙込みで高額になりがち。仕上がりは丁寧ですが、背景が単調で“アプリらしさ”に欠けることもあります。' },
       { h: '出張ロケ撮影なら¥6,800〜が目安', b: 'カメラマンが街なかまで来てくれる出張撮影は、スタジオ料金がかからない分リーズナブル。自然光のロケ撮影で、マッチングアプリに最適な雰囲気の写真が残せます。' },
-      { h: '“使う目的”で選ぶのが失敗しないコツ', b: 'お見合い写真ならスタジオ、マッチングアプリならロケ撮影、と目的で選ぶのが正解。PhotoMatchはアプリ用に特化し、45分・¥6,800〜で名古屋・岐阜・一宮に対応しています。' },
+      { h: '“使う目的”で選ぶのが失敗しないコツ', b: 'お見合い写真ならスタジオ、マッチングアプリならロケ撮影、と目的で選ぶのが正解。PhotoMatchはアプリ用に特化し、45分・¥6,800〜で名古屋・岐阜に対応しています。' },
     ],
   },
 ];

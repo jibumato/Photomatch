@@ -1,8 +1,9 @@
-// Lightweight client-side language switch for the core booking journey
-// (top page, search, profile, booking, login/reset-password, and the shared
-// header/footer). Column articles, the legal pages (terms.html), meeting
-// points, the monitor page, and mypage/admin/ops stay Japanese-only even
-// with English selected — see README notes on those pages.
+// Lightweight client-side language switch for the customer-facing site:
+// top page, search, profile, booking, login/reset-password, マイページ, the
+// column, meeting points, monitor page, legal pages (courtesy translation —
+// the Japanese text is authoritative) and the shared header/footer. The
+// photographer/ops screens (pro-login, admin, ops) and the photographer
+// guide (terms.html?key=pro) are Japanese-only.
 //
 // There is no build step and no router, so this is intentionally simple:
 // the choice is stored in localStorage, every page re-reads it on load, and
@@ -55,11 +56,11 @@ const DICT = {
   'footer.tagline': { ja: '名古屋発、マッチングアプリ写真専門サービス', en: 'Nagoya-based dating-app photo service' },
   'footer.serviceInfo': { ja: 'サービス情報', en: 'Service Info' },
   'footer.company': { ja: '運営会社', en: 'Company' },
-  'footer.column': { ja: 'コラム', en: 'Column (Japanese)' },
-  'footer.monitor': { ja: 'モニター価格プラン募集', en: 'Monitor Pricing (Japanese)' },
-  'footer.tokushoho': { ja: '特定商取引法に基づく表記', en: 'Legal Notice (Japanese)' },
-  'footer.privacy': { ja: 'プライバシーポリシー', en: 'Privacy Policy (Japanese)' },
-  'footer.terms': { ja: '利用規約', en: 'Terms of Service (Japanese)' },
+  'footer.column': { ja: 'コラム', en: 'Column' },
+  'footer.monitor': { ja: 'モニター価格プラン募集', en: 'Monitor Pricing' },
+  'footer.tokushoho': { ja: '特定商取引法に基づく表記', en: 'Legal Notice' },
+  'footer.privacy': { ja: 'プライバシーポリシー', en: 'Privacy Policy' },
+  'footer.terms': { ja: '利用規約', en: 'Terms of Service' },
   'lang.toggle.label': { ja: 'English', en: '日本語' },
 
   // -- login.html --
@@ -284,6 +285,17 @@ const DICT = {
   'top.badge': { ja: '名古屋発、マッチングアプリ写真専門', en: 'Nagoya-based · Dating App Photography' },
   'top.h1.pre': { ja: '自撮りじゃない、', en: 'Not a selfie — ' },
   'top.h1.highlight': { ja: '“選ばれる一枚”を。', en: 'the photo that gets chosen.' },
+  'page.title.top': { ja: 'PhotoMatch（フォトマッチ）| 名古屋発、マッチングアプリ写真専門の出張撮影', en: 'PhotoMatch | On-location dating-app profile photos in Nagoya' },
+  'page.title.search': { ja: 'カメラマンを探す | PhotoMatch', en: 'Find a Photographer | PhotoMatch' },
+  'page.title.profile': { ja: 'カメラマンプロフィール | PhotoMatch', en: 'Photographer Profile | PhotoMatch' },
+  'page.title.booking': { ja: '撮影を予約する | PhotoMatch', en: 'Book a Shoot | PhotoMatch' },
+  'page.title.login': { ja: 'ログイン | PhotoMatch', en: 'Log in | PhotoMatch' },
+  'top.hero.photosLabel': { ja: '撮影例', en: 'Sample shots' },
+  'top.hero.alt1': { ja: '撮影例：一眼で撮った正面の笑顔', en: 'Sample: front-facing smile, shot on a pro camera' },
+  'top.hero.alt2': { ja: '撮影例：一眼で撮ったフォーマルな写真', en: 'Sample: formal portrait, shot on a pro camera' },
+  'top.hero.alt3': { ja: '撮影例：私服の全身写真', en: 'Sample: full-body shot in everyday clothes' },
+  'top.hero.alt4': { ja: '撮影例：趣味・アウトドアの写真', en: 'Sample: hobby / outdoor photo' },
+  'common.required': { ja: '必須', en: 'Required' },
   'top.hero.shot1': { ja: '正面×笑顔', en: 'Smiling, front' },
   'top.hero.shot2': { ja: 'フォーマル', en: 'Formal' },
   'top.hero.shot3': { ja: '全身×私服', en: 'Full-length, casual' },
@@ -299,7 +311,7 @@ const DICT = {
   'top.hero.cta': { ja: '空き枠を見る', en: 'See open times' },
   'top.hero.ctaNote': { ja: '登録不要', en: 'no sign-up' },
   'top.hero.priceLink': { ja: '料金を見る →', en: 'See pricing →' },
-  'top.hero.lead': { ja: 'プロカメラマンが、街なかで45分撮影。<br>名古屋・岐阜・一宮で ¥6,800〜（税込）', en: 'A pro photographer shoots you around town in 45 minutes.<br>Nagoya, Gifu & Ichinomiya — from ¥6,800 (tax incl.)' },
+  'top.hero.lead': { ja: 'プロカメラマンが、街なかで45分撮影。<br>名古屋・岐阜で ¥6,800〜（税込）', en: 'A pro photographer shoots you around town in 45 minutes.<br>Nagoya & Gifu — from ¥6,800 (tax incl.)' },
   'top.pains.pre': { ja: 'マッチしない原因、', en: "Not getting matches? " },
   'top.pains.highlight': { ja: '写真かもしれません。', en: 'It might be your photo.' },
   'top.pains.footer': { ja: 'ひとつでも当てはまったら、写真を変えるタイミングです。', en: "If even one of these sounds familiar, it's time for a new photo." },
@@ -307,7 +319,7 @@ const DICT = {
   'top.apps.desc': { ja: 'どのアプリのメイン写真・サブ写真にも使える一枚を撮影します。', en: "We shoot photos that work as your main or secondary picture on any app." },
   'top.apps.footnote': { ja: '上記以外のアプリでもご相談いただけます。', en: "Using a different app? Just ask — we can likely help." },
   'top.solution.title': { ja: 'PhotoMatchが選ばれる理由', en: 'Why PhotoMatch' },
-  'top.solution.desc': { ja: '審査済みカメラマンが、名古屋中心部・岐阜・一宮の街で撮影します', en: 'Vetted photographers, shooting on location in central Nagoya, Gifu, and Ichinomiya' },
+  'top.solution.desc': { ja: '審査済みカメラマンが、名古屋中心部・岐阜の街で撮影します', en: 'Vetted photographers, shooting on location in central Nagoya and Gifu' },
   'top.reason1.title': { ja: '審査済みカメラマンのみ', en: 'Vetted Photographers Only' },
   'top.reason1.desc': { ja: 'マッチングアプリ向け撮影の経験とコミュニケーション研修を通過したカメラマンだけを掲載しています。', en: 'Every photographer listed has dating-app shoot experience and has passed our communication training.' },
   'top.reason2.title': { ja: 'マッチング数保証', en: 'Match-Count Guarantee' },
@@ -323,7 +335,7 @@ const DICT = {
   // never drifts out of sync with the content it belongs to.
   'top.results.title': { ja: '名古屋エリアでの実績', en: 'Our Track Record in the Nagoya Area' },
   'top.voice.title': { ja: '利用者の口コミ', en: 'What Customers Say' },
-  'top.results.sourceNote': { ja: '※撮影実績は、代表カメラマンTAKUMIのこれまでの撮影活動（PhotoMatch開始前を含む）によるものです。', en: "※ The shoot count reflects lead photographer TAKUMI's shooting career, including work before PhotoMatch launched." },
+  'top.results.sourceNote': { ja: '※撮影実績は、代表カメラマンTAKUMIとカメラマンなつめのこれまでの撮影活動（PhotoMatch開始前を含む）の合計です。', en: "※ The shoot count combines the shooting careers of lead photographer TAKUMI and photographer Natsume, including work before PhotoMatch launched." },
   'top.pricing.title': { ja: 'シンプルな料金プラン', en: 'Simple, Transparent Pricing' },
   'top.pricing.studioCompare': { ja: 'スタジオの婚活・プロフィール写真は相場 ', en: 'Studio matchmaking / profile photos typically run ' },
   'top.pricing.studioPrice': { ja: '¥20,000〜30,000', en: '¥20,000–30,000' },
@@ -347,6 +359,16 @@ export function t(key) {
   if (!entry) return key;
   const lang = getLang();
   return entry[lang] || entry.ja || key;
+}
+
+// Lets a page (or a big feature module) keep its own strings in a separate
+// file, js/i18n/<name>.js, instead of growing DICT below. Call it at import
+// time, before the page's first t()/applyI18n(). Existing keys are not
+// overwritten.
+export function registerDict(entries) {
+  Object.keys(entries).forEach((key) => {
+    if (!(key in DICT)) DICT[key] = entries[key];
+  });
 }
 
 // t() with {placeholder} substitution, for the sentences booking.js builds
@@ -379,6 +401,19 @@ export function applyI18n(root = document) {
     const key = el.getAttribute('data-i18n-placeholder');
     if (DICT[key]) el.placeholder = t(key);
   });
+  // Image alt text and aria-labels; and the <title>, which is the only place
+  // a page title is translated (the meta description stays Japanese for SEO).
+  [['data-i18n-alt', 'alt'], ['data-i18n-aria-label', 'aria-label']].forEach(([dataAttr, attr]) => {
+    root.querySelectorAll(`[${dataAttr}]`).forEach((el) => {
+      const key = el.getAttribute(dataAttr);
+      if (DICT[key]) el.setAttribute(attr, t(key));
+    });
+  });
+  const titleEl = document.querySelector('title[data-i18n-title]');
+  if (titleEl) {
+    const key = titleEl.getAttribute('data-i18n-title');
+    if (DICT[key]) document.title = t(key);
+  }
 }
 
 // ---- small lookup tables for the fixed, small sets of DB-sourced strings
@@ -392,9 +427,8 @@ export function applyI18n(root = document) {
 const AREA_EN = {
   '名古屋エリア': 'Nagoya Area',
   '岐阜エリア': 'Gifu Area',
-  '一宮エリア': 'Ichinomiya Area',
   '名古屋中心部・栄・名駅': 'Central Nagoya (Sakae / Nagoya Station)',
-  '岐阜・一宮': 'Gifu / Ichinomiya',
+  '名古屋中心部・岐阜': 'Central Nagoya / Gifu',
 };
 
 const AVAILABILITY_EN = {
@@ -449,6 +483,9 @@ export function reviewsCountLabel(n, long = false) {
 export function taxIncludedSuffix() {
   return getLang() === 'en' ? ` (${t('profile.taxIncluded')})` : `（${t('profile.taxIncluded')}）`;
 }
+
+const WEEKDAY_EN = { '日': 'Sun', '月': 'Mon', '火': 'Tue', '水': 'Wed', '木': 'Thu', '金': 'Fri', '土': 'Sat' };
+export const weekdayText = (ja) => localize(WEEKDAY_EN, ja);
 
 export const areaText = (ja) => localize(AREA_EN, ja);
 export const availabilityText = (ja) => localize(AVAILABILITY_EN, ja);

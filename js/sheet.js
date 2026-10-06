@@ -1,9 +1,21 @@
+import './i18n/mypage.js';
+import { t, getLang } from './i18n.js';
 import { COUNSELING_QUESTIONS } from './data.js';
 import { getCounselingSheet, saveCounselingSheet } from './repo.js';
 import { escapeHtml } from './util.js';
 
 const CHIP_BASE = 'padding:9px 16px;border-radius:100px;border:1px solid var(--pm-border);background:#fff;font:600 13px var(--pm-font-body);cursor:pointer;color:oklch(0.32 0.02 240)';
 const CHIP_ACTIVE = 'padding:9px 16px;border-radius:100px;border:1px solid transparent;background:var(--pm-brand-grad);font:700 13px var(--pm-font-body);cursor:pointer;color:#fff';
+
+// Question text / option labels shown in the visitor's language. The saved
+// answers keep the original Japanese option text (photographers read them),
+// so only what is displayed is translated; anything without an entry falls
+// back to the Japanese original.
+function tOr(key, fallback) {
+  if (getLang() !== 'en') return fallback;
+  const v = t(key);
+  return v === key ? fallback : v;
+}
 
 export function mountSheetModal(container) {
   container.innerHTML = `
@@ -12,18 +24,18 @@ export function mountSheetModal(container) {
     <div class="pm-modal-sheet pm-sheet-modal">
       <div class="pm-modal-head">
         <div style="min-width:0">
-          <div style="font:700 16px var(--pm-font-body);color:oklch(0.24 0.02 245)">事前カウンセリングシート</div>
+          <div style="font:700 16px var(--pm-font-body);color:oklch(0.24 0.02 245)">${t('mypage.sheet.title')}</div>
           <div id="sheet-booking-label" style="font:11px var(--pm-font-body);color:var(--pm-text-3)"></div>
         </div>
-        <button class="pm-modal-close" id="sheet-close">×</button>
+        <button class="pm-modal-close" id="sheet-close" aria-label="${t('mypage.sheet.close')}">×</button>
       </div>
       <div class="pm-sheet-body">
-        <p style="font:12px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 20px;padding:12px 14px;background:oklch(0.97 0.015 210);border-radius:12px">よろしければ撮影についてお聞かせください。すべて任意です。わかる範囲でご記入いただくと、当日の撮影がよりスムーズになります。</p>
+        <p style="font:12px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 20px;padding:12px 14px;background:oklch(0.97 0.015 210);border-radius:12px">${t('mypage.sheet.intro')}</p>
         <div id="sheet-questions" style="display:flex;flex-direction:column;gap:24px"></div>
       </div>
       <div class="pm-sheet-foot">
-        <button class="pm-btn" style="flex:1;background:#fff;border:1px solid var(--pm-border);border-radius:100px;padding:13px;font:600 14px var(--pm-font-body);color:var(--pm-text-2)" id="sheet-later">あとで</button>
-        <button class="pm-btn" style="flex:2;background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:13px;font:700 14px var(--pm-font-body);color:#fff" id="sheet-save">回答を保存する</button>
+        <button class="pm-btn" style="flex:1;background:#fff;border:1px solid var(--pm-border);border-radius:100px;padding:13px;font:600 14px var(--pm-font-body);color:var(--pm-text-2)" id="sheet-later">${t('mypage.sheet.later')}</button>
+        <button class="pm-btn" style="flex:2;background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:13px;font:700 14px var(--pm-font-body);color:#fff" id="sheet-save">${t('mypage.sheet.save')}</button>
       </div>
     </div>
   </div>`;
@@ -49,17 +61,17 @@ export function mountSheetModal(container) {
       if (q.type === 'text') {
         const val = draft[q.id] || '';
         return `<div>
-          <div style="font:700 13px var(--pm-font-body);color:oklch(0.3 0.02 240);margin-bottom:10px">${q.label}</div>
-          <textarea data-qid="${q.id}" class="sheet-text" rows="2" placeholder="${q.placeholder || ''}" style="width:100%;resize:none;border:1px solid var(--pm-border-soft);border-radius:12px;padding:11px 14px;font:13px/1.6 var(--pm-font-body);background:#fff">${escapeHtml(val)}</textarea>
+          <div style="font:700 13px var(--pm-font-body);color:oklch(0.3 0.02 240);margin-bottom:10px">${tOr('mypage.sheet.q.' + q.id, q.label)}</div>
+          <textarea data-qid="${q.id}" class="sheet-text" rows="2" placeholder="${tOr('mypage.sheet.q.' + q.id + '.ph', q.placeholder || '')}" style="width:100%;resize:none;border:1px solid var(--pm-border-soft);border-radius:12px;padding:11px 14px;font:13px/1.6 var(--pm-font-body);background:#fff">${escapeHtml(val)}</textarea>
         </div>`;
       }
       const current = draft[q.id];
-      const chips = q.options.map((opt) => {
+      const chips = q.options.map((opt, oi) => {
         const active = q.type === 'multi' ? Array.isArray(current) && current.includes(opt) : current === opt;
-        return `<span data-qid="${q.id}" data-opt="${opt}" data-kind="${q.type}" class="sheet-chip" style="${active ? CHIP_ACTIVE : CHIP_BASE}">${opt}</span>`;
+        return `<span data-qid="${q.id}" data-opt="${opt}" data-kind="${q.type}" class="sheet-chip" style="${active ? CHIP_ACTIVE : CHIP_BASE}">${tOr('mypage.sheet.q.' + q.id + '.o' + oi, opt)}</span>`;
       }).join('');
       return `<div>
-        <div style="font:700 13px var(--pm-font-body);color:oklch(0.3 0.02 240);margin-bottom:10px">${q.label}</div>
+        <div style="font:700 13px var(--pm-font-body);color:oklch(0.3 0.02 240);margin-bottom:10px">${tOr('mypage.sheet.q.' + q.id, q.label)}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">${chips}</div>
       </div>`;
     }).join('');
@@ -88,7 +100,7 @@ export function mountSheetModal(container) {
       await saveCounselingSheet(currentBookingId, draft);
       close();
     } catch (err) {
-      alert('保存に失敗しました。時間をおいて再度お試しください。');
+      alert(t('mypage.sheet.saveFailed'));
       console.error(err);
     } finally {
       saveBtn.disabled = false;
