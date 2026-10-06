@@ -9,7 +9,7 @@ import {
   getBookingsForOps, getBookingsNeedingAttention, opsCancelBooking, markRefunded, setPayoutHold, sendStaffPick,
 } from '../repo.js';
 import {
-  AREAS, EXTRA_OPTIONS, OPS_CANCEL_REASONS, RESCHEDULABLE_STATUSES, photographerPayoutFor, noShowQuote, jstDateIso, addDaysToIso,
+  AREAS, EXTRA_OPTIONS, OPS_CANCEL_REASONS, RESCHEDULABLE_STATUSES, awaitingPhotographerAck, photographerPayoutFor, noShowQuote, jstDateIso, addDaysToIso,
   guaranteeBlocksPayout, guaranteeClaimDeadline, MONITOR_CAPACITY, OPPOSITE_SEX_OPTION_KEY, isValidDeliveryUrl,
 } from '../data.js';
 import { mountRescheduleModal } from '../rescheduleModal.js';
@@ -517,6 +517,8 @@ function opsBookingCardHtml(b) {
     needsStaffPick(b) ? `<b style="color:var(--pm-warn-text)">異性スタッフ写真セレクト：未送信（${b.customer_gender === 'male' ? '女性' : b.customer_gender === 'female' ? '男性' : '異性の'}スタッフが選ぶ）</b>` : '',
     b.staff_pick_at ? `異性スタッフのおすすめ送信済み（${b.staff_pick_at.slice(0, 10)}）` : '',
     b.delivered_at && isValidDeliveryUrl(b.delivery_url) ? `納品：<a href="${escapeHtml(b.delivery_url)}" target="_blank" rel="noopener noreferrer">アルバムを開く</a>` : '',
+    awaitingPhotographerAck(b) ? `<b style="color:var(--pm-warn-text)">カメラマン未確認${b.ack_alerted_at ? '（期限超過・通知済み）' : ''}</b>` : '',
+    b.photographer_ack_at && b.status !== 'canceled' ? 'カメラマン確認済み' : '',
     b.rescheduled_count ? `日程変更 ${b.rescheduled_count}回（変更前：${b.previous_booking_date} ${String(b.previous_start_time || '').slice(0, 5)}〜）` : '',
   ].filter(Boolean);
   return `

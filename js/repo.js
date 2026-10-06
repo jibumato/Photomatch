@@ -238,6 +238,11 @@ export async function getPhotographerBookings(photographerId) {
 // Goes through a Function (not a direct table update) so the cancellation
 // emails to the customer and photographer are always sent.
 // Photographer (or ops): record delivery with the album link; the customer is emailed.
+// The photographer's 「確認しました」 for a confirmed / rescheduled booking.
+export async function ackBooking(bookingId) {
+  return callApi('/api/bookings/ack', { booking_id: bookingId }, '確認の登録に失敗しました。');
+}
+
 export async function deliverBooking(bookingId, deliveryUrl) {
   return callApi('/api/bookings/deliver', { booking_id: bookingId, delivery_url: deliveryUrl }, '納品の登録に失敗しました。');
 }

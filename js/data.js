@@ -489,6 +489,16 @@ export function cancellationQuote(booking, now = new Date()) {
 // サーバー（/api/bookings/reschedule）とマイページで同じ判定を使う。
 export const RESCHEDULE_OPTION_KEY = 'reschedule';
 export const RESCHEDULABLE_STATUSES = ['paid', 'confirmed', 'requested'];
+
+// カメラマンの「予約を確認しました」。予約の確定・日程変更のたびに確認を求め
+// （bookings.ack_requested_at）、PHOTOGRAPHER_ACK_HOURS 時間たっても押されなければ、
+// 運営にメールで知らせ、カメラマンにも再度お知らせする（/api/bookings/ack-check）。
+export const PHOTOGRAPHER_ACK_HOURS = 3;
+
+// 確認待ちの予約か（確認を求めていて、まだ確認されておらず、有効な予約）。
+export function awaitingPhotographerAck(b) {
+  return !!(b && b.ack_requested_at && !b.photographer_ack_at && RESCHEDULABLE_STATUSES.includes(b.status));
+}
 export function rescheduleQuote(booking, now = new Date()) {
   if (!RESCHEDULABLE_STATUSES.includes(booking.status)) return { allowed: false, reason: 'status' };
   const start = new Date(`${booking.booking_date}T${String(booking.start_time).slice(0, 5)}:00+09:00`);

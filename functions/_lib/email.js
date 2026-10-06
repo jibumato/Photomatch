@@ -4,7 +4,8 @@ const RESEND_ENDPOINT = 'https://api.resend.com/emails';
 const DEFAULT_FROM = 'PhotoMatch <no-reply@photo-match.jp>';
 const REPLY_TO = 'info.photomatch@gmail.com';
 
-export async function sendEmail(env, { to, subject, text }) {
+// attachments: optional [{ filename, content (base64), content_type }].
+export async function sendEmail(env, { to, subject, text, attachments }) {
   if (!env.RESEND_API_KEY) {
     // Lets the site deploy before email is configured without breaking the
     // payment/cancel flows that call this.
@@ -14,7 +15,10 @@ export async function sendEmail(env, { to, subject, text }) {
   const res = await fetch(RESEND_ENDPOINT, {
     method: 'POST',
     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: env.EMAIL_FROM || DEFAULT_FROM, to: [to], reply_to: REPLY_TO, subject, text }),
+    body: JSON.stringify({
+      from: env.EMAIL_FROM || DEFAULT_FROM, to: [to], reply_to: REPLY_TO, subject, text,
+      ...(attachments && attachments.length ? { attachments } : {}),
+    }),
   });
   if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
   return res.json();

@@ -1056,3 +1056,36 @@ drop trigger if exists reviews_refresh_rating on reviews;
 create trigger reviews_refresh_rating
   after insert or update or delete on reviews
   for each row execute function refresh_photographer_rating();
+
+-- カメラマンの「予約を確認しました」（/api/bookings/ack、ルールは js/data.js の
+-- PHOTOGRAPHER_ACK_HOURS）。確定・日程変更のメールを送るたびに ack_requested_at を
+-- 入れ直し、確認されたら photographer_ack_at が入る。期限を過ぎても未確認なら
+-- 運営に1回だけ通知し、ack_alerted_at に記録する。書き込みはサーバー（service_role）のみ。
+alter table bookings add column if not exists ack_requested_at timestamptz;
+alter table bookings add column if not exists photographer_ack_at timestamptz;
+alter table bookings add column if not exists ack_alerted_at timestamptz;
+create index if not exists bookings_ack_pending_idx on bookings (ack_requested_at)
+  where photographer_ack_at is null and ack_alerted_at is null;
+
+-- 未確認の予約のチェックを10分ごとに実行する（Supabase の pg_cron + pg_net から
+-- /api/bookings/ack-check を呼ぶ）。拡張が使えない環境（ローカルのテスト用DBなど）では
+-- 何もしない。Cloudflare に CRON_SECRET を設定した場合は、下の headers に
+-- 'X-Cron-Secret' を追加すること。
+do $$
+begin
+  if exists (select 1 from pg_available_extensions where name = 'pg_cron')
+     and exists (select 1 from pg_available_extensions where name = 'pg_net') then
+    create extension if not exists pg_cron with schema pg_catalog;
+    create extension if not exists pg_net with schema extensions;
+    perform cron.schedule(
+      'photomatch-ack-check',
+      '*/10 * * * *',
+      $job$select net.http_post(
+        url := 'https://photo-match.jp/api/bookings/ack-check',
+        headers := '{"Content-Type": "application/json"}'::jsonb,
+        body := '{}'::jsonb
+      )$job$
+    );
+  end if;
+end
+$$;
