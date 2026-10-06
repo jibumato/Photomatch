@@ -175,3 +175,15 @@ Stripe の管理画面 → 開発者 → Webhook（イベントの送信先）�
 - `checkout.session.completed` / `checkout.session.expired`
 - `charge.refunded`
 - `charge.dispute.created` / `charge.dispute.closed`
+
+## CSS / JS を変更したら（キャッシュ対策）
+
+`css/` や `js/` を変更したら、コミット前に次を実行する。
+
+```
+node scripts/stamp-assets.mjs
+```
+
+各 HTML の CSS/JS の URL に内容ハッシュ（`?v=…`）と import map を付け直す。これを忘れると、ブラウザに残った古い CSS / 翻訳ファイルと新しい HTML が組み合わさり、「top.hero.cta」のような翻訳キーがそのまま表示されたり、画像が巨大になったりする（`scripts/build-articles.mjs` を実行した場合は自動で行われる）。
+
+あわせて `_headers` で HTML/CSS/JS を毎回再検証（`no-cache`）にしている。Cloudflare の「キャッシュ → 設定 → ブラウザキャッシュ TTL」は「既存のヘッダーを尊重する」にしておくこと。

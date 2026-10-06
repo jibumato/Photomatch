@@ -361,17 +361,23 @@ export function tf(key, vars) {
 export function applyI18n(root = document) {
   const lang = getLang();
   document.documentElement.lang = lang;
+  // A key missing from DICT leaves the element's baked-in Japanese text
+  // alone instead of replacing it with the raw key (e.g. when a cached old
+  // copy of this file meets newer HTML).
   root.querySelectorAll('[data-i18n]').forEach((el) => {
-    el.textContent = t(el.getAttribute('data-i18n'));
+    const key = el.getAttribute('data-i18n');
+    if (DICT[key]) el.textContent = t(key);
   });
   // For the handful of spots that need inline markup (e.g. a <br> in a note
   // box). The dictionary strings involved are all authored by us, never user
   // input, so setting innerHTML here is safe.
   root.querySelectorAll('[data-i18n-html]').forEach((el) => {
-    el.innerHTML = t(el.getAttribute('data-i18n-html'));
+    const key = el.getAttribute('data-i18n-html');
+    if (DICT[key]) el.innerHTML = t(key);
   });
   root.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
-    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (DICT[key]) el.placeholder = t(key);
   });
 }
 

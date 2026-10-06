@@ -206,3 +206,6 @@ if (begin === -1 || end === -1) {
   writeFileSync(indexPath, indexHtml.slice(0, begin) + block + indexHtml.slice(end + FAQ_END.length));
   console.log(`index.html に FAQ 構造化データを差し込みました（${FAQS.length} 問）。`);
 }
+
+// 生成したページにも CSS/JS のバージョン（?v=…）と import map を付ける。
+await import('./stamp-assets.mjs');
