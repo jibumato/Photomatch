@@ -4,7 +4,7 @@ import {
   getGuaranteeClaimsForReview, reviewGuaranteeClaim,
   getMonitorApplicationsForReview, reviewMonitorApplication,
   getPayoutCandidates, getGuaranteeClaimsForBookings, releasePayouts, getMonitorSlotsLeft, getBankAccountsForPhotographers,
-  createPhotographerAccount, resetPhotographerPassword, markNoShow, getPhotographersForReview, setPhotographerVisibility,
+  createPhotographerAccount, resetPhotographerPassword, markNoShow, getPhotographersForReview, setPhotographerVisibility, setPhotographerShootCount,
   getReviewsForModeration, setReviewHidden,
   getBookingsForOps, searchBookingsForOps, getBookingsNeedingAttention, opsCancelBooking, markRefunded, setPayoutHold, sendStaffPick,
 } from '../repo.js';
@@ -237,6 +237,12 @@ function listingCardHtml(p) {
       <div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${escapeHtml(p.area || '未設定')} ・ ${gender} ・ 料金プラン ${p.planCount}件${p.instagram ? ` ・ Instagram @${escapeHtml(p.instagram)}` : ''}</div>
       ${p.price_comment ? `<div style="font:12px/1.7 var(--pm-font-body);color:oklch(0.4 0.02 235);margin-top:6px">ひとこと：${escapeHtml(p.price_comment)}</div>` : ''}
       ${p.bio ? `<div style="font:12px/1.7 var(--pm-font-body);color:oklch(0.4 0.02 235);background:var(--pm-bg-mint);border-radius:10px;padding:10px 12px;margin-top:8px;white-space:pre-wrap">${escapeHtml(p.bio)}</div>` : ''}
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;font:12px var(--pm-font-body);color:oklch(0.4 0.02 235)">
+        撮影実績
+        <input class="pm-input shoot-count-input" data-id="${escapeHtml(p.id)}" type="number" min="0" step="1" inputmode="numeric" value="${Number.isInteger(p.shoot_count) ? p.shoot_count : ''}" placeholder="未設定" style="width:96px;padding:6px 10px">
+        件（一覧に「実績◯+」と表示。空欄で非表示）
+        <button class="pm-btn-outline btn-shoot-count-save" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.name || '')}" style="font-size:12px;padding:6px 14px">保存</button>
+      </div>
       ${!live && missing.length ? `<div class="pm-error-text" style="margin-top:8px">未入力：${missing.join('・')}（本人に入力を依頼してください）</div>` : ''}
       ${!live && !missing.length && !p.planCount ? '<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:8px">公開すると、標準の4プランを登録します。</div>' : ''}
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
@@ -281,6 +287,22 @@ async function loadListings() {
       });
     });
   };
+  document.querySelectorAll('.btn-shoot-count-save').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const input = document.querySelector(`.shoot-count-input[data-id="${CSS.escape(btn.dataset.id)}"]`);
+      const value = input.value.trim();
+      if (value !== '' && !/^\d+$/.test(value)) { alert('撮影実績は0以上の整数で入力してください。'); return; }
+      btn.disabled = true;
+      try {
+        await setPhotographerShootCount(btn.dataset.id, value === '' ? null : Number(value));
+        alert(value === '' ? `${btn.dataset.name}さんの実績表示を消しました。` : `${btn.dataset.name}さんの撮影実績を「実績${value}+」で表示します。`);
+        await loadListings();
+      } catch (err) {
+        alert(err.message || '保存に失敗しました。');
+        btn.disabled = false;
+      }
+    });
+  });
   bind('.btn-listing-approve', true, (name) => `${name}さんを公開します。検索ページ・プロフィールページに表示され、予約を受け付けるようになります。よろしいですか？`);
   bind('.btn-listing-hide', false, (name) => `${name}さんの掲載を停止します。検索ページに表示されなくなり、新規の予約を受け付けなくなります（本人は再開できません）。よろしいですか？`);
 }

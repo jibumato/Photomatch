@@ -527,6 +527,11 @@ export async function getPhotographersForReview() {
 // photographers flip it on their own row.
 // verified: ops confirms the photographer has completed ID verification and
 // service training (required the first time a photographer is published).
+// Ops: the 撮影実績 badge (「実績250+」). null hides it.
+export async function setPhotographerShootCount(photographerId, shootCount) {
+  return callApi('/api/photographers/shoot-count', { photographer_id: photographerId, shoot_count: shootCount }, '保存に失敗しました。');
+}
+
 export async function setPhotographerVisibility(photographerId, visible, verified = false) {
   return callApi('/api/photographers/visibility', { photographer_id: photographerId, visible, verified }, '更新に失敗しました。');
 }
