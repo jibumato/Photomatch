@@ -76,8 +76,8 @@ export const HOW_IT_WORKS = [
   {
     step: '03',
     title: 'レタッチ済みデータをお届け', titleEn: 'Retouched Photos, Delivered',
-    desc: '撮影後は解散。最短翌日〜3営業日以内に、レタッチ済みのデータをメールでお届けします。',
-    descEn: "That's it for the day — retouched photos arrive by email within 1–3 business days.",
+    desc: '撮影後は解散。通常3営業日以内に、レタッチ済みのデータをメールでお届けします。',
+    descEn: "That's it for the day — retouched photos arrive by email, usually within 3 business days.",
     note: 'そのままマッチングアプリのメイン写真に使えます',
     noteEn: 'Ready to use as your main dating-app photo',
     img: 'assets/how-it-works-03-delivery.jpg',
@@ -150,7 +150,7 @@ export const LEGAL_PAGES = {
       { h: '第3条（支払方法）', b: '利用料金は、予約確定時にサイト上のクレジットカード決済（Stripe）にて全額をお支払いいただきます。表示価格はすべて税込です。当日の追加料金は発生しません。', hEn: 'Article 3 (Payment)', bEn: 'The fee is paid in full by credit card (Stripe) on the site when your booking is confirmed. All displayed prices include tax. No additional charges are made on the day.' },
       { h: '第4条（変更・キャンセル）', b: '撮影日の3日前まで：無料でキャンセル・日程変更が可能です。撮影日の2日前から撮影開始前までの日程変更は、「あんしん振替プラン」にご加入のお客様に限り、1回まで無料で可能です（未加入の場合はキャンセルとなります）。撮影日の2日前：プラン料金の50%をキャンセル料として申し受けます。撮影日の前日・当日：プラン料金の100%をキャンセル料として申し受けます。オプション料金はキャンセル料の対象外とし、全額返金します。キャンセル料を差し引いた金額は、お支払いに使われたクレジットカードへ返金します。キャンセル・日程変更はマイページから承ります（撮影開始時刻以降のキャンセル・日程変更はお問い合わせください）。', hEn: 'Article 4 (Changes and Cancellation)', bEn: 'Up to 3 days before the shoot date: you can cancel or reschedule free of charge. From 2 days before the shoot date until the shoot starts, rescheduling is free, once only, for customers who have the "Peace-of-Mind Reschedule Plan" (without the plan, it is treated as a cancellation). 2 days before the shoot date: a cancellation fee of 50% of the plan price applies. The day before or the day of the shoot: a cancellation fee of 100% of the plan price applies. Option fees are not subject to cancellation fees and are refunded in full. The amount after deducting the cancellation fee is refunded to the credit card used for payment. Cancellations and rescheduling are handled from My Page (for cancellations or rescheduling after the shoot start time, please contact us).' },
       { h: '第5条（遅刻）', b: '集合時間に15分以上遅れて指定場所にお越しいただいた場合、当日キャンセルとして扱い、前条に定めるキャンセル料（返金なし）を申し受けます。15分未満の遅刻の場合も、撮影時間の短縮など提供内容を変更させていただくことがあり、この場合も返金・代金の減額は行いません。', hEn: 'Article 5 (Lateness)', bEn: 'If you arrive at the designated place 15 minutes or more after the meeting time, it is treated as a same-day cancellation and the cancellation fee set out in the previous article applies (no refund). Even if you are less than 15 minutes late, we may have to change what we provide, for example by shortening the shoot; in that case, no refund or fee reduction is given.' },
-      { h: '第6条（データの納品）', b: '撮影データは、撮影日から最短翌日〜3営業日以内に、Googleフォトのアルバムリンクを電子メールにてお送りする方法で納品します。お客様はGoogleフォトの利用規約に同意のうえご使用ください。納品後のデータ保存期間は撮影月の翌々月末日までとし、それを超える保存について当社は責任を負いません。', hEn: 'Article 6 (Delivery of Photos)', bEn: 'Photos are delivered by emailing a Google Photos album link, between the day after the shoot at the earliest and 3 business days after the shoot date. Please use Google Photos in accordance with its terms of service. Delivered photos are kept until the last day of the second month after the month of the shoot, and we are not responsible for storage beyond that.' },
+      { h: '第6条（データの納品）', b: '撮影データは、撮影日から通常3営業日以内に、Googleフォトのアルバムリンクを電子メールにてお送りする方法で納品します。お客様はGoogleフォトの利用規約に同意のうえご使用ください。納品後のデータ保存期間は撮影月の翌々月末日までとし、それを超える保存について当社は責任を負いません。', hEn: 'Article 6 (Delivery of Photos)', bEn: 'Photos are delivered by emailing a Google Photos album link, usually within 3 business days after the shoot date. Please use Google Photos in accordance with its terms of service. Delivered photos are kept until the last day of the second month after the month of the shoot, and we are not responsible for storage beyond that.' },
       { h: '第7条（システム障害等の免責）', b: 'Googleフォトその他当社が利用するシステムの中断・停止等、当社の責によらない事由により本サービスの提供またはデータ納品が遅延・不能となった場合、当社はその責任を負いません。', hEn: 'Article 7 (Disclaimer for System Failures)', bEn: 'We are not liable if provision of the Service or delivery of photos is delayed or becomes impossible due to causes beyond our control, such as an interruption or outage of Google Photos or another system we use.' },
       { h: '第8条（マッチング数保証・再撮影補償）', b: '事前申請のうえ納品写真をマッチングアプリのメイン写真に設定し、1ヶ月運用してもマッチング数に改善が見られない場合、サイト経由でご予約いただいたお客様に限り、同一プランでの再撮影を無償で承ります。適用条件の詳細はサポートまでお問い合わせください。', hEn: 'Article 8 (Match-Count Guarantee and Reshoot Compensation)', bEn: 'If, after applying in advance, you set a delivered photo as your main dating-app photo, use it for one month, and see no improvement in your match count, we will reshoot with the same plan free of charge. This applies only to customers who booked through the site. Please contact support for the detailed conditions.' },
       { h: '第9条（不可抗力・返金）', b: '天災・悪天候その他お客様および当社いずれの責にも帰さない事由により撮影が不能となった場合は、日程変更または返金にて対応します。専ら当社の責に帰すべき事由により本サービスの提供が不能となった場合は、お客様の選択により日程変更または全額返金を行います。', hEn: 'Article 9 (Force Majeure and Refunds)', bEn: 'If a shoot becomes impossible due to natural disasters, bad weather, or other causes attributable to neither you nor us, we will reschedule or refund. If the Service becomes impossible to provide due to causes solely attributable to us, we will reschedule or give a full refund, at your choice.' },
@@ -200,8 +200,8 @@ export const FAQS = [
     a: '事前申請のうえ納品写真をメインに設定し、1ヶ月運用してもマッチング数が増えなかった場合、同じプランで無料で撮り直します。サイト経由のご予約が対象です。',
     aEn: "Apply in advance, set your new photo as your main picture, and if your match count hasn't improved after a month of use, we'll reshoot the same plan for free. Only bookings made through the site qualify." },
   { q: '撮影データはいつ受け取れますか？', qEn: 'When will I receive my photos?',
-    a: '撮影後、最短翌日〜3営業日以内に、所定の方法でお渡しします。',
-    aEn: 'Within 1–3 business days after the shoot, delivered by our standard method.' },
+    a: '撮影後、通常3営業日以内に、所定の方法でお渡しします。スピード納品オプションをご利用の場合は、翌営業日（土日祝を除く）にお渡しします。',
+    aEn: 'Usually within 3 business days after the shoot, delivered by our standard method. With the Speed Delivery option, it arrives the next business day (excluding weekends and holidays).' },
   { q: 'キャンセルはできますか？', qEn: 'Can I cancel my booking?',
     a: '撮影日の3日前まで無料、2日前はプラン料金の50%、前日・当日はプラン料金の100%をキャンセル料として申し受けます（オプション料金は全額返金します）。マイページからお手続きいただけ、残りの金額はお支払いのカードへ自動で返金されます。なお、集合時間に15分以上遅れた場合はキャンセル扱いとなることがあり、その際の返金はできません。',
     aEn: "Free up to 3 days before the shoot; 50% of the plan fee at 2 days before; 100% of the plan fee the day before or on the day (options are always fully refunded). Cancel from My Page — the rest is refunded to your card automatically. Arriving more than 15 minutes late may be treated as a same-day cancellation, which is non-refundable." },
@@ -290,7 +290,7 @@ export const COLUMN_ARTICLES = [
     sections: [
       { h: '名古屋で写真を用意する3つの方法', b: '①自撮り：無料だが不自然になりやすく、他撮りに比べマッチ率が落ちる傾向。②スタジオの婚活写真：クオリティは高いが¥20,000〜30,000と高額で、背景も証明写真的になりがち。③出張ロケ撮影：街なかの自然光で撮るため“アプリらしい”自然な1枚になり、費用も抑えられます。' },
       { h: 'なぜ屋外ロケがマッチングアプリ向きなのか', b: 'マッチングアプリのメイン写真で好まれるのは、スタジオの作り込んだ写真より「休日にたまたま撮れたような自然体の1枚」。栄の街並みや鶴舞公園の緑を背景にすると、清潔感と親しみやすさが同時に伝わります。' },
-      { h: '名古屋・岐阜エリアなら最短45分', b: 'PhotoMatchは名古屋を拠点に岐阜まで対応。栄や大須など集合しやすい場所で待ち合わせ、撮影は45分で完結します。仕事帰りや休日のスキマ時間で撮影でき、写真は最短翌日〜3営業日でお届けします。' },
+      { h: '名古屋・岐阜エリアなら最短45分', b: 'PhotoMatchは名古屋を拠点に岐阜まで対応。栄や大須など集合しやすい場所で待ち合わせ、撮影は45分で完結します。仕事帰りや休日のスキマ時間で撮影でき、写真は通常3営業日以内にお届けします。' },
     ],
   },
   {
@@ -375,7 +375,7 @@ export const PRICING_PLANS = [
 export const EXTRA_OPTIONS = [
   { key: 'fullData', label: '全データ納品', labelEn: 'All Photos Delivered', desc: '撮影した全カットをまとめてお渡し', descEn: 'Every shot from the session, delivered together', price: 3800 },
   { key: 'retouch', label: 'スキンレタッチ（美肌補正）', labelEn: 'Skin Retouching', desc: '肌の質感・くすみを自然に補正（20枚まで）', descEn: 'Natural-looking skin smoothing and tone correction (up to 20 photos)', price: 3800 },
-  { key: 'speed', label: 'スピード納品', labelEn: 'Speed Delivery', desc: '撮影日から原則3営業日以内の通常納期を、撮影日の翌営業日（土日祝を除く）に早めるオプションです。', descEn: 'Moves the usual 1–3 business day turnaround up to the next business day after your shoot (excluding weekends/holidays).', price: 3800 },
+  { key: 'speed', label: 'スピード納品', labelEn: 'Speed Delivery', desc: '撮影日から原則3営業日以内の通常納期を、撮影日の翌営業日（土日祝を除く）に早めるオプションです。', descEn: 'Moves the usual 3-business-day turnaround up to the next business day after your shoot (excluding weekends/holidays).', price: 3800 },
   { key: 'reschedule', label: 'あんしん振替プラン', labelEn: 'Peace-of-Mind Reschedule Plan', desc: '撮影日の2日前〜当日の急な不調・急用でも、1回まで無料で日程変更できます（3日前までは、プランなしでも無料）', descEn: 'Reschedule once for free from 2 days before up to the day itself — sudden illness or an urgent conflict. (Until 3 days before, rescheduling is free without the plan.)', price: 4800 },
   { key: 'oppositeSexPick', label: '異性スタッフ写真セレクト', labelEn: 'Opposite-Gender Staff Pick', desc: '異性のスタッフ目線でマッチングアプリ受けの良い一枚を選び、おすすめとしてご提案します', descEn: "A staff member of the opposite gender picks the shot they think will land best on dating apps, and suggests it to you.", price: 3800 },
 ];
@@ -570,7 +570,7 @@ export const OPS_CANCEL_REASONS = {
   other: '運営の判断により',
 };
 
-// 納品期限（規約第6条：撮影日から最短翌日〜3営業日以内。スピード納品は翌営業日）。
+// 納品期限（規約第6条：撮影日から通常3営業日以内。スピード納品は翌営業日）。
 // 営業日は土日・祝日を除く日。
 export const SPEED_DELIVERY_OPTION_KEY = 'speed';
 export function addBusinessDays(iso, n) {
