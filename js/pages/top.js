@@ -1,6 +1,6 @@
 import { mountLayout } from '../layout.js';
 import {
-  STATS, TARGET_PAINS, TARGET_PAINS_EN, SUPPORTED_APPS, SUPPORTED_APPS_EN, SHOT_TYPES,
+  STATS, TARGET_PAINS, TARGET_PAINS_EN, SUPPORTED_APPS, SUPPORTED_APPS_EN,
   TESTIMONIALS, PRICING_PLANS, SAFETY_POINTS, FAQS, HOW_IT_WORKS,
 } from '../data.js';
 import { getLang, L, t, discountLabelText } from '../i18n.js';
@@ -28,11 +28,6 @@ document.getElementById('pm-pains').innerHTML = painsList.map((p) => `
 
 document.getElementById('pm-apps').innerHTML = SUPPORTED_APPS.map((a) => `
   <span style="padding:9px 18px;border-radius:100px;background:oklch(0.97 0.012 215);border:1px solid var(--pm-border);font:700 14px var(--pm-font-num);color:oklch(0.38 0.03 235)">${getLang() === 'en' ? (SUPPORTED_APPS_EN[a] || a) : a}</span>`).join('');
-
-document.getElementById('pm-shots').innerHTML = SHOT_TYPES.map((s) => `
-  <div class="pm-card" style="border-radius:14px;overflow:hidden">
-    <div style="aspect-ratio:3/4;background-image:url(${s.image});background-size:cover;background-position:center"></div>
-  </div>`).join('');
 
 // No testimonials yet -> drop the whole 口コミ block instead of showing an empty heading.
 if (TESTIMONIALS.length) {

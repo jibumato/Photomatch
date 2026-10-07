@@ -21,13 +21,6 @@ export function areasFor(photographerArea) {
   return own.length ? own : AREAS;
 }
 
-export const SHOT_TYPES = [
-  { label: '一眼×正面笑顔', image: 'assets/shot-front-smile.jpg' },
-  { label: '一眼×フォーマル', image: 'assets/shot-natural-snap.jpg' },
-  { label: '全身×私服', image: 'assets/shot-casual-fullbody.jpg' },
-  { label: '趣味・アウトドア', image: 'assets/shot-outdoor-hobby.jpg' },
-];
-
 // 「撮影後マッチング数UP ◯%」は、モニター企画で実データを取得するまで掲出しない。
 // 効果を数値で断定する表示は、景品表示法上、根拠資料の提出を求められうるため
 // （不実証広告規制）。実証後に「※モニター◯名の実績」等の注記付きで戻す。
