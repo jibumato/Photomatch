@@ -1152,3 +1152,7 @@ begin
 end
 $$;
 
+-- 予約時のプランの説明（例「45分・20枚納品＋スマホ用5枚」）。確定メールのプラン内容に使う
+-- （あとでプランの説明を変えても、予約済みの内容は変わらない）。
+alter table bookings add column if not exists plan_description text;
+

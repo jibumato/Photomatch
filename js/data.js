@@ -576,6 +576,29 @@ export function deliveryDueDate(booking) {
   const speed = (booking.options || []).some((o) => o.key === SPEED_DELIVERY_OPTION_KEY);
   return { date: addBusinessDays(booking.booking_date, speed ? 1 : 3), speed };
 }
+// 予約のプラン内容（確定メールで、お客様・カメラマンが内容を確認できるように）。
+// プランの説明（例「45分・20枚納品＋スマホ用5枚」）は予約時に bookings.plan_description に
+// 保存したものを使い、古い予約は標準プラン（PRICING_PLANS）の説明で補う。
+// 返り値は [{ k: '撮影時間', v: '45分' }, …]。
+export function planDetailItems(b) {
+  const desc = String((b && b.plan_description) || (PRICING_PLANS.find((p) => p.name === (b && b.plan_name)) || {}).desc || '');
+  const optionKeys = ((b && b.options) || []).map((o) => o.key);
+  const items = [];
+  const minutes = (b && b.duration_min) || (desc.match(/(\d+)分/) || [])[1];
+  if (minutes) items.push({ k: '撮影時間', v: `${minutes}分` });
+  const count = desc.match(/(\d+)枚納品([＋+][^・]+)?/);
+  if (count) items.push({ k: '納品枚数', v: `${count[1]}枚${count[2] ? `（${count[2].replace(/^[＋+]/, '＋')}）` : ''}${optionKeys.includes('fullData') ? '　※全データ納品オプションで、撮影した全カットもお渡しします' : ''}` });
+  else if (desc) items.push({ k: 'プラン内容', v: desc });
+  if (desc.includes('スマホ撮影')) items.push({ k: '撮影機材', v: 'スマートフォン' });
+  if (b && b.booking_date) {
+    const due = deliveryDueDate(b);
+    const [, m, d] = due.date.split('-').map(Number);
+    items.push({ k: '納品予定', v: `${m}月${d}日までに（撮影日から${due.speed ? '翌営業日・スピード納品' : '3営業日以内'}。土日祝を除く）` });
+  }
+  items.push({ k: '納品方法', v: 'Googleフォトのアルバムのリンクを、メールとマイページでお届けします' });
+  return items;
+}
+
 // 納品リンクとして受け付けるURL（https のみ）。
 export const isValidDeliveryUrl = (u) => /^https:\/\/[^\s<>"']{4,490}$/.test(String(u || ''));
 
