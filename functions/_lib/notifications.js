@@ -1,7 +1,7 @@
 // Booking confirmed / canceled notifications, sent to the customer, the
 // photographer and ops at the same time. Never throws: a mail failure must
 // not break the payment webhook or the cancel request that triggered it.
-import { meetingPointForArea, mapUrlFor, WEEKDAY_JP, PHOTOGRAPHER_ACK_HOURS, bookingOptionItems, splitCustomerContact } from '../../js/data.js';
+import { meetingPointForArea, mapUrlFor, WEEKDAY_JP, PHOTOGRAPHER_ACK_HOURS, bookingOptionItems, splitCustomerContact, planDetailItems } from '../../js/data.js';
 import { restSelect, restUpdate } from './supabaseAdmin.js';
 import { sendEmail } from './email.js';
 import { bookingIcs, icsAttachment } from './ics.js';
@@ -70,6 +70,19 @@ function messages(kind, b, photographerName, origin, customerEmail) {
       meeting ? `集合場所：${meeting.detail}\n地図：${mapUrlFor(meeting)}` : null,
     ].filter(Boolean).join('\n');
     const planLabel = `${b.plan_name}${b.monitor_application_id ? '（モニター価格）' : ''}${b.reshoot_of ? '（マッチング数保証による無料再撮影）' : ''}`;
+    // ■プラン内容: what the plan includes, so both sides can check it before the day.
+    const details = planDetailItems(b);
+    const optionText = options.length ? `\n${options.map((o) => `・${o.label}：${o.desc}`).join('\n')}` : 'なし';
+    const customerPlan = [`プラン：${planLabel}`, ...details.map((i) => `${i.k}：${i.v}`), `オプション：${optionText}`].join('\n');
+    const photographerPlan = [
+      `プラン：${planLabel}`,
+      ...details.map((i) => {
+        if (i.k === '納品予定') return `納品期限：${i.v.replace('までに', 'まで')}`;
+        if (i.k === '納品方法') return '納品方法：管理画面の「納品する」から、Googleフォトのアルバムのリンクを登録（お客様にメールで届きます）';
+        return `${i.k}：${i.v.replace('お渡しします', 'お渡しします（全カットを納品してください）')}`;
+      }),
+      `オプション：${optionText}`,
+    ].join('\n');
     const fees = [
       `${planLabel}：${yen(b.plan_price)}`,
       ...options.map((o) => `${o.label}：${yen(o.price)}`),
@@ -79,11 +92,11 @@ function messages(kind, b, photographerName, origin, customerEmail) {
     return {
       customer: {
         subject: `【PhotoMatch】ご予約が確定しました（${when}${b.order_number ? `／注文番号 ${b.order_number}` : ''}）`,
-        text: `${b.customer_name} 様\n\nPhotoMatchをご利用いただきありがとうございます。\n以下の内容でご予約が確定しました。お問い合わせの際は、注文番号をお知らせください。\n\n■ご予約番号\n${[orderLine(b), received ? `受付日時：${received}` : null].filter(Boolean).join('\n')}\n\n■ご予約者情報\nお名前：${b.customer_name} 様\nメールアドレス：${customerEmail || splitCustomerContact(b.customer_contact).email || '-'}\n電話番号：${phone || '（未入力）'}\n\n■ご予約内容\nカメラマン：${photographerName}\n${schedule}\n\n■ご利用料金（税込）\n${fees}\n\n当日は集合場所で直接お待ち合わせください。\n予約内容の確認・カメラマンとのメッセージ・事前カウンセリングの回答・日程変更・キャンセルはマイページからご利用いただけます。\n${origin}/mypage.html\n\n■日程変更について\n撮影日の3日前まで：無料で日程変更できます。\n2日前〜撮影前：「あんしん振替プラン」にご加入の場合、1回まで無料で日程変更できます。\n\n■キャンセルポリシー\n${CANCEL_POLICY}\n${FOOTER(origin)}`,
+        text: `${b.customer_name} 様\n\nPhotoMatchをご利用いただきありがとうございます。\n以下の内容でご予約が確定しました。お問い合わせの際は、注文番号をお知らせください。\n\n■ご予約番号\n${[orderLine(b), received ? `受付日時：${received}` : null].filter(Boolean).join('\n')}\n\n■ご予約者情報\nお名前：${b.customer_name} 様\nメールアドレス：${customerEmail || splitCustomerContact(b.customer_contact).email || '-'}\n電話番号：${phone || '（未入力）'}\n\n■ご予約内容\nカメラマン：${photographerName}\n${schedule}\n\n■プラン内容\n${customerPlan}\n\n■ご利用料金（税込）\n${fees}\n\n当日は集合場所で直接お待ち合わせください。\n予約内容の確認・カメラマンとのメッセージ・事前カウンセリングの回答・日程変更・キャンセルはマイページからご利用いただけます。\n${origin}/mypage.html\n\n■日程変更について\n撮影日の3日前まで：無料で日程変更できます。\n2日前〜撮影前：「あんしん振替プラン」にご加入の場合、1回まで無料で日程変更できます。\n\n■キャンセルポリシー\n${CANCEL_POLICY}\n${FOOTER(origin)}`,
       },
       photographer: {
         subject: `【PhotoMatch】新しい予約が入りました（${when}${b.order_number ? `／${b.order_number}` : ''}）`,
-        text: `${photographerName} さん\n\n新しい予約が確定しました。\n\n■予約者情報\nお名前：${b.customer_name} 様\n連絡先：${b.customer_contact || '-'}\n\n■予約内容\n${orderLine(b) ? `${orderLine(b)}\n` : ''}${schedule}\nプラン：${planLabel}\nオプション：${options.length ? options.map((o) => o.label).join('、') : 'なし'}\n\n依頼者とのメッセージ・事前カウンセリングの回答・シフトの確認は管理画面からご利用いただけます。\n${origin}/admin.html\n${FOOTER(origin)}`,
+        text: `${photographerName} さん\n\n新しい予約が確定しました。\n\n■予約者情報\nお名前：${b.customer_name} 様\n連絡先：${b.customer_contact || '-'}\n\n■予約内容\n${orderLine(b) ? `${orderLine(b)}\n` : ''}${schedule}\n\n■プラン内容\n${photographerPlan}\n\n依頼者とのメッセージ・事前カウンセリングの回答・シフトの確認は管理画面からご利用いただけます。\n${origin}/admin.html\n${FOOTER(origin)}`,
       },
     };
   }

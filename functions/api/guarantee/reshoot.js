@@ -50,6 +50,7 @@ export async function onRequestPost({ request, env }) {
     photographer_id: original.photographer_id,
     plan_name: original.plan_name,
     plan_price: 0,
+    plan_description: original.plan_description || null,
     duration_min: durationMin,
     area: original.area,
     booking_date: date,

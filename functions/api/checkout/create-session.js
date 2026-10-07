@@ -117,6 +117,8 @@ export async function onRequestPost({ request, env }) {
     photographer_id: photographerId,
     plan_name: plan.name,
     plan_price: planPrice,
+    // The plan's contents as booked (shown in the confirmation emails).
+    plan_description: plan.description || null,
     monitor_application_id: monitorApplicationId,
     customer_gender: customerGender,
     duration_min: durationMin,

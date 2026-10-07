@@ -130,8 +130,8 @@ alter table photographers add column if not exists is_paused boolean not null de
 -- カメラマンだけに表示する。運営だけが書き込む（/api/photographers/visibility）。
 alter table photographers add column if not exists verified_at timestamptz;
 -- 撮影実績（件数）。検索一覧・プロフィールに「実績250+」のように表示する。
--- 自己申告で書き換えられないよう、本人用の update 権限には含めない（運営がSQLで更新）。
--- 例）update photographers set shoot_count = 300 where id = 'p1';
+-- 自己申告で書き換えられないよう、本人用の update 権限には含めない（運営画面「カメラマンの掲載管理」で設定）。
+-- （/api/photographers/shoot-count。SQLなら例：update photographers set shoot_count = 300 where id = 'p1';）
 alter table photographers add column if not exists shoot_count integer;
 update photographers set shoot_count = 250 where id = 'p1' and shoot_count is null; -- TAKUMI
 update photographers set shoot_count = 100 where id = 'p2' and shoot_count is null; -- 夏目むぎ
@@ -1151,4 +1151,8 @@ begin
   end loop;
 end
 $$;
+
+-- 予約時のプランの説明（例「45分・20枚納品＋スマホ用5枚」）。確定メールのプラン内容に使う
+-- （あとでプランの説明を変えても、予約済みの内容は変わらない）。
+alter table bookings add column if not exists plan_description text;
 
