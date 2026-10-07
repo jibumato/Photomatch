@@ -54,7 +54,7 @@ export async function onRequestPost({ request, env }) {
       await sendEmail(env, {
         to: customer.email,
         subject: first ? '【PhotoMatch】撮影データをお届けします' : '【PhotoMatch】撮影データのリンクを更新しました',
-        text: `${booking.customer_name || 'お客'} 様\n\n${first ? 'PhotoMatchをご利用いただき、ありがとうございました。\n撮影データの準備ができましたので、下記のリンクからご覧ください。' : '撮影データのリンクが新しくなりました。下記のリンクからご覧ください。'}\n\n■撮影データ（Googleフォトのアルバム）\n${url}\n\n撮影日：${booking.booking_date} ${booking.start_time.slice(0, 5)}〜\nカメラマン：${(photographer && photographer.name) || '-'}\n\nリンクはマイページからもご確認いただけます。データの保存期間は撮影月の翌々月末日までです。お早めに保存してください。\n${origin}/mypage.html\n\n撮影の感想を、マイページの「レビューを書く」からお寄せいただけると励みになります。\n\n――――――――――\nPhotoMatch\n${origin}/\nお問い合わせ：info.photomatch@gmail.com`,
+        text: `${booking.customer_name || 'お客'} 様\n\n${first ? 'PhotoMatchをご利用いただき、ありがとうございました。\n撮影データの準備ができましたので、下記のリンクからご覧ください。' : '撮影データのリンクが新しくなりました。下記のリンクからご覧ください。'}\n\n■撮影データ（Googleフォトのアルバム）\n${url}\n\n${booking.order_number ? `注文番号：${booking.order_number}\n` : ''}撮影日：${booking.booking_date} ${booking.start_time.slice(0, 5)}〜\nカメラマン：${(photographer && photographer.name) || '-'}\n\nリンクはマイページからもご確認いただけます。データの保存期間は撮影月の翌々月末日までです。お早めに保存してください。\n${origin}/mypage.html\n\n撮影の感想を、マイページの「レビューを書く」からお寄せいただけると励みになります。\n\n――――――――――\nPhotoMatch\n${origin}/\nお問い合わせ：info.photomatch@gmail.com`,
       });
     } catch (err) {
       console.error('deliver: customer email failed', err);

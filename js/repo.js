@@ -260,6 +260,25 @@ export async function notifyNewMessage(bookingId) {
 
 // ---- ops: booking management (予約の管理) ----
 
+// Ops: find bookings of any date by 注文番号, the customer's name, email or
+// phone (partial match). Characters that would break the PostgREST filter
+// are dropped; full-width letters/digits are folded to half-width.
+export async function searchBookingsForOps(query) {
+  const q = String(query || '')
+    .replace(/[Ａ-Ｚａ-ｚ０-９－]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/[%,()*\\"]/g, ' ')
+    .trim();
+  if (!q) return [];
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*, photographers(name)')
+    .or(['order_number', 'customer_name', 'customer_contact'].map((c) => `${c}.ilike.%${q}%`).join(','))
+    .order('booking_date', { ascending: false })
+    .limit(30);
+  if (error) throw error;
+  return data.map((b) => ({ ...b, photographer_name: b.photographers?.name || b.photographer_id }));
+}
+
 // Bookings from fromIso on (past shoots and cancellations included), with the
 // photographer's name, for the ops list. Ops can read every booking (RLS).
 export async function getBookingsForOps(fromIso) {

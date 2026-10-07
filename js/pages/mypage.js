@@ -152,6 +152,7 @@ function bookingCardHtml(b, meta, { history }) {
           <span style="padding:3px 10px;border-radius:100px;font:700 11px var(--pm-font-body);white-space:nowrap;${STATUS_STYLE[b.status] || ''}">${statusText}</span>
         </div>
         <div style="font:13px var(--pm-font-body);color:oklch(0.45 0.02 235)">${tf('mypage.dateLine', { date: b.booking_date, start: timeOf(b.start_time), end: timeOf(b.end_time) })}</div>
+        ${b.order_number ? `<div style="font:11px var(--pm-font-num);color:var(--pm-text-muted);margin-top:2px">${tf('mypage.orderNumber', { n: escapeHtml(b.order_number) })}</div>` : ''}
         <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${tf('mypage.planLine', { plan: escapeHtml(planNameText(b.plan_name)), price: priceLabel })}</div>
         ${b.delivered_at && isValidDeliveryUrl(b.delivery_url) && b.status !== 'canceled' ? `<div style="margin-top:6px"><a href="${escapeHtml(b.delivery_url)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210)">${t('mypage.delivery.link')}</a></div>` : ''}
         ${b.staff_pick_at && b.staff_pick_note && b.status !== 'canceled' ? `<div style="margin-top:6px;font:12px/1.7 var(--pm-font-body);color:oklch(0.35 0.02 235);background:var(--pm-bg-mint);border-radius:10px;padding:8px 12px;white-space:pre-wrap"><b>${t('mypage.staffPick')}</b>\n${escapeHtml(b.staff_pick_note)}</div>` : ''}

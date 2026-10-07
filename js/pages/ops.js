@@ -6,7 +6,7 @@ import {
   getPayoutCandidates, getGuaranteeClaimsForBookings, releasePayouts, getMonitorSlotsLeft, getBankAccountsForPhotographers,
   createPhotographerAccount, resetPhotographerPassword, markNoShow, getPhotographersForReview, setPhotographerVisibility,
   getReviewsForModeration, setReviewHidden,
-  getBookingsForOps, getBookingsNeedingAttention, opsCancelBooking, markRefunded, setPayoutHold, sendStaffPick,
+  getBookingsForOps, searchBookingsForOps, getBookingsNeedingAttention, opsCancelBooking, markRefunded, setPayoutHold, sendStaffPick,
 } from '../repo.js';
 import {
   AREAS, EXTRA_OPTIONS, OPS_CANCEL_REASONS, RESCHEDULABLE_STATUSES, awaitingPhotographerAck, photographerPayoutFor, noShowQuote, jstDateIso, addDaysToIso,
@@ -525,6 +525,7 @@ function opsBookingCardHtml(b) {
   <div class="pm-card" style="padding:14px 18px" data-booking-row="${b.id}">
     <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div style="min-width:0;font:12px/1.8 var(--pm-font-body);color:var(--pm-text-3)">
+        ${b.order_number ? `<div style="font:11px var(--pm-font-num);color:var(--pm-text-muted)">注文番号 ${escapeHtml(b.order_number)}</div>` : ''}
         <div style="font:700 14px var(--pm-font-body);color:oklch(0.3 0.02 235)">${b.booking_date} ${String(b.start_time).slice(0, 5)}〜${String(b.end_time).slice(0, 5)}　${escapeHtml(b.photographer_name)}
           <span style="${PILL};margin-left:6px;background:oklch(0.94 0.04 210);color:oklch(0.4 0.1 220)">${OPS_STATUS[b.status] || escapeHtml(b.status)}</span></div>
         <div>依頼者：${escapeHtml(b.customer_name || '-')}（${escapeHtml(b.customer_contact || '-')}）${b.customer_gender ? ` ・ ${GENDER_LABEL[b.customer_gender] || ''}` : ''}</div>
@@ -544,15 +545,31 @@ function opsBookingCardHtml(b) {
   </div>`;
 }
 
+// 注文番号・お名前・連絡先での検索（期間の制限なし）。結果は検索欄の下に出し、
+// ほかの一覧と同じ操作ができる。
+let bookingSearch = '';
+document.getElementById('booking-search-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  bookingSearch = document.getElementById('booking-search-input').value.trim();
+  loadBookings().catch(console.error);
+});
+
 async function loadBookings() {
   const today = jstDateIso();
-  const [list, needing] = await Promise.all([getBookingsForOps(addDaysToIso(today, -45)), getBookingsNeedingAttention()]);
+  const [list, needing, found] = await Promise.all([
+    getBookingsForOps(addDaysToIso(today, -45)), getBookingsNeedingAttention(),
+    bookingSearch ? searchBookingsForOps(bookingSearch) : Promise.resolve(null),
+  ]);
+  const searchEl = document.getElementById('pm-bookings-search');
+  searchEl.innerHTML = found === null ? ''
+    : found.length ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">「${escapeHtml(bookingSearch)}」の検索結果：${found.length}件${found.length >= 30 ? '（新しい順に30件まで）' : ''}</div>${found.map(opsBookingCardHtml).join('')}`
+      : `<div class="pm-empty">「${escapeHtml(bookingSearch)}」に当てはまる予約はありません。</div>`;
   const visible = list.filter((b) => !(b.status === 'pending_payment' && Date.now() - new Date(b.created_at).getTime() > 60 * 60 * 1000));
   // 要対応 also lists delivered shoots still waiting for their 異性スタッフ pick.
   const attention = [...needing, ...visible.filter((b) => needsStaffPick(b) && !needing.some((n) => n.id === b.id))];
   const upcoming = visible.filter((b) => b.booking_date >= today && b.status !== 'canceled');
   const recent = visible.filter((b) => b.booking_date < today || b.status === 'canceled').reverse();
-  const all = [...attention, ...visible];
+  const all = [...attention, ...visible, ...(found || [])];
   const byId = Object.fromEntries(all.map((b) => [b.id, b]));
   const fill = (id, rows, empty) => {
     document.getElementById(id).innerHTML = rows.length ? rows.map(opsBookingCardHtml).join('') : `<div class="pm-empty">${empty}</div>`;
@@ -562,7 +579,7 @@ async function loadBookings() {
   fill('pm-bookings-recent', recent, '過去45日の撮影・キャンセルはありません。');
 
   const refresh = () => { loadBookings().catch(console.error); loadPayouts().catch(console.error); };
-  const each = (cls, fn) => document.querySelectorAll(`#pm-bookings-attention .${cls}, #pm-bookings-upcoming .${cls}, #pm-bookings-recent .${cls}`)
+  const each = (cls, fn) => document.querySelectorAll(['pm-bookings-search', 'pm-bookings-attention', 'pm-bookings-upcoming', 'pm-bookings-recent'].map((id) => `#${id} .${cls}`).join(', '))
     .forEach((btn) => btn.addEventListener('click', () => fn(byId[btn.dataset.id], btn)));
 
   each('btn-ops-resched', (b) => reschedModal.open(b, refresh, { asOps: true }));

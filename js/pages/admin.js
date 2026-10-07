@@ -212,7 +212,7 @@ function bookingCardHtml(b, meta) {
   const due = deliveryDueDate(b);
   const overdue = !canceled && !b.delivered_at && jstDateIso() > due.date;
   const lines = [
-    `${b.booking_date}（${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}）`,
+    `${b.booking_date}（${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}）${b.order_number ? `<span style="font:11px var(--pm-font-num);color:var(--pm-text-muted);margin-left:8px">注文番号 ${escapeHtml(b.order_number)}</span>` : ''}`,
     `${escapeHtml(b.plan_name || '')}${b.monitor_application_id ? '（モニター価格）' : ''}${options.length ? `　オプション：${options.map((o) => escapeHtml(o.label)).join('、')}` : '　オプションなし'}`,
     `${escapeHtml(b.area || '')}${mp ? `　集合：${escapeHtml(mp.detail)}` : ''}`,
     `連絡先：${escapeHtml(b.customer_contact || '-')}`,

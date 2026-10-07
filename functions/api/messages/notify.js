@@ -26,7 +26,7 @@ export async function onRequestPost({ request, env }) {
   const user = await verifyUser(request);
   if (!user) return jsonResponse({ error: 'ログインが必要です。' }, 401);
 
-  const [booking] = await restSelect(env, 'bookings', { id: `eq.${bookingId}`, select: 'id,client_id,photographer_id,booking_date,start_time,customer_name' });
+  const [booking] = await restSelect(env, 'bookings', { id: `eq.${bookingId}`, select: 'id,client_id,photographer_id,booking_date,start_time,customer_name,order_number' });
   if (!booking) return jsonResponse({ error: '予約が見つかりません。' }, 404);
   const [photographer] = await restSelect(env, 'photographers', { id: `eq.${booking.photographer_id}`, select: 'name,profile_id' });
 
@@ -66,7 +66,7 @@ export async function onRequestPost({ request, env }) {
     await sendEmail(env, {
       to: recipient.email,
       subject: `【PhotoMatch】${from}からメッセージが届きました`,
-      text: `${from}から、${booking.booking_date} ${booking.start_time.slice(0, 5)}〜の予約についてメッセージが届きました。\n\n――\n${snippet}\n――\n\n返信は、こちらからどうぞ。\n${origin}/${page}\n\n※このお知らせは、同じ予約について10分に1通までお送りします。\n\n――――――――――\nPhotoMatch\n${origin}/`,
+      text: `${from}から、${booking.booking_date} ${booking.start_time.slice(0, 5)}〜の予約についてメッセージが届きました。${booking.order_number ? `（注文番号：${booking.order_number}）` : ''}\n\n――\n${snippet}\n――\n\n返信は、こちらからどうぞ。\n${origin}/${page}\n\n※このお知らせは、同じ予約について10分に1通までお送りします。\n\n――――――――――\nPhotoMatch\n${origin}/`,
     });
   } catch (err) {
     console.error('messages/notify failed', err);

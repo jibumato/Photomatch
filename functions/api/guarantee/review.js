@@ -40,7 +40,7 @@ export async function onRequestPost({ request, env }) {
     const [booking] = await restSelect(env, 'bookings', { id: `eq.${claim.booking_id}`, select: '*' });
     const [customer] = await restSelect(env, 'profiles', { id: `eq.${claim.client_id}`, select: 'email' });
     const [photographer] = booking ? await restSelect(env, 'photographers', { id: `eq.${booking.photographer_id}`, select: 'name,profile_id' }) : [];
-    const shoot = booking ? `${booking.booking_date} ${booking.start_time.slice(0, 5)}〜（${booking.plan_name}）` : '-';
+    const shoot = booking ? `${booking.order_number ? `注文番号：${booking.order_number}\n` : ''}${booking.booking_date} ${booking.start_time.slice(0, 5)}〜（${booking.plan_name}）` : '-';
     const noteBlock = note ? `\n\n運営より：\n${note}` : '';
     if (customer && customer.email) {
       await sendEmail(env, status === 'approved'

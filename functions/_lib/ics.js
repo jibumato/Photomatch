@@ -42,6 +42,7 @@ export function bookingIcs(b, { photographerName, audience, method = 'PUBLISH', 
     ? `【PhotoMatch】撮影：${b.customer_name || '依頼者'} 様`
     : `【PhotoMatch】撮影（${photographerName}）`;
   const description = [
+    b.order_number ? `注文番号：${b.order_number}` : null,
     `プラン：${b.plan_name || '-'}`,
     `撮影エリア：${b.area || '-'}`,
     meeting ? `集合場所：${meeting.detail}` : null,
