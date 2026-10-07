@@ -1067,6 +1067,30 @@ alter table bookings add column if not exists ack_alerted_at timestamptz;
 create index if not exists bookings_ack_pending_idx on bookings (ack_requested_at)
   where photographer_ack_at is null and ack_alerted_at is null;
 
+-- カメラマンのLINE通知（functions/_lib/line.js）。LINE公式アカウントへの連携コードの送信で
+-- 連携する（/api/line/link → /api/line/webhook）。どちらもサーバー（service_role）専用で、
+-- ブラウザからは読み書きできない（RLS有効・ポリシーなし）。
+create table if not exists line_links (
+  photographer_id text primary key references photographers(id) on delete cascade,
+  line_user_id text not null,
+  active boolean not null default true,
+  linked_at timestamptz not null default now(),
+  last_sent_at timestamptz,
+  last_error text,
+  last_error_at timestamptz
+);
+create index if not exists line_links_user_idx on line_links (line_user_id);
+alter table line_links enable row level security;
+revoke all on line_links from anon, authenticated;
+
+create table if not exists line_link_codes (
+  photographer_id text primary key references photographers(id) on delete cascade,
+  code text not null unique,
+  expires_at timestamptz not null
+);
+alter table line_link_codes enable row level security;
+revoke all on line_link_codes from anon, authenticated;
+
 -- 未確認の予約のチェックを10分ごとに実行する（Supabase の pg_cron + pg_net から
 -- /api/bookings/ack-check を呼ぶ）。拡張が使えない環境（ローカルのテスト用DBなど）では
 -- 何もしない。Cloudflare に CRON_SECRET を設定した場合は、下の headers に
@@ -1089,3 +1113,42 @@ begin
   end if;
 end
 $$;
+
+-- 注文番号（例 PM261007-0012 ＝ 受付日〈日本時間〉＋通し番号）。予約の作成時に自動で付く。
+-- お客様・カメラマン・運営のメール、マイページ、管理画面、Stripe の決済に表示し、
+-- 問い合わせのときにこの番号で予約を探せるようにする。
+create sequence if not exists booking_order_seq;
+alter table bookings add column if not exists order_number text;
+create unique index if not exists bookings_order_number_key on bookings (order_number);
+
+create or replace function assign_booking_order_number()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.order_number is null then
+    new.order_number := 'PM' || to_char(coalesce(new.created_at, now()) at time zone 'Asia/Tokyo', 'YYMMDD')
+      || '-' || lpad(nextval('booking_order_seq')::text, 4, '0');
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists bookings_assign_order_number on bookings;
+create trigger bookings_assign_order_number
+  before insert on bookings
+  for each row execute function assign_booking_order_number();
+
+-- これまでの予約にも、受け付けた順に番号を付ける。
+do $$
+declare
+  r record;
+begin
+  for r in select id, created_at from bookings where order_number is null order by created_at, id loop
+    update bookings set order_number = 'PM' || to_char(r.created_at at time zone 'Asia/Tokyo', 'YYMMDD')
+      || '-' || lpad(nextval('booking_order_seq')::text, 4, '0')
+    where id = r.id;
+  end loop;
+end
+$$;
+

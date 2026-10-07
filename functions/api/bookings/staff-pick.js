@@ -44,7 +44,7 @@ export async function onRequestPost({ request, env }) {
       await sendEmail(env, {
         to: customer.email,
         subject: first ? '【PhotoMatch】異性スタッフが選んだ「おすすめの一枚」をお届けします' : '【PhotoMatch】「おすすめの一枚」を更新しました',
-        text: `${booking.customer_name || 'お客'} 様\n\nオプション「異性スタッフ写真セレクト」のご利用ありがとうございます。異性のスタッフの目線で、マッチングアプリで好印象につながりそうな一枚を選びました。\n\n■おすすめの一枚\n${note}\n\n■撮影データ\n${booking.delivery_url || '（マイページをご覧ください）'}\n\nマイページでもご確認いただけます。\n${origin}/mypage.html\n\n――――――――――\nPhotoMatch\n${origin}/\nお問い合わせ：info.photomatch@gmail.com`,
+        text: `${booking.customer_name || 'お客'} 様\n\nオプション「異性スタッフ写真セレクト」のご利用ありがとうございます。異性のスタッフの目線で、マッチングアプリで好印象につながりそうな一枚を選びました。\n\n■おすすめの一枚\n${note}${booking.order_number ? `\n\n注文番号：${booking.order_number}` : ''}\n\n■撮影データ\n${booking.delivery_url || '（マイページをご覧ください）'}\n\nマイページでもご確認いただけます。\n${origin}/mypage.html\n\n――――――――――\nPhotoMatch\n${origin}/\nお問い合わせ：info.photomatch@gmail.com`,
       });
     } catch (err) {
       console.error('staff-pick: email failed', err);

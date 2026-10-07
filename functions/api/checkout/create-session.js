@@ -126,7 +126,8 @@ export async function onRequestPost({ request, env }) {
     end_time: endTime,
     customer_name: customerName,
     customer_contact: customerContact,
-    options: validOptionKeys.map((key) => ({ key })),
+    // Name and price as charged, so later price changes don't rewrite this receipt.
+    options: validOptionKeys.map((key) => { const o = EXTRA_OPTIONS.find((x) => x.key === key); return { key, label: o.label, price: o.price }; }),
     options_total: optionsTotal,
     total_price: totalPrice,
     status: 'pending_payment',
@@ -153,15 +154,19 @@ export async function onRequestPost({ request, env }) {
           price_data: {
             currency: 'jpy',
             unit_amount: totalPrice,
-            product_data: { name: `${plan.name}${monitorApplicationId ? '・モニター価格' : ''}（${photographerRow.name}さん）` },
+            product_data: { name: `${plan.name}${monitorApplicationId ? '・モニター価格' : ''}（${photographerRow.name}さん）${booking.order_number ? ` 注文番号 ${booking.order_number}` : ''}` },
           },
         },
       ],
       // Closed after CHECKOUT_EXPIRES_MIN so a page left open can't be paid
       // once the slot has been given back to someone else.
       expires_at: Math.floor(Date.now() / 1000) + CHECKOUT_EXPIRES_MIN * 60,
-      metadata: { booking_id: booking.id },
-      payment_intent_data: { metadata: { booking_id: booking.id } },
+      metadata: { booking_id: booking.id, order_number: booking.order_number || '' },
+      payment_intent_data: {
+        metadata: { booking_id: booking.id, order_number: booking.order_number || '' },
+        // Shown on the Stripe dashboard and the card receipt.
+        ...(booking.order_number ? { description: `PhotoMatch 注文番号 ${booking.order_number}` } : {}),
+      },
       success_url: `${origin}/booking.html?id=${photographerId}&paid_booking=${booking.id}`,
       cancel_url: `${origin}/booking.html?id=${photographerId}&canceled=1`,
     });

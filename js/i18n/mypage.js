@@ -36,6 +36,7 @@ const ENTRIES = {
 
   // booking card
   'mypage.dateLine': { ja: '{date}（{start}〜{end}）', en: '{date} ({start}–{end})' },
+  'mypage.orderNumber': { ja: '注文番号：{n}', en: 'Order No. {n}' },
   'mypage.planLine': { ja: '{plan} ・ {price}', en: '{plan} · {price}' },
   'mypage.priceTaxIncl': { ja: '¥{amount}（税込）', en: '¥{amount} (tax incl.)' },
   'mypage.freeReshoot': { ja: '無料再撮影（マッチング数保証）', en: 'Free reshoot (Match-Count Guarantee)' },

@@ -272,6 +272,7 @@ const DICT = {
   'booking.payment.canceledNotice': { ja: 'お支払いがキャンセルされました。内容をご確認の上、再度お試しください。', en: 'Payment was canceled. Please review the details and try again.' },
   'booking.confirm.lead': { ja: '{name}さんとの撮影が確定しました。当日は撮影場所で直接お待ち合わせください。', en: 'Your shoot with {name} is confirmed. Please meet directly at the shoot location on the day.' },
   'booking.confirm.optionLine': { ja: '＋オプション：{label}（+¥{price}）', en: '+ Add-on: {label} (+¥{price})' },
+  'booking.confirm.orderNumber': { ja: '注文番号：{n}', en: 'Order No.: {n}' },
   'booking.confirm.photographer': { ja: 'カメラマン：{name}', en: 'Photographer: {name}' },
   'booking.confirm.area': { ja: '撮影エリア：{area}', en: 'Shoot area: {area}' },
   'booking.confirm.datetime': { ja: '日時：{date} {start}〜{end}', en: 'Date & time: {date} {start}–{end}' },

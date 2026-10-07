@@ -369,6 +369,25 @@ export const EXTRA_OPTIONS = [
   { key: 'oppositeSexPick', label: '異性スタッフ写真セレクト', labelEn: 'Opposite-Gender Staff Pick', desc: '異性のスタッフ目線でマッチングアプリ受けの良い一枚を選び、おすすめとしてご提案します', descEn: "A staff member of the opposite gender picks the shot they think will land best on dating apps, and suggests it to you.", price: 3800 },
 ];
 
+// 予約のオプション（bookings.options）を、名前と金額つきで返す。金額は予約時に保存した
+// ものを優先する（あとで料金を変えても、過去の予約の明細は変わらない）。古い予約は
+// key だけなので、いまの EXTRA_OPTIONS の金額で補う。
+export function bookingOptionItems(b) {
+  return ((b && b.options) || [])
+    .map((o) => {
+      const def = EXTRA_OPTIONS.find((x) => x.key === o.key);
+      if (!def) return null;
+      return { ...def, price: Number.isFinite(o.price) ? o.price : def.price };
+    })
+    .filter(Boolean);
+}
+
+// bookings.customer_contact は「メール / 電話番号」（電話は任意）。表示用に分ける。
+export function splitCustomerContact(contact) {
+  const [email, ...rest] = String(contact || '').split(' / ');
+  return { email: email.trim(), phone: rest.join(' / ').trim() };
+}
+
 export const COUNSELING_QUESTIONS = [
   { id: 'ageBand', type: 'single', label: '年代', options: ['20代前半', '20代後半', '30代前半', '30代後半', '40代以上'] },
   { id: 'apps', type: 'multi', label: '主に使うマッチングアプリ・サービス', options: ['Pairs', 'with', 'Omiai', 'タップル', 'Tinder', 'Bumble', '結婚相談所', 'その他'] },

@@ -1,11 +1,12 @@
 // Booking confirmed / canceled notifications, sent to the customer, the
 // photographer and ops at the same time. Never throws: a mail failure must
 // not break the payment webhook or the cancel request that triggered it.
-import { meetingPointForArea, EXTRA_OPTIONS, WEEKDAY_JP, PHOTOGRAPHER_ACK_HOURS } from '../../js/data.js';
+import { meetingPointForArea, mapUrlFor, WEEKDAY_JP, PHOTOGRAPHER_ACK_HOURS, bookingOptionItems, splitCustomerContact } from '../../js/data.js';
 import { restSelect, restUpdate } from './supabaseAdmin.js';
 import { sendEmail } from './email.js';
 import { bookingIcs, icsAttachment } from './ics.js';
 import { ackUrl } from './ackToken.js';
+import { pushToPhotographer, clip } from './line.js';
 
 const CANCEL_POLICY = '撮影日の3日前まで：無料 ／ 2日前：プラン料金の50% ／ 前日・当日：プラン料金の100%（オプション料金は全額返金）';
 const CONTACT = 'info.photomatch@gmail.com';
@@ -21,13 +22,14 @@ function shortDate(iso) {
   return `${m}/${d}`;
 }
 
+// "注文番号：PM261007-0012" — on every email, so a booking can be found by it.
+const orderLine = (b) => (b.order_number ? `注文番号：${b.order_number}` : null);
+
 function bookingLines(b, photographerName, { forCustomer }) {
-  const options = (b.options || [])
-    .map((o) => EXTRA_OPTIONS.find((eo) => eo.key === o.key))
-    .filter(Boolean)
-    .map((o) => o.label);
+  const options = bookingOptionItems(b).map((o) => o.label);
   const meeting = meetingPointForArea(b.area);
   return [
+    orderLine(b),
     forCustomer ? `カメラマン：${photographerName}` : null,
     `日時：${formatDate(b.booking_date)} ${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}`,
     `プラン：${b.plan_name}${b.monitor_application_id ? '（モニター価格）' : ''}${b.reshoot_of ? '（マッチング数保証による無料再撮影）' : ''}${forCustomer ? `（¥${b.plan_price.toLocaleString()}）` : ''}`,
@@ -55,17 +57,33 @@ const REFUND_STATUS_LABEL = { none: '返金なし', pending: '処理中', succee
 
 const FOOTER = (origin) => `\n――――――――――\nPhotoMatch\n${origin}/\nお問い合わせ：${CONTACT}`;
 
-function messages(kind, b, photographerName, origin) {
+function messages(kind, b, photographerName, origin, customerEmail) {
   const when = `${shortDate(b.booking_date)} ${b.start_time.slice(0, 5)}〜`;
   if (kind === 'confirmed') {
+    const { phone } = splitCustomerContact(b.customer_contact);
+    const meeting = meetingPointForArea(b.area);
+    const options = bookingOptionItems(b);
+    const received = b.created_at ? new Date(b.created_at).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
+    const schedule = [
+      `撮影日時：${formatDate(b.booking_date)} ${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}${b.duration_min ? `（${b.duration_min}分）` : ''}`,
+      `撮影エリア：${b.area || '-'}`,
+      meeting ? `集合場所：${meeting.detail}\n地図：${mapUrlFor(meeting)}` : null,
+    ].filter(Boolean).join('\n');
+    const planLabel = `${b.plan_name}${b.monitor_application_id ? '（モニター価格）' : ''}${b.reshoot_of ? '（マッチング数保証による無料再撮影）' : ''}`;
+    const fees = [
+      `${planLabel}：${yen(b.plan_price)}`,
+      ...options.map((o) => `${o.label}：${yen(o.price)}`),
+      `合計：${yen(b.total_price)}`,
+      b.total_price > 0 ? 'お支払い方法：クレジットカード（お支払い済み）' : null,
+    ].filter(Boolean).join('\n');
     return {
       customer: {
-        subject: `【PhotoMatch】ご予約が確定しました（${when}）`,
-        text: `${b.customer_name} 様\n\nPhotoMatchをご利用いただきありがとうございます。\n以下の内容でご予約が確定しました。\n\n■ご予約内容\n${bookingLines(b, photographerName, { forCustomer: true })}\n\n当日は集合場所で直接お待ち合わせください。\n予約内容の確認・カメラマンとのメッセージ・日程変更・キャンセルはマイページからご利用いただけます。\n${origin}/mypage.html\n\n■日程変更について\n撮影日の3日前まで：無料で日程変更できます。\n2日前〜撮影前：「あんしん振替プラン」にご加入の場合、1回まで無料で日程変更できます。\n\n■キャンセルポリシー\n${CANCEL_POLICY}\n${FOOTER(origin)}`,
+        subject: `【PhotoMatch】ご予約が確定しました（${when}${b.order_number ? `／注文番号 ${b.order_number}` : ''}）`,
+        text: `${b.customer_name} 様\n\nPhotoMatchをご利用いただきありがとうございます。\n以下の内容でご予約が確定しました。お問い合わせの際は、注文番号をお知らせください。\n\n■ご予約番号\n${[orderLine(b), received ? `受付日時：${received}` : null].filter(Boolean).join('\n')}\n\n■ご予約者情報\nお名前：${b.customer_name} 様\nメールアドレス：${customerEmail || splitCustomerContact(b.customer_contact).email || '-'}\n電話番号：${phone || '（未入力）'}\n\n■ご予約内容\nカメラマン：${photographerName}\n${schedule}\n\n■ご利用料金（税込）\n${fees}\n\n当日は集合場所で直接お待ち合わせください。\n予約内容の確認・カメラマンとのメッセージ・事前カウンセリングの回答・日程変更・キャンセルはマイページからご利用いただけます。\n${origin}/mypage.html\n\n■日程変更について\n撮影日の3日前まで：無料で日程変更できます。\n2日前〜撮影前：「あんしん振替プラン」にご加入の場合、1回まで無料で日程変更できます。\n\n■キャンセルポリシー\n${CANCEL_POLICY}\n${FOOTER(origin)}`,
       },
       photographer: {
-        subject: `【PhotoMatch】新しい予約が入りました（${when}）`,
-        text: `${photographerName} さん\n\n新しい予約が確定しました。\n\n■予約内容\n依頼者：${b.customer_name} 様\n連絡先：${b.customer_contact}\n${bookingLines(b, photographerName, { forCustomer: false })}\n\n依頼者とのメッセージ・シフトの確認は管理画面からご利用いただけます。\n${origin}/admin.html\n${FOOTER(origin)}`,
+        subject: `【PhotoMatch】新しい予約が入りました（${when}${b.order_number ? `／${b.order_number}` : ''}）`,
+        text: `${photographerName} さん\n\n新しい予約が確定しました。\n\n■予約者情報\nお名前：${b.customer_name} 様\n連絡先：${b.customer_contact || '-'}\n\n■予約内容\n${orderLine(b) ? `${orderLine(b)}\n` : ''}${schedule}\nプラン：${planLabel}\nオプション：${options.length ? options.map((o) => o.label).join('、') : 'なし'}\n\n依頼者とのメッセージ・事前カウンセリングの回答・シフトの確認は管理画面からご利用いただけます。\n${origin}/admin.html\n${FOOTER(origin)}`,
       },
     };
   }
@@ -128,7 +146,7 @@ function opsMessage(kind, b, photographerName, origin) {
     ? `\n\nキャンセル料：${yen(b.cancel_fee)}\n返金額：${yen(b.refund_amount)}（${REFUND_STATUS_LABEL[b.refund_status] || b.refund_status || '-'}）${b.photographer_cancel_comp ? `\nカメラマンへの当日キャンセル補償：${yen(b.photographer_cancel_comp)}` : ''}`
     : '';
   return {
-    subject: `【PhotoMatch運営】${head}${b.refund_status === 'failed' ? '・要返金対応' : ''}（${shortDate(b.booking_date)} ${b.start_time.slice(0, 5)}〜 ${photographerName}）`,
+    subject: `【PhotoMatch運営】${head}${b.refund_status === 'failed' ? '・要返金対応' : ''}（${shortDate(b.booking_date)} ${b.start_time.slice(0, 5)}〜 ${photographerName}${b.order_number ? `／${b.order_number}` : ''}）`,
     text: `${head}がありました。${kind === 'ops_canceled' && b.cancel_note ? `\n理由：${b.cancel_note}` : ''}${(kind === 'rescheduled' || kind === 'ops_rescheduled') && b.previous_booking_date ? `\n変更前：${formatDate(b.previous_booking_date)} ${String(b.previous_start_time).slice(0, 5)}〜${b.reschedule_plan_used ? '（あんしん振替プランの無料1回を使用）' : ''}` : ''}\n\n予約ID：${b.id}\n依頼者：${b.customer_name} 様（${b.customer_contact || '-'}）${b.customer_gender ? `\n依頼者の性別：${{ male: '男性', female: '女性', other: '回答しない' }[b.customer_gender] || '-'}（異性スタッフ写真セレクトの担当判定用）` : ''}\n${bookingLines(b, photographerName, { forCustomer: true })}${refund}\n\n${origin}/ops.html\n`,
   };
 }
@@ -153,6 +171,56 @@ function calendarText(kind) {
   return '■カレンダーへの登録\nカレンダーに登録済みの場合は、変更前の予定を削除し、添付のファイル（photomatch-booking.ics）を開いて登録し直してください。';
 }
 
+// LINE version of the photographer's notice: the essentials in one text,
+// plus 「確認しました」 / 管理画面 buttons when a (new) date needs confirming.
+// Both go in one push, which counts as one message toward LINE's monthly limit.
+function ackButtons(b, origin, lead) {
+  const r = b.ack_requested_at ? new Date(b.ack_requested_at).getTime() : '';
+  return {
+    type: 'template',
+    altText: '予約の確認をお願いします',
+    template: {
+      type: 'buttons',
+      text: clip(lead, 160),
+      actions: [
+        { type: 'postback', label: '確認しました', data: `ack=${b.id}&r=${r}`, displayText: '確認しました' },
+        { type: 'uri', label: '管理画面を開く', uri: `${origin}/admin.html` },
+      ],
+    },
+  };
+}
+
+function lineBookingMessages(kind, b, origin) {
+  const when = (date, start, end) => `${formatDate(date)} ${String(start).slice(0, 5)}〜${end ? String(end).slice(0, 5) : ''}`;
+  const options = bookingOptionItems(b).map((o) => o.label);
+  const meeting = meetingPointForArea(b.area);
+  const detail = [
+    ...(b.order_number ? [`注文番号：${b.order_number}`] : []),
+    when(b.booking_date, b.start_time, b.end_time),
+    `${b.customer_name} 様／${b.plan_name}${options.length ? `＋${options.join('、')}` : ''}`,
+    `${b.area || '-'}${meeting ? `（集合：${meeting.detail}）` : ''}`,
+  ].join('\n');
+  const head = {
+    confirmed: '【新しい予約】',
+    rescheduled: '【日程変更（依頼者）】',
+    ops_rescheduled: '【日程変更（運営）】',
+    canceled: '【キャンセル】',
+    ops_canceled: '【運営によるキャンセル】',
+    no_show: '【遅刻のため当日キャンセル扱い】',
+  }[kind];
+  if (!head) return null;
+  const was = (kind === 'rescheduled' || kind === 'ops_rescheduled') && b.previous_booking_date
+    ? `変更前：${when(b.previous_booking_date, b.previous_start_time)}\n変更後：` : '';
+  const comp = b.photographer_cancel_comp ? `\n補償：${yen(b.photographer_cancel_comp)}` : '';
+  const messages = [{ type: 'text', text: clip(`${head}\n${was}${detail}${CANCEL_KINDS.includes(kind) || kind === 'no_show' ? comp : ''}`, 4900) }];
+  if (ACK_KINDS.includes(kind)) {
+    messages.push(ackButtons(b, origin, `内容を確認したら「確認しました」を押してください（${PHOTOGRAPHER_ACK_HOURS}時間以内に確認がない場合、運営からご連絡します）。`));
+  } else {
+    messages.push({ type: 'text', text: `詳細は管理画面から確認できます。\n${origin}/admin.html` });
+  }
+  return messages;
+}
+
 // kind: 'confirmed' | 'canceled' | 'no_show' | 'rescheduled' | 'ops_canceled' | 'ops_rescheduled'
 export async function notifyBooking(env, bookingId, kind, origin) {
   try {
@@ -172,7 +240,7 @@ export async function notifyBooking(env, bookingId, kind, origin) {
     const emailOf = (id) => (profiles.find((p) => p.id === id) || {}).email;
 
     const photographerName = (photographer && photographer.name) || 'カメラマン';
-    const msg = messages(kind, booking, photographerName, origin);
+    const msg = messages(kind, booking, photographerName, origin, emailOf(booking.client_id));
     const attach = { customer: [], photographer: [] };
     if (ACK_KINDS.includes(kind)) {
       msg.photographer.text = withExtra(msg.photographer.text, photographerAckText(await ackUrl(env, origin, booking)), origin);
@@ -194,6 +262,8 @@ export async function notifyBooking(env, bookingId, kind, origin) {
     if (customerEmail) sends.push(sendEmail(env, { to: customerEmail, ...msg.customer, attachments: attach.customer }));
     if (photographerEmail) sends.push(sendEmail(env, { to: photographerEmail, ...msg.photographer, attachments: attach.photographer }));
     sends.push(sendEmail(env, { to: env.OPS_EMAIL || CONTACT, ...opsMessage(kind, booking, photographerName, origin) }));
+    const lineMessages = lineBookingMessages(kind, booking, origin);
+    if (lineMessages) sends.push(pushToPhotographer(env, booking.photographer_id, lineMessages));
     const results = await Promise.allSettled(sends);
     results.filter((r) => r.status === 'rejected').forEach((r) => console.error('notifyBooking send failed', r.reason));
   } catch (err) {
@@ -229,6 +299,10 @@ export async function notifyAckOverdue(env, booking, origin) {
       subject: `【PhotoMatch運営】カメラマンが予約を未確認です（${shortDate(booking.booking_date)} ${booking.start_time.slice(0, 5)}〜 ${photographerName}）`,
       text: `${photographerName} さんが、${PHOTOGRAPHER_ACK_HOURS}時間たっても予約を確認していません。電話などで連絡を取り、予約に気づいているか確認してください。\n\n予約ID：${booking.id}\n確認を依頼した日時：${new Date(booking.ack_requested_at).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}\nカメラマンの連絡先：${(profile && profile.email) || '（アカウント未連携）'}\n依頼者：${booking.customer_name} 様\n${bookingLines(booking, photographerName, { forCustomer: true })}\n\n${origin}/ops.html\n`,
     })];
+    sends.push(pushToPhotographer(env, booking.photographer_id, [
+      { type: 'text', text: clip(`【予約が未確認です】\n${when}\n${booking.customer_name} 様／${booking.plan_name}`, 4900) },
+      ackButtons(booking, origin, '内容を確認して「確認しました」を押してください。'),
+    ]));
     if (profile && profile.email) {
       sends.push(sendEmail(env, {
         to: profile.email,

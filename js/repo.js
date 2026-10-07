@@ -238,6 +238,11 @@ export async function getPhotographerBookings(photographerId) {
 // Goes through a Function (not a direct table update) so the cancellation
 // emails to the customer and photographer are always sent.
 // Photographer (or ops): record delivery with the album link; the customer is emailed.
+// The photographer's LINE通知 settings: action 'status' | 'code' | 'unlink'.
+export async function lineLink(action) {
+  return callApi('/api/line/link', { action }, 'LINE連携の処理に失敗しました。');
+}
+
 // The photographer's 「確認しました」 for a confirmed / rescheduled booking.
 export async function ackBooking(bookingId) {
   return callApi('/api/bookings/ack', { booking_id: bookingId }, '確認の登録に失敗しました。');
@@ -254,6 +259,25 @@ export async function notifyNewMessage(bookingId) {
 }
 
 // ---- ops: booking management (予約の管理) ----
+
+// Ops: find bookings of any date by 注文番号, the customer's name, email or
+// phone (partial match). Characters that would break the PostgREST filter
+// are dropped; full-width letters/digits are folded to half-width.
+export async function searchBookingsForOps(query) {
+  const q = String(query || '')
+    .replace(/[Ａ-Ｚａ-ｚ０-９－]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/[%,()*\\"]/g, ' ')
+    .trim();
+  if (!q) return [];
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*, photographers(name)')
+    .or(['order_number', 'customer_name', 'customer_contact'].map((c) => `${c}.ilike.%${q}%`).join(','))
+    .order('booking_date', { ascending: false })
+    .limit(30);
+  if (error) throw error;
+  return data.map((b) => ({ ...b, photographer_name: b.photographers?.name || b.photographer_id }));
+}
 
 // Bookings from fromIso on (past shoots and cancellations included), with the
 // photographer's name, for the ops list. Ops can read every booking (RLS).

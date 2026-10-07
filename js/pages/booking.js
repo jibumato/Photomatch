@@ -6,7 +6,7 @@ import { loadDailyWeather } from '../weather.js';
 import { takenIntervalsFrom, openSetFrom, isSlotTaken, canStartAt } from '../availability.js';
 import { escapeHtml } from '../util.js';
 import {
-  AREAS, EXTRA_OPTIONS, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
+  AREAS, EXTRA_OPTIONS, bookingOptionItems, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
   MONITOR_PLAN_NAMES, monitorPriceFor, areasFor, meetingPointForArea, mapUrlFor,
   CUSTOMER_GENDERS, needsGenderForOptions,
 } from '../data.js';
@@ -531,10 +531,11 @@ document.getElementById('payment-submit').addEventListener('click', async () => 
 function showConfirmForBooking(booking) {
   showStep('confirm');
   document.getElementById('confirm-lead').textContent = tf('booking.confirm.lead', { name: state.photographer.name });
-  const options = (booking.options || []).map((o) => EXTRA_OPTIONS.find((eo) => eo.key === o.key)).filter(Boolean);
+  const options = bookingOptionItems(booking);
   const optionsHtml = options.map((o) => `<div>${tf('booking.confirm.optionLine', { label: L(o, 'label'), price: o.price.toLocaleString() })}</div>`).join('');
   const dateLabel = `${Number(booking.booking_date.slice(5, 7))}/${Number(booking.booking_date.slice(8, 10))}`;
   document.getElementById('confirm-details').innerHTML = `
+    ${booking.order_number ? `<div style="font:700 14px var(--pm-font-num);color:oklch(0.3 0.02 235)">${tf('booking.confirm.orderNumber', { n: escapeHtml(booking.order_number) })}</div>` : ''}
     <div>${tf('booking.confirm.photographer', { name: escapeHtml(state.photographer.name) })}</div>
     <div>${tf('booking.confirm.area', { area: areaText(booking.area) })}</div>
     <div>${tf('booking.confirm.datetime', { date: dateLabel, start: booking.start_time.slice(0, 5), end: booking.end_time.slice(0, 5) })}</div>
