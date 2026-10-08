@@ -19,7 +19,7 @@ export const COLUMN_EN = {
       },
       {
         h: 'As Little as 45 Minutes in Nagoya and Gifu',
-        b: 'PhotoMatch is based in Nagoya and covers Gifu as well. Meet at an easy-to-reach spot such as Sakae or Osu, and the shoot is done in 45 minutes. You can fit it in after work or on a day off, and your photos are delivered as early as the next day, or within 3 business days.',
+        b: 'PhotoMatch is based in Nagoya and covers Gifu as well. Meet at an easy-to-reach spot such as Sakae or Osu, and the shoot is done in 45 minutes. You can fit it in after work or on a day off, and your photos are usually delivered within 3 business days.',
       },
     ],
   },
