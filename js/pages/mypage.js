@@ -4,7 +4,7 @@ import { mountLayout } from '../layout.js';
 import { getSession, getProfile, signOut } from '../auth.js';
 import {
   getMyBookings, cancelBooking, getMessageCounts, getReadTimestamps, getCounselingSheetsForBookings,
-  getGuaranteeClaimsForBookings, applyGuaranteeClaim, submitGuaranteeClaim, getMyReviewsByBooking, createReshoot,
+  getGuaranteeClaimsForBookings, getReceiptUrl, applyGuaranteeClaim, submitGuaranteeClaim, getMyReviewsByBooking, createReshoot,
 } from '../repo.js';
 import { mountChatModal } from '../chat.js';
 import { mountSheetModal } from '../sheet.js';
@@ -154,6 +154,7 @@ function bookingCardHtml(b, meta, { history }) {
         <div style="font:13px var(--pm-font-body);color:oklch(0.45 0.02 235)">${tf('mypage.dateLine', { date: b.booking_date, start: timeOf(b.start_time), end: timeOf(b.end_time) })}</div>
         ${b.order_number ? `<div style="font:11px var(--pm-font-num);color:var(--pm-text-muted);margin-top:2px">${tf('mypage.orderNumber', { n: escapeHtml(b.order_number) })}</div>` : ''}
         <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${tf('mypage.planLine', { plan: escapeHtml(planNameText(b.plan_name)), price: priceLabel })}</div>
+        ${b.total_price > 0 && b.status !== 'pending_payment' && !b.reshoot_of ? `<div style="margin-top:4px"><button type="button" class="btn-receipt" data-booking-id="${b.id}" style="background:none;border:0;padding:0;font:600 12px var(--pm-font-body);color:oklch(0.45 0.14 210);cursor:pointer;text-decoration:underline">${t('mypage.receipt.link')}</button></div>` : ''}
         ${b.delivered_at && isValidDeliveryUrl(b.delivery_url) && b.status !== 'canceled' ? `<div style="margin-top:6px"><a href="${escapeHtml(b.delivery_url)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210)">${t('mypage.delivery.link')}</a></div>` : ''}
         ${b.staff_pick_at && b.staff_pick_note && b.status !== 'canceled' ? `<div style="margin-top:6px;font:12px/1.7 var(--pm-font-body);color:oklch(0.35 0.02 235);background:var(--pm-bg-mint);border-radius:10px;padding:8px 12px;white-space:pre-wrap"><b>${t('mypage.staffPick')}</b>\n${escapeHtml(b.staff_pick_note)}</div>` : ''}
         ${b.rescheduled_count > 0 && b.previous_booking_date && b.status !== 'canceled' ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:2px">${tf('mypage.rescheduledFrom', { date: b.previous_booking_date, time: timeOf(b.previous_start_time) })}</div>` : ''}
@@ -168,6 +169,23 @@ function bookingCardHtml(b, meta, { history }) {
 }
 
 function wireCardEvents(root, bookingsById) {
+  // 領収書: open the window first (a popup blocker only allows it straight
+  // from the click), then point it at Stripe's receipt page.
+  root.querySelectorAll('.btn-receipt').forEach((el) => {
+    el.addEventListener('click', async () => {
+      const win = window.open('', '_blank');
+      el.disabled = true;
+      try {
+        const url = await getReceiptUrl(el.dataset.bookingId);
+        if (win) { win.opener = null; win.location.href = url; } else { location.href = url; }
+      } catch (err) {
+        if (win) win.close();
+        alert(err.message || t('mypage.receipt.failed'));
+      } finally {
+        el.disabled = false;
+      }
+    });
+  });
   root.querySelectorAll('.btn-chat').forEach((el) => {
     el.addEventListener('click', () => {
       const b = bookingsById[el.dataset.bookingId];

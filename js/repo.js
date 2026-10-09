@@ -238,6 +238,12 @@ export async function getPhotographerBookings(photographerId) {
 // Goes through a Function (not a direct table update) so the cancellation
 // emails to the customer and photographer are always sent.
 // Photographer (or ops): record delivery with the album link; the customer is emailed.
+// The Stripe receipt link for a paid booking (opens Stripe's receipt page).
+export async function getReceiptUrl(bookingId) {
+  const res = await callApi('/api/bookings/receipt', { booking_id: bookingId }, '領収書を取得できませんでした。');
+  return res.url;
+}
+
 // The photographer's LINE通知 settings: action 'status' | 'code' | 'unlink'.
 export async function lineLink(action) {
   return callApi('/api/line/link', { action }, 'LINE連携の処理に失敗しました。');
