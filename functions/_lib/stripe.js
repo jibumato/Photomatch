@@ -63,6 +63,9 @@ export const stripe = {
   paymentIntents: {
     retrieve: (env, id, params) => stripeRequest(env, 'GET', `/payment_intents/${id}`, params),
   },
+  charges: {
+    retrieve: (env, id) => stripeRequest(env, 'GET', `/charges/${id}`),
+  },
   refunds: {
     create: (env, params, opts) => stripeRequest(env, 'POST', '/refunds', params, opts),
   },
