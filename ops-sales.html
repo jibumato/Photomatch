@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>売上管理 | PhotoMatch</title>
+<meta name="robots" content="noindex, follow">
+<link rel="icon" href="assets/photomatch-icon-transparent.png">
+<link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+<link rel="stylesheet" href="css/base.css?v=4a95132642">
+<link rel="stylesheet" href="css/components.css?v=121e31ac1d">
+<!-- asset-versions:start (scripts/stamp-assets.mjs) -->
+<script type="importmap">
+{
+  "imports": {
+    "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+    "/js/availability.js": "/js/availability.js?v=6c98651534",
+    "/js/chat.js": "/js/chat.js?v=99ccb7ab0d",
+    "/js/config.js": "/js/config.js?v=e841133368",
+    "/js/data.js": "/js/data.js?v=3573d5ec04",
+    "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=80dd5f9f12",
+    "/js/i18n/columns.js": "/js/i18n/columns.js?v=a197583dfe",
+    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=1554b26024",
+    "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=bd7b19bf7f",
+    "/js/i18n.js": "/js/i18n.js?v=1b70750e16",
+    "/js/layout.js": "/js/layout.js?v=b4870f3512",
+    "/js/pages/admin.js": "/js/pages/admin.js?v=b5d768b53a",
+    "/js/pages/booking.js": "/js/pages/booking.js?v=b2cb03e80b",
+    "/js/pages/column-article.js": "/js/pages/column-article.js?v=ce9e6a5047",
+    "/js/pages/column.js": "/js/pages/column.js?v=a1da790ad6",
+    "/js/pages/email-confirmed.js": "/js/pages/email-confirmed.js?v=2b519bae27",
+    "/js/pages/login.js": "/js/pages/login.js?v=27b43e27ba",
+    "/js/pages/meeting-points.js": "/js/pages/meeting-points.js?v=857d771c2d",
+    "/js/pages/monitor.js": "/js/pages/monitor.js?v=9bb5e5dfba",
+    "/js/pages/mypage.js": "/js/pages/mypage.js?v=8c24d3831b",
+    "/js/pages/ops-login.js": "/js/pages/ops-login.js?v=91fbd27662",
+    "/js/pages/ops-sales.js": "/js/pages/ops-sales.js?v=78781b9ba4",
+    "/js/pages/ops.js": "/js/pages/ops.js?v=9a6417dd4d",
+    "/js/pages/pro-login.js": "/js/pages/pro-login.js?v=3ae32cde71",
+    "/js/pages/profile.js": "/js/pages/profile.js?v=8f0474aed9",
+    "/js/pages/reset-password.js": "/js/pages/reset-password.js?v=40375debb3",
+    "/js/pages/search.js": "/js/pages/search.js?v=c86faef3ec",
+    "/js/pages/terms.js": "/js/pages/terms.js?v=88ad4c0312",
+    "/js/pages/top.js": "/js/pages/top.js?v=5b023010b8",
+    "/js/profileEditor.js": "/js/profileEditor.js?v=56cd2d2c43",
+    "/js/repo.js": "/js/repo.js?v=8cebf3bdf2",
+    "/js/rescheduleModal.js": "/js/rescheduleModal.js?v=e06e9e8e9d",
+    "/js/reviewModal.js": "/js/reviewModal.js?v=f1b4e1d948",
+    "/js/sales.js": "/js/sales.js?v=da440ea130",
+    "/js/sheet.js": "/js/sheet.js?v=db853ce739",
+    "/js/supabaseClient.js": "/js/supabaseClient.js?v=6e8b41def3",
+    "/js/util.js": "/js/util.js?v=7532352c60",
+    "/js/weather.js": "/js/weather.js?v=308937ac5b"
+  }
+}
+</script>
+<!-- asset-versions:end -->
+</head>
+<body>
+
+<header class="pm-header" id="pm-header"></header>
+
+<main>
+  <section style="max-width:1000px;margin:0 auto;padding:40px 24px 100px">
+    <div id="pm-loading" class="pm-loading">読み込み中…</div>
+
+    <div id="pm-sales" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:20px">
+        <div>
+          <span style="background:var(--pm-pro-navy);color:#fff;font:700 11px var(--pm-font-body);padding:4px 12px;border-radius:100px;display:inline-block;margin-bottom:10px">運営管理</span>
+          <h1 style="font:700 26px var(--pm-font-body);margin:0">売上管理</h1>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a class="pm-btn-outline" href="ops.html" style="text-decoration:none;display:inline-block">← 運営管理へ</a>
+          <button class="pm-btn-outline" id="logout-btn">ログアウト</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:20px">
+        <label style="font:12px var(--pm-font-body);color:var(--pm-text-3)">撮影月<br><select class="pm-select" id="sales-month" style="width:auto"></select></label>
+        <label style="font:12px var(--pm-font-body);color:var(--pm-text-3)">対象<br><select class="pm-select" id="sales-scope" style="width:auto;min-width:200px"></select></label>
+        <button class="pm-btn-outline" id="sales-csv">この月の明細をCSVで保存</button>
+      </div>
+
+      <div id="sales-warning"></div>
+      <div id="sales-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px"></div>
+      <div id="sales-breakdown" class="pm-card" style="padding:16px 20px;margin-bottom:28px"></div>
+
+      <h2 style="font:700 16px var(--pm-font-body);margin:0 0 12px" id="sales-detail-title"></h2>
+      <div id="sales-detail" style="margin-bottom:36px"></div>
+
+      <h2 style="font:700 16px var(--pm-font-body);margin:0 0 12px">月ごとの推移（直近12か月）</h2>
+      <div id="sales-trend" class="pm-card" style="padding:8px 8px 4px;overflow-x:auto;margin-bottom:28px"></div>
+
+      <div class="pm-card" style="padding:16px 20px;font:12px/1.9 var(--pm-font-body);color:var(--pm-text-3)">
+        <b style="color:oklch(0.35 0.02 235)">数字の見方</b><br>
+        すべて税込です。月は<b>撮影日</b>で分けています（サービスを提供した日に計上）。<br>
+        <b>売上</b>＝お客様からの入金 − 返金（キャンセル料は、返金しなかった分としてここに入ります）。
+        <b>報酬</b>＝カメラマンへの報酬（プラン料金の50％＋オプション1件¥1,100。キャンセルは当日補償のみ）。
+        <b>粗利</b>＝売上 − 報酬。<b>利益（概算）</b>＝粗利 − Stripe手数料（概算。実際の手数料は Stripe の管理画面で確認してください）。<br>
+        決済待ち・決済されなかった予約、無料の再撮影の入金は含みません（再撮影の報酬は0円です）。
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="pm-footer" id="pm-footer"></footer>
+<script type="module" src="js/pages/ops-sales.js?v=78781b9ba4"></script>
+</body>
+</html>
