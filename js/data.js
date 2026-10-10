@@ -628,6 +628,12 @@ export function noShowQuote(booking, now = new Date()) {
   return { allowed: true, fee, refund: paid - fee, photographerComp: SAME_DAY_CANCEL_COMPENSATION };
 }
 
+// 売上管理（ops-sales.html）で使う、Stripe の決済手数料の概算率（決済額に対して）。
+// 実際の率は Stripe との契約（ダッシュボードの「手数料」）に合わせて変更すること。
+export const STRIPE_FEE_RATE = 0.036;
+// 消費税率（売上の税抜表示用）。
+export const CONSUMPTION_TAX_RATE = 0.10;
+
 // 1件の予約についてカメラマンへ振り込む額。キャンセル済みは当日キャンセル補償のみ。
 export function photographerPayoutFor(booking) {
   if (booking.status === 'canceled') return booking.photographer_cancel_comp || 0;

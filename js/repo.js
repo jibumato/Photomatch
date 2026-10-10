@@ -285,6 +285,26 @@ export async function searchBookingsForOps(query) {
   return data.map((b) => ({ ...b, photographer_name: b.photographers?.name || b.photographer_id }));
 }
 
+// Ops: every booking with a shoot date in [fromIso, toIso], for 売上管理. PostgREST
+// returns at most 1,000 rows per request, so this reads in pages until done.
+export async function getBookingsForSales(fromIso, toIso) {
+  const rows = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*, photographers(name)')
+      .gte('booking_date', fromIso)
+      .lte('booking_date', toIso)
+      .order('booking_date', { ascending: true })
+      .order('id', { ascending: true })
+      .range(from, from + 999);
+    if (error) throw error;
+    rows.push(...data);
+    if (data.length < 1000) break;
+  }
+  return rows.map((b) => ({ ...b, photographer_name: b.photographers?.name || b.photographer_id }));
+}
+
 // Bookings from fromIso on (past shoots and cancellations included), with the
 // photographer's name, for the ops list. Ops can read every booking (RLS).
 export async function getBookingsForOps(fromIso) {
