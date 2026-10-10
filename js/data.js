@@ -631,6 +631,8 @@ export function noShowQuote(booking, now = new Date()) {
 // 売上管理（ops-sales.html）で使う、Stripe の決済手数料の概算率（決済額に対して）。
 // 実際の率は Stripe との契約（ダッシュボードの「手数料」）に合わせて変更すること。
 export const STRIPE_FEE_RATE = 0.036;
+// 経費の科目（売上管理で入力）。並び順のまま選択肢に出る。
+export const EXPENSE_CATEGORIES = ['広告宣伝費', '外注費（ヘアメイク等）', '交通費', '撮影機材・備品', '通信費・システム利用料', '支払手数料', '消耗品費', '会議費・交際費', 'その他'];
 // 消費税率（売上の税抜表示用）。
 export const CONSUMPTION_TAX_RATE = 0.10;
 

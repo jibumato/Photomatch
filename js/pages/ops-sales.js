@@ -1,8 +1,8 @@
 import { mountLayout } from '../layout.js';
 import { requireRole, signOut } from '../auth.js';
-import { getBookingsForSales } from '../repo.js';
-import { jstDateIso } from '../data.js';
-import { summarize, byMonth, byPhotographer, recentMonths, monthOf, bookingFinancials, isCounted, bookingsCsv } from '../sales.js';
+import { getBookingsForSales, getExpenses, addExpense, deleteExpense } from '../repo.js';
+import { jstDateIso, EXPENSE_CATEGORIES } from '../data.js';
+import { summarize, byMonth, byPhotographer, recentMonths, monthOf, bookingFinancials, isCounted, bookingsCsv, summarizeExpenses, expenseMonthOf, expensesCsv } from '../sales.js';
 
 mountLayout();
 
@@ -11,7 +11,8 @@ const yen = (n) => `${n < 0 ? '−' : ''}¥${Math.abs(Math.round(n || 0)).toLoca
 const monthLabel = (m) => `${m.slice(0, 4)}年${Number(m.slice(5))}月`;
 
 const months = recentMonths(jstDateIso(), 12);
-const state = { all: [], month: months[months.length - 1], scope: 'all' };
+const state = { all: [], expenses: [], expensesError: null, month: months[months.length - 1], scope: 'all' };
+const monthExpenses = () => state.expenses.filter((e) => expenseMonthOf(e) === state.month);
 
 const inScope = (b) => state.scope === 'all' || b.photographer_id === state.scope;
 const monthRows = () => state.all.filter((b) => inScope(b) && monthOf(b) === state.month);
@@ -35,6 +36,7 @@ function renderSummary() {
     card('売上（税込）', yen(s.net), `税抜 ${yen(s.netExTax)}（消費税 ${yen(s.tax)}）`),
     card('粗利', yen(s.gross), '売上 − カメラマン報酬'),
     card('利益（概算）', yen(s.profit), `Stripe手数料 約${yen(s.fee)} を引いた額`),
+    ...(state.scope === 'all' ? [(() => { const ex = summarizeExpenses(monthExpenses()).total; return card('営業利益（概算）', yen(s.profit - ex), `経費 ${yen(ex)} を引いた額`, s.profit - ex < 0 ? 'warn' : ''); })()] : []),
     card('予約件数', `${s.bookings}件`, s.canceledBookings ? `ほかにキャンセル ${s.canceledBookings}件` : '', ''),
     card('平均単価', yen(s.averageOrder), '通常の予約の売上÷件数'),
   ].join('');
@@ -84,15 +86,110 @@ function renderTrend() {
   const rows = state.all.filter(inScope);
   const data = byMonth(rows, months);
   const max = Math.max(1, ...data.map((d) => d.net));
-  document.getElementById('sales-trend').innerHTML = table(['月', '売上', '', '報酬', '粗利', '利益(概算)', '件数'],
+  const withExpenses = state.scope === 'all';
+  const exp = (m) => summarizeExpenses(state.expenses.filter((e) => expenseMonthOf(e) === m)).total;
+  const op = (d) => d.profit - exp(d.month);
+  document.getElementById('sales-trend').innerHTML = table(['月', '売上', '', '報酬', '粗利', '利益(概算)', ...(withExpenses ? ['経費', '営業利益'] : []), '件数'],
     data.map((d) => [
       d.month === state.month ? `<b>${monthLabel(d.month)}</b>` : monthLabel(d.month),
       yen(d.net),
       `<div style="width:120px;height:8px;border-radius:4px;background:var(--pm-bg-mint)"><div style="width:${Math.round((d.net / max) * 100)}%;height:100%;border-radius:4px;background:var(--pm-brand-grad)"></div></div>`,
-      yen(d.payout), yen(d.gross), yen(d.profit), `${d.bookings}`]), [1, 3, 4, 5, 6]);
+      yen(d.payout), yen(d.gross), yen(d.profit),
+      ...(withExpenses ? [yen(exp(d.month)), op(d) < 0 ? `<span style="color:var(--pm-warn-text)">${yen(op(d))}</span>` : yen(op(d))] : []),
+      `${d.bookings}`]), withExpenses ? [1, 3, 4, 5, 6, 7, 8] : [1, 3, 4, 5, 6]);
 }
 
-function render() { renderSummary(); renderDetail(); renderTrend(); }
+// ---- 経費（フォトマッチ全体のときだけ） ----
+function renderExpenses() {
+  const section = document.getElementById('sales-expenses-section');
+  section.style.display = state.scope === 'all' ? '' : 'none';
+  if (state.scope !== 'all') return;
+  document.getElementById('sales-expenses-title').textContent = `${monthLabel(state.month)}の経費`;
+  const el = document.getElementById('sales-expenses');
+  if (state.expensesError) {
+    el.innerHTML = `<div class="pm-error-text">${esc(state.expensesError)}</div>`;
+    return;
+  }
+  const list = monthExpenses();
+  const s = summarizeExpenses(list);
+  const cats = Object.entries(s.byCategory).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${esc(k)} ${yen(v)}`).join(' ／ ');
+  el.innerHTML = list.length
+    ? `<div style="font:13px var(--pm-font-body);color:oklch(0.35 0.02 235);margin-bottom:8px">合計 <b>${yen(s.total)}</b>　<span style="color:var(--pm-text-3)">${cats}</span></div>`
+      + table(['日付', '科目', '金額', 'メモ', ''], list.map((e) => [esc(e.expense_date), esc(e.category), yen(e.amount), esc(e.memo || ''),
+        `<button class="pm-btn-danger-outline btn-expense-delete" data-id="${esc(e.id)}" style="font-size:11px;padding:4px 10px">削除</button>`]), [2])
+    : '<div class="pm-empty">この月の経費はまだありません。</div>';
+  el.querySelectorAll('.btn-expense-delete').forEach((btn) => btn.addEventListener('click', async () => {
+    const e = state.expenses.find((x) => x.id === btn.dataset.id);
+    if (!e || !confirm(`${e.expense_date} ${e.category} ${yen(e.amount)} の経費を削除します。よろしいですか？`)) return;
+    btn.disabled = true;
+    try {
+      await deleteExpense(e.id);
+      state.expenses = state.expenses.filter((x) => x.id !== e.id);
+      render();
+    } catch (err) {
+      alert('削除に失敗しました。');
+      btn.disabled = false;
+    }
+  }));
+}
+
+function render() { renderSummary(); renderDetail(); renderExpenses(); renderTrend(); }
+
+function download(text, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function setupExpenseForm() {
+  document.getElementById('expense-category').innerHTML = EXPENSE_CATEGORIES.map((c) => `<option>${esc(c)}</option>`).join('');
+  const dateEl = document.getElementById('expense-date');
+  dateEl.value = jstDateIso();
+  document.getElementById('expense-form').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const errEl = document.getElementById('expense-error');
+    errEl.style.display = 'none';
+    const amountRaw = document.getElementById('expense-amount').value.trim();
+    const row = {
+      expense_date: dateEl.value,
+      category: document.getElementById('expense-category').value,
+      amount: Number(amountRaw),
+      memo: document.getElementById('expense-memo').value.trim() || null,
+    };
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(row.expense_date) || !/^\d+$/.test(amountRaw) || row.amount < 1) {
+      errEl.textContent = '日付と金額（1円以上の整数）を入力してください。';
+      errEl.style.display = 'block';
+      return;
+    }
+    const btn = document.getElementById('expense-add');
+    btn.disabled = true;
+    try {
+      const saved = await addExpense(row);
+      state.expenses.push(saved);
+      document.getElementById('expense-amount').value = '';
+      document.getElementById('expense-memo').value = '';
+      // Show the month the expense belongs to.
+      if (expenseMonthOf(saved) !== state.month && months.includes(expenseMonthOf(saved))) {
+        state.month = expenseMonthOf(saved);
+        document.getElementById('sales-month').value = state.month;
+      }
+      render();
+    } catch (err) {
+      console.error(err);
+      errEl.textContent = '保存できませんでした。Supabase で supabase/schema.sql を実行済みか確認してください。';
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+  document.getElementById('expenses-csv').addEventListener('click', () => {
+    download(`\uFEFF${expensesCsv(monthExpenses())}`, `photomatch-expenses-${state.month}.csv`);
+  });
+}
 
 function setScope(id) {
   state.scope = id;
@@ -112,14 +209,7 @@ function fillControls() {
 }
 
 document.getElementById('sales-csv').addEventListener('click', () => {
-  const csv = `﻿${bookingsCsv(monthRows())}`;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-  a.download = `photomatch-sales-${state.month}${state.scope === 'all' ? '' : `-${state.scope}`}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  download(`\uFEFF${bookingsCsv(monthRows())}`, `photomatch-sales-${state.month}${state.scope === 'all' ? '' : `-${state.scope}`}.csv`);
 });
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
@@ -132,6 +222,12 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   if (!profile) return;
   try {
     state.all = await getBookingsForSales(`${months[0]}-01`, `${months[months.length - 1]}-31`);
+    try {
+      state.expenses = await getExpenses(`${months[0]}-01`, `${months[months.length - 1]}-31`);
+    } catch (err) {
+      console.error(err);
+      state.expensesError = '経費を読み込めませんでした。Supabase で supabase/schema.sql を実行して、経費のテーブルを作ってください。';
+    }
   } catch (err) {
     console.error(err);
     document.getElementById('pm-loading').textContent = 'データの取得に失敗しました。';
@@ -140,5 +236,6 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   document.getElementById('pm-loading').style.display = 'none';
   document.getElementById('pm-sales').style.display = 'block';
   fillControls();
+  setupExpenseForm();
   render();
 })();

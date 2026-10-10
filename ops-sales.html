@@ -17,7 +17,7 @@
     "/js/availability.js": "/js/availability.js?v=6c98651534",
     "/js/chat.js": "/js/chat.js?v=99ccb7ab0d",
     "/js/config.js": "/js/config.js?v=e841133368",
-    "/js/data.js": "/js/data.js?v=3573d5ec04",
+    "/js/data.js": "/js/data.js?v=c44487133d",
     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=80dd5f9f12",
     "/js/i18n/columns.js": "/js/i18n/columns.js?v=a197583dfe",
     "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=1554b26024",
@@ -34,7 +34,7 @@
     "/js/pages/monitor.js": "/js/pages/monitor.js?v=9bb5e5dfba",
     "/js/pages/mypage.js": "/js/pages/mypage.js?v=8c24d3831b",
     "/js/pages/ops-login.js": "/js/pages/ops-login.js?v=91fbd27662",
-    "/js/pages/ops-sales.js": "/js/pages/ops-sales.js?v=78781b9ba4",
+    "/js/pages/ops-sales.js": "/js/pages/ops-sales.js?v=b10df98c5f",
     "/js/pages/ops.js": "/js/pages/ops.js?v=9a6417dd4d",
     "/js/pages/pro-login.js": "/js/pages/pro-login.js?v=3ae32cde71",
     "/js/pages/profile.js": "/js/pages/profile.js?v=8f0474aed9",
@@ -43,10 +43,10 @@
     "/js/pages/terms.js": "/js/pages/terms.js?v=88ad4c0312",
     "/js/pages/top.js": "/js/pages/top.js?v=5b023010b8",
     "/js/profileEditor.js": "/js/profileEditor.js?v=56cd2d2c43",
-    "/js/repo.js": "/js/repo.js?v=8cebf3bdf2",
+    "/js/repo.js": "/js/repo.js?v=19eacd5390",
     "/js/rescheduleModal.js": "/js/rescheduleModal.js?v=e06e9e8e9d",
     "/js/reviewModal.js": "/js/reviewModal.js?v=f1b4e1d948",
-    "/js/sales.js": "/js/sales.js?v=da440ea130",
+    "/js/sales.js": "/js/sales.js?v=36f09f622e",
     "/js/sheet.js": "/js/sheet.js?v=db853ce739",
     "/js/supabaseClient.js": "/js/supabaseClient.js?v=6e8b41def3",
     "/js/util.js": "/js/util.js?v=7532352c60",
@@ -89,6 +89,22 @@
       <h2 style="font:700 16px var(--pm-font-body);margin:0 0 12px" id="sales-detail-title"></h2>
       <div id="sales-detail" style="margin-bottom:36px"></div>
 
+      <div id="sales-expenses-section" style="margin-bottom:36px">
+        <h2 style="font:700 16px var(--pm-font-body);margin:0 0 12px" id="sales-expenses-title">経費</h2>
+        <div class="pm-card" style="padding:16px 20px;margin-bottom:12px">
+          <form id="expense-form" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;font:12px var(--pm-font-body);color:var(--pm-text-3)">
+            <label>日付<br><input class="pm-input" type="date" id="expense-date" required style="width:auto"></label>
+            <label>科目<br><select class="pm-select" id="expense-category" style="width:auto"></select></label>
+            <label>金額（税込・円）<br><input class="pm-input" type="number" id="expense-amount" min="1" step="1" inputmode="numeric" required style="width:140px"></label>
+            <label style="flex:1;min-width:180px">メモ（任意）<br><input class="pm-input" type="text" id="expense-memo" maxlength="200" placeholder="例）Instagram広告 10月分"></label>
+            <button class="pm-btn pm-btn-primary" type="submit" id="expense-add">経費を追加</button>
+          </form>
+          <div class="pm-error-text" id="expense-error" style="display:none;margin-top:8px"></div>
+        </div>
+        <div id="sales-expenses"></div>
+        <button class="pm-btn-outline" id="expenses-csv" style="margin-top:10px">この月の経費をCSVで保存</button>
+      </div>
+
       <h2 style="font:700 16px var(--pm-font-body);margin:0 0 12px">月ごとの推移（直近12か月）</h2>
       <div id="sales-trend" class="pm-card" style="padding:8px 8px 4px;overflow-x:auto;margin-bottom:28px"></div>
 
@@ -98,12 +114,13 @@
         <b>売上</b>＝お客様からの入金 − 返金（キャンセル料は、返金しなかった分としてここに入ります）。
         <b>報酬</b>＝カメラマンへの報酬（プラン料金の50％＋オプション1件¥1,100。キャンセルは当日補償のみ）。
         <b>粗利</b>＝売上 − 報酬。<b>利益（概算）</b>＝粗利 − Stripe手数料（概算。実際の手数料は Stripe の管理画面で確認してください）。<br>
-        決済待ち・決済されなかった予約、無料の再撮影の入金は含みません（再撮影の報酬は0円です）。
+        決済待ち・決済されなかった予約、無料の再撮影の入金は含みません（再撮影の報酬は0円です）。<br>
+        <b>経費</b>は運営が入力したもので、月は経費の日付で分けます（フォトマッチ全体のときだけ表示）。<b>営業利益（概算）</b>＝利益（概算） − 経費。
       </div>
     </div>
   </section>
 </main>
 <footer class="pm-footer" id="pm-footer"></footer>
-<script type="module" src="js/pages/ops-sales.js?v=78781b9ba4"></script>
+<script type="module" src="js/pages/ops-sales.js?v=b10df98c5f"></script>
 </body>
 </html>
