@@ -56,14 +56,15 @@ function renderDetail() {
   if (state.scope === 'all') {
     title.textContent = `${monthLabel(state.month)}のカメラマン別`;
     const list = byPhotographer(rows);
-    el.innerHTML = list.length ? table(['カメラマン', '件数', '売上', '報酬', '粗利', '未送金の報酬'],
+    el.innerHTML = list.length ? table(['カメラマン', '件数', '売上', '報酬', '粗利', '未送金の報酬', ''],
       list.map((g) => [`<a href="#" class="scope-link" data-id="${esc(g.id)}" style="color:oklch(0.45 0.14 210);font-weight:700">${esc(g.name)}</a>`,
-        `${g.bookings}${g.canceledBookings ? `<span style="color:var(--pm-text-muted)">（＋キャンセル${g.canceledBookings}）</span>` : ''}`, yen(g.net), yen(g.payout), yen(g.gross), g.payoutPending ? `<b style="color:var(--pm-warn-text)">${yen(g.payoutPending)}</b>` : '—']),
+        `${g.bookings}${g.canceledBookings ? `<span style="color:var(--pm-text-muted)">（＋キャンセル${g.canceledBookings}）</span>` : ''}`, yen(g.net), yen(g.payout), yen(g.gross), g.payoutPending ? `<b style="color:var(--pm-warn-text)">${yen(g.payoutPending)}</b>` : '—',
+        `<a href="payslip.html?month=${state.month}&photographer=${encodeURIComponent(g.id)}" style="color:oklch(0.45 0.14 210);font-weight:700">報酬明細</a>`]),
       [1, 2, 3, 4, 5]) : '<div class="pm-empty">この月の予約はありません。</div>';
     el.querySelectorAll('.scope-link').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); setScope(a.dataset.id); }));
   } else {
     const name = (state.all.find((b) => b.photographer_id === state.scope) || {}).photographer_name || '';
-    title.textContent = `${monthLabel(state.month)}の${name}さんの予約`;
+    title.innerHTML = `${esc(monthLabel(state.month))}の${esc(name)}さんの予約　<a href="payslip.html?month=${state.month}&photographer=${encodeURIComponent(state.scope)}" class="pm-btn-outline" style="text-decoration:none;display:inline-block;font-size:12px;padding:6px 14px;vertical-align:middle">報酬明細を開く</a>`;
     const list = rows.filter(isCounted);
     el.innerHTML = list.length ? table(['撮影日', '注文番号', 'お客様', 'プラン', '売上', '報酬', '粗利', '状態'],
       list.map((b) => {

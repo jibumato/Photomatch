@@ -377,10 +377,10 @@ function renderEarnings() {
     if (b.status !== 'canceled' && !b.delivered_at) g.undelivered += 1;
   });
   el.innerHTML = `<div class="pm-card" style="padding:6px 0;overflow-x:auto"><table style="width:100%;border-collapse:collapse;font:13px var(--pm-font-body)">
-    <thead><tr style="color:var(--pm-text-3);font-size:12px;text-align:left"><th style="padding:10px 16px">撮影月</th><th>件数</th><th>報酬の見込み</th><th>送金済み</th><th style="padding-right:16px">未納品</th></tr></thead>
+    <thead><tr style="color:var(--pm-text-3);font-size:12px;text-align:left"><th style="padding:10px 16px">撮影月</th><th>件数</th><th>報酬の見込み</th><th>送金済み</th><th>未納品</th><th style="padding-right:16px"></th></tr></thead>
     <tbody>${Object.keys(months).sort().reverse().map((m) => {
       const g = months[m];
-      return `<tr style="border-top:1px solid var(--pm-border-faint)"><td style="padding:10px 16px">${m.replace('-', '年')}月</td><td>${g.count}件</td><td>${yen(g.total)}</td><td>${yen(g.released)}</td><td style="padding-right:16px;${g.undelivered ? 'color:var(--pm-warn-text);font-weight:700' : ''}">${g.undelivered}件</td></tr>`;
+      return `<tr style="border-top:1px solid var(--pm-border-faint)"><td style="padding:10px 16px">${m.replace('-', '年')}月</td><td>${g.count}件</td><td>${yen(g.total)}</td><td>${yen(g.released)}</td><td style="${g.undelivered ? 'color:var(--pm-warn-text);font-weight:700' : ''}">${g.undelivered}件</td><td style="padding-right:16px;white-space:nowrap"><a href="payslip.html?month=${m}" style="color:oklch(0.45 0.14 210);font-weight:700">明細</a></td></tr>`;
     }).join('')}</tbody></table></div>`;
 }
 
