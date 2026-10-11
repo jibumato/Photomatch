@@ -9,6 +9,7 @@
 //   粗利   = 売上 − 原価
 //   手数料 = Stripe の決済手数料の概算（受け取った額 × STRIPE_FEE_RATE。返金しても戻らない）
 //   利益   = 粗利 − 手数料（概算）
+//   営業利益 = 利益 − 経費（運営が入力した経費。月は経費の日付で分ける）
 // 集計する月は「撮影日」で決める（サービスを提供した日に計上する）。
 import { photographerPayoutFor, STRIPE_FEE_RATE, CONSUMPTION_TAX_RATE } from './data.js';
 
@@ -123,4 +124,22 @@ export function bookingsCsv(list) {
       b.plan_price || 0, b.options_total || 0, f.paid, f.refunded, f.net, f.payout, f.gross, f.fee, label[b.status] || b.status, b.payout_status === 'released' ? '送金済み' : '未送金'];
   });
   return [head, ...rows].map((r) => r.map(csvCell).join(',')).join('\r\n');
+}
+
+// 経費の集計（運営が入力。月は expense_date で分ける）。
+export const expenseMonthOf = (e) => String(e.expense_date).slice(0, 7);
+
+export function summarizeExpenses(list) {
+  const byCategory = {};
+  let total = 0;
+  for (const e of list) {
+    total += e.amount || 0;
+    byCategory[e.category] = (byCategory[e.category] || 0) + (e.amount || 0);
+  }
+  return { total, byCategory };
+}
+
+export function expensesCsv(list) {
+  const head = ['日付', '科目', '金額（税込）', 'メモ'];
+  return [head, ...list.map((e) => [e.expense_date, e.category, e.amount, e.memo || ''])].map((r) => r.map(csvCell).join(',')).join('\r\n');
 }

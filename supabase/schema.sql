@@ -1156,3 +1156,20 @@ $$;
 -- （あとでプランの説明を変えても、予約済みの内容は変わらない）。
 alter table bookings add column if not exists plan_description text;
 
+-- 経費（売上管理 ops-sales.html で運営が入力）。金額は税込。運営だけが読み書きできる。
+create table if not exists expenses (
+  id uuid primary key default gen_random_uuid(),
+  expense_date date not null,
+  category text not null,
+  amount int not null check (amount > 0 and amount <= 100000000),
+  memo text check (memo is null or char_length(memo) <= 200),
+  created_by uuid references profiles(id) on delete set null default auth.uid(),
+  created_at timestamptz not null default now()
+);
+create index if not exists expenses_date_idx on expenses (expense_date);
+alter table expenses enable row level security;
+revoke all on expenses from anon;
+grant select, insert, delete on expenses to authenticated;
+drop policy if exists "expenses: ops all" on expenses;
+create policy "expenses: ops all" on expenses for all to authenticated using (is_ops()) with check (is_ops());
+

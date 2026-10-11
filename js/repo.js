@@ -285,6 +285,30 @@ export async function searchBookingsForOps(query) {
   return data.map((b) => ({ ...b, photographer_name: b.photographers?.name || b.photographer_id }));
 }
 
+// Ops: 経費 for 売上管理 (RLS lets only ops read/write the expenses table).
+export async function getExpenses(fromIso, toIso) {
+  const { data, error } = await supabase
+    .from('expenses')
+    .select('*')
+    .gte('expense_date', fromIso)
+    .lte('expense_date', toIso)
+    .order('expense_date', { ascending: true })
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data;
+}
+
+export async function addExpense(row) {
+  const { data, error } = await supabase.from('expenses').insert(row).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteExpense(id) {
+  const { error } = await supabase.from('expenses').delete().eq('id', id);
+  if (error) throw error;
+}
+
 // Ops: every booking with a shoot date in [fromIso, toIso], for 売上管理. PostgREST
 // returns at most 1,000 rows per request, so this reads in pages until done.
 export async function getBookingsForSales(fromIso, toIso) {
