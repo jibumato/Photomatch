@@ -27,6 +27,17 @@
   .st-info dt { font: 700 12px var(--pm-font-body); color: var(--pm-text-3); margin-top: 12px; }
   .st-info dt:first-child { margin-top: 0; }
   .st-info dd { margin: 2px 0 0; font: 14px/1.9 var(--pm-font-body); color: oklch(0.3 0.02 235); }
+  .st-gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 24px 4px; }
+  .st-gallery figure { margin: 0; position: relative; border-radius: 12px; overflow: hidden; background: var(--pm-bg-mint); }
+  .st-gallery img { width: 100%; height: 100%; object-fit: cover; display: block; aspect-ratio: 3 / 2; }
+  .st-gallery figure.tall { grid-row: span 2; }
+  .st-gallery figure.tall img { aspect-ratio: auto; height: 100%; }
+  @media (max-width: 760px) {
+    .st-gallery { padding: 0 16px 4px; }
+    .st-gallery figure.tall { grid-row: auto; grid-column: 1 / -1; }
+    .st-gallery figure.tall img { aspect-ratio: 4 / 3; height: auto; object-position: center 70%; }
+  }
+  .st-gallery figcaption { position: absolute; left: 8px; bottom: 8px; background: oklch(0.2 0.02 245 / 0.62); color: #fff; font: 700 11px var(--pm-font-body); padding: 3px 9px; border-radius: 100px; }
   @media (min-width: 761px) { .st-hero { grid-template-columns: 360px 1fr; gap: 40px; } }
 </style>
 <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
@@ -148,8 +159,13 @@
     </div>
 
     <div class="pm-card st-section" style="margin-top:16px;overflow:hidden">
-      <div style="padding:22px 24px 16px">
-        <h2>店舗情報</h2>
+      <div style="padding:22px 24px 12px"><h2 style="margin:0">店舗情報</h2></div>
+      <div class="st-gallery">
+        <figure class="tall"><img src="assets/salon-salowin-exterior.jpg" alt="SALOWIN 名古屋栄Suite店が入るビル（BLOOM SAKAE）の外観" loading="lazy"><figcaption>外観</figcaption></figure>
+        <figure><img src="assets/salon-salowin-interior.jpg" alt="SALOWIN 名古屋栄Suite店の店内" loading="lazy"><figcaption>店内</figcaption></figure>
+        <figure><img src="assets/salon-salowin-room.jpg" alt="SALOWIN 名古屋栄Suite店の個室" loading="lazy"><figcaption>個室</figcaption></figure>
+      </div>
+      <div style="padding:16px 24px 16px">
         <dl class="st-info" style="margin:0">
           <dt>サロン名</dt>
           <dd>SALOWIN 名古屋栄Suite店【サロウィン】</dd>
