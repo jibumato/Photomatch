@@ -18,6 +18,15 @@
   .st-chips li { padding: 6px 14px; border-radius: 100px; background: var(--pm-bg-mint); color: oklch(0.38 0.08 210); font: 700 13px var(--pm-font-body); }
   .st-section h2 { font: 700 17px var(--pm-font-body); margin: 0 0 10px; }
   .st-section p { font: 14px/2 var(--pm-font-body); color: oklch(0.35 0.02 235); margin: 0; }
+  .st-menu { width: 100%; border-collapse: collapse; font: 14px var(--pm-font-body); }
+  .st-menu td { padding: 12px 4px; border-top: 1px solid var(--pm-border-faint); vertical-align: top; }
+  .st-menu tr:first-child td { border-top: 0; }
+  .st-menu .name { font-weight: 700; color: oklch(0.3 0.02 235); }
+  .st-menu .sub { display: block; font-weight: 400; font-size: 12px; line-height: 1.7; color: var(--pm-text-3); margin-top: 2px; }
+  .st-menu .price { text-align: right; white-space: nowrap; font: 800 16px var(--pm-font-num); color: oklch(0.3 0.02 235); }
+  .st-info dt { font: 700 12px var(--pm-font-body); color: var(--pm-text-3); margin-top: 12px; }
+  .st-info dt:first-child { margin-top: 0; }
+  .st-info dd { margin: 2px 0 0; font: 14px/1.9 var(--pm-font-body); color: oklch(0.3 0.02 235); }
   @media (min-width: 761px) { .st-hero { grid-template-columns: 360px 1fr; gap: 40px; } }
 </style>
 <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
@@ -111,6 +120,30 @@
       <div class="pm-card st-section" style="padding:22px 24px">
         <h2>経歴</h2>
         <p>名古屋・栄の大手サロンで8年勤務したのち、フリーランスとして独立。美容師歴10年。</p>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:16px">
+      <div class="pm-card st-section" style="padding:22px 24px">
+        <h2>メニュー・料金</h2>
+        <table class="st-menu">
+          <tr><td><span class="name">カット</span><span class="sub">約60分／シャンプー・ブロー・スタイリング込み</span></td><td class="price">¥6,050</td></tr>
+          <tr><td><span class="name">ヘアセット（メンズ）</span><span class="sub">約20分／シャンプー・ブロー付き</span></td><td class="price">¥3,500</td></tr>
+          <tr><td><span class="name">ヘアセット（レディース）</span><span class="sub">約30分／シャンプー・ブロー付き、巻き髪などのスタイリング</span></td><td class="price">¥4,000</td></tr>
+          <tr><td><span class="name">フルメイクアップ（男女共通）</span><span class="sub">約30分</span></td><td class="price">¥3,500</td></tr>
+        </table>
+        <p style="font-size:12px;line-height:1.8;color:var(--pm-text-3);margin-top:12px">料金はすべて税込（正規料金）です。お支払いは、当日サロンにて直接お願いします（PhotoMatchでの撮影料金とは別のお支払いです）。</p>
+      </div>
+      <div class="pm-card st-section" style="padding:22px 24px">
+        <h2>営業時間・ご予約</h2>
+        <dl class="st-info" style="margin:0">
+          <dt>営業時間</dt>
+          <dd>10:00〜20:30</dd>
+          <dt>最終受付</dt>
+          <dd>カット：19:30まで<br>パーマ・カラー：18:30のご予約まで</dd>
+          <dt>ご予約のおすすめ</dt>
+          <dd>撮影日の2週間前までにご予約いただくと、ご希望の時間がとりやすくなります。</dd>
+        </dl>
       </div>
     </div>
   </section>
