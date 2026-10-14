@@ -37,14 +37,14 @@ function stateCell(s) {
 }
 
 function render(photographer, bookings) {
-  const st = statementFor(bookings, month);
+  const st = statementFor(bookings, month, jstDateIso(), { withholdingApplies: photographer.withholding_tax !== false });
   const rows = st.rows.map((r) => {
     const b = r.booking;
     const detail = b.status === 'canceled'
       ? `当日キャンセル補償${b.cancel_reason === 'no_show' ? '（遅刻キャンセル）' : ''}`
       : `${esc(b.plan_name)}${b.monitor_application_id ? '（モニター価格）' : ''}<br><span style="color:var(--pm-text-muted)">プラン料金 ${yen(b.plan_price)} × ${Math.round(PHOTOGRAPHER_PAYOUT_RATE * 100)}% ＝ ${yen(r.planPart)}${r.optionCount ? ` ／ オプション ${r.optionCount}件 × ${yen(OPTION_PAYOUT_PER_ITEM)} ＝ ${yen(r.optionPart)}` : ''}</span>`;
     return `<tr><td style="white-space:nowrap">${md(b.booking_date)} ${esc(String(b.start_time).slice(0, 5))}</td><td style="white-space:nowrap">${esc(b.order_number || '—')}</td>
-      <td>${esc(b.customer_name || '')} 様</td><td>${detail}</td><td class="num"><b>${yen(r.total)}</b></td><td style="white-space:nowrap">${stateCell(r.state)}</td></tr>`;
+      <td>${esc(b.customer_name || '')} 様</td><td>${detail}</td><td class="num"><b>${yen(r.total)}</b></td><td class="num">${r.withholding ? `−${yen(r.withholding)}${r.withholdingEstimated ? '<br><span style="color:var(--pm-text-muted);font-size:11px">見込み</span>' : ''}` : '—'}</td><td style="white-space:nowrap">${stateCell(r.state)}</td></tr>`;
   }).join('');
   const box = (label, value, color) => `<div style="flex:1;min-width:150px;border:1px solid var(--pm-border);border-radius:10px;padding:10px 14px"><div style="font:11px var(--pm-font-body);color:var(--pm-text-3)">${label}</div><div style="font:800 20px var(--pm-font-num);${color ? `color:${color}` : ''}">${value}</div></div>`;
   document.getElementById('ps-doc').innerHTML = `
@@ -60,19 +60,23 @@ function render(photographer, bookings) {
     <div style="font:700 17px var(--pm-font-body);border-bottom:1.5px solid oklch(0.3 0.02 235);display:inline-block;padding:0 24px 4px 0;margin-bottom:16px">${esc(photographer.name)} 様</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
       ${box('報酬合計（税込）', yen(st.total))}
-      ${box('送金済み', yen(st.released))}
-      ${box('未送金', yen(st.unpaid), st.unpaid ? 'var(--pm-warn-text)' : '')}
+      ${box('源泉徴収税額', st.withholding || st.withholdingApplies ? `−${yen(st.withholding)}` : '対象外')}
+      ${box('差引支払額', yen(st.net))}
+      ${box('うち未送金', yen(st.unpaid), st.unpaid ? 'var(--pm-warn-text)' : '')}
       ${box('件数', `${st.count}件${st.compCount ? `＋補償${st.compCount}件` : ''}`)}
     </div>
     ${st.rows.length ? `<div style="overflow-x:auto"><table class="ps-table">
-      <thead><tr><th>撮影日</th><th>注文番号</th><th>お客様</th><th>内容・計算</th><th class="num">報酬</th><th>状態</th></tr></thead>
+      <thead><tr><th>撮影日</th><th>注文番号</th><th>お客様</th><th>内容・計算</th><th class="num">報酬</th><th class="num">源泉徴収</th><th>状態</th></tr></thead>
       <tbody>${rows}</tbody>
-      <tfoot><tr><td colspan="4" style="text-align:right;font-weight:700;padding-top:10px">合計</td><td class="num" style="font-weight:800;padding-top:10px">${yen(st.total)}</td><td></td></tr></tfoot>
+      <tfoot>
+        <tr><td colspan="4" style="text-align:right;font-weight:700;padding-top:10px">報酬合計</td><td class="num" style="font-weight:800;padding-top:10px">${yen(st.total)}</td><td class="num" style="padding-top:10px">${st.withholding ? `−${yen(st.withholding)}` : '—'}</td><td></td></tr>
+        <tr><td colspan="4" style="text-align:right;font-weight:700">差引支払額</td><td class="num" colspan="2" style="font-weight:800;font-size:15px">${yen(st.net)}</td><td></td></tr>
+      </tfoot>
     </table></div>` : '<div class="pm-empty" style="margin:8px 0">この月に報酬の対象となる撮影はありません。</div>'}
     <div style="font:11px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin-top:16px;border-top:1px solid var(--pm-border-faint);padding-top:10px">
       ・報酬は「プラン料金の${Math.round(PHOTOGRAPHER_PAYOUT_RATE * 100)}%＋オプション1件につき${yen(OPTION_PAYOUT_PER_ITEM)}」です（モニター価格の予約は、実際のプラン料金の${Math.round(PHOTOGRAPHER_PAYOUT_RATE * 100)}%）。お客様の当日キャンセル・遅刻キャンセルは、補償のみをお支払いします。<br>
       ・お支払いは月末締め・翌月25日に、ご登録の口座へ銀行振込します。対象は、納品済みで撮影日から30日の保証期間が過ぎた予約です。「頃」の日付は目安で、マッチング数保証の申請・送金の保留・未納品があると後になります。<br>
-      ・金額は税込です。源泉徴収・インボイスの扱いについては、運営にお問い合わせください。
+      ・報酬額は税込です。${st.withholdingApplies ? '源泉徴収税額は、所得税及び復興特別所得税（1回の振込につき100万円以下の部分は10.21%、超える部分は20.42%）です。未送金分は、まとめて1回で振り込む場合の見込みです。' : 'この方の報酬は、源泉徴収の対象外として扱っています。'}
     </div>`;
 }
 

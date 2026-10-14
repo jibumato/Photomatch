@@ -3,7 +3,7 @@
 // (each with the same checks as /api/payouts/release) and emails each
 // photographer one summary of what was paid.
 import { verifyUser, getProfile, restSelect } from '../../_lib/supabaseAdmin.js';
-import { releaseOne } from '../../_lib/payouts.js';
+import { releaseOne, recordWithholding } from '../../_lib/payouts.js';
 import { sendEmail } from '../../_lib/email.js';
 
 function jsonResponse(body, status = 200) {
@@ -39,6 +39,18 @@ export async function onRequestPost({ request, env }) {
     }
   }
 
+  // 源泉徴収は、カメラマンごとの1回の振込（この記録でまとめて送る分）に対して計算する。
+  const transfers = {};
+  for (const [photographerId, items] of Object.entries(byPhotographer)) {
+    try {
+      transfers[photographerId] = await recordWithholding(env, photographerId, items);
+    } catch (err) {
+      console.error('release-batch: withholding failed', photographerId, err);
+      const gross = items.reduce((n, r) => n + r.amount, 0);
+      transfers[photographerId] = { gross, withholding: 0, net: gross, failed: true };
+    }
+  }
+
   const origin = new URL(request.url).origin;
   for (const [photographerId, items] of Object.entries(byPhotographer)) {
     try {
@@ -47,15 +59,17 @@ export async function onRequestPost({ request, env }) {
       const [pro] = await restSelect(env, 'profiles', { id: `eq.${photographer.profile_id}`, select: 'email' });
       if (!pro || !pro.email) continue;
       const total = items.reduce((sum, r) => sum + r.amount, 0);
+      const t = transfers[photographerId];
+      const taxLines = t.withholding ? `\n源泉徴収税額（所得税及び復興特別所得税）：−¥${t.withholding.toLocaleString()}\nお振込額：¥${t.net.toLocaleString()}` : '';
       const lines = items.map((r) => `・${r.booking.booking_date} ${r.booking.status === 'canceled' ? '当日キャンセル補償' : r.booking.plan_name}　¥${r.amount.toLocaleString()}`).join('\n');
       await sendEmail(env, {
         to: pro.email,
-        subject: `【PhotoMatch】報酬をお振り込みしました（¥${total.toLocaleString()}）`,
-        text: `${photographer.name} さん\n\nいつもありがとうございます。以下の報酬を、ご登録の口座にお振り込みしました（または、お振り込みの手続きをしました）。\n\n${lines}\n\n合計：¥${total.toLocaleString()}（${items.length}件）\n\n明細は管理画面の「報酬」からもご確認いただけます。\n${origin}/admin.html\n\n――――――――――\nPhotoMatch\nお問い合わせ：info.photomatch@gmail.com`,
+        subject: `【PhotoMatch】報酬をお振り込みしました（¥${t.net.toLocaleString()}）`,
+        text: `${photographer.name} さん\n\nいつもありがとうございます。以下の報酬を、ご登録の口座にお振り込みしました（または、お振り込みの手続きをしました）。\n\n${lines}\n\n報酬合計：¥${total.toLocaleString()}（${items.length}件）${taxLines}\n\n明細は管理画面の「報酬」の「明細」からもご確認いただけます。\n${origin}/admin.html\n\n――――――――――\nPhotoMatch\nお問い合わせ：info.photomatch@gmail.com`,
       });
     } catch (err) {
       console.error('release-batch: email failed', photographerId, err);
     }
   }
-  return jsonResponse({ ok: true, results, released: results.filter((r) => r.ok).length });
+  return jsonResponse({ ok: true, results, released: results.filter((r) => r.ok).length, transfers });
 }

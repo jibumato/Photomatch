@@ -636,6 +636,32 @@ export const EXPENSE_CATEGORIES = ['広告宣伝費', '外注費（ヘアメイ�
 // 消費税率（売上の税抜表示用）。
 export const CONSUMPTION_TAX_RATE = 0.10;
 
+// 源泉徴収（カメラマンへの報酬＝写真の撮影料。個人への支払いは所得税・復興特別所得税を
+// 差し引いて支払い、翌月10日までに税務署へ納付する）。1回の支払い（振込）ごとに、
+// 100万円以下の部分は10.21%、100万円を超える部分は20.42%。1円未満は切り捨て。
+// 報酬額は税込で、請求書で消費税を分けていないため、税込額を基準にする。
+// 法人のカメラマンなど対象外の人は、運営画面で photographers.withholding_tax を外す。
+export const WITHHOLDING_RATE = 0.1021;
+export const WITHHOLDING_HIGH_RATE = 0.2042;
+export const WITHHOLDING_THRESHOLD = 1000000;
+export function withholdingTaxFor(amount) {
+  const a = Math.max(0, Math.floor(amount || 0));
+  if (a <= WITHHOLDING_THRESHOLD) return Math.floor(a * WITHHOLDING_RATE);
+  // 2つの税率の部分を合わせてから切り捨てる（国税庁の計算方法）。
+  return Math.floor(WITHHOLDING_THRESHOLD * WITHHOLDING_RATE + (a - WITHHOLDING_THRESHOLD) * WITHHOLDING_HIGH_RATE);
+}
+// 1回の支払いの源泉徴収額を、予約ごとの報酬額に比例して割り振る（記録・明細用）。
+// 端数は報酬の大きい予約から1円ずつ足して、合計を支払い全体の税額に合わせる。
+export function allocateWithholding(amounts, total) {
+  const sum = amounts.reduce((n, a) => n + a, 0);
+  if (!sum || !total) return amounts.map(() => 0);
+  const shares = amounts.map((a) => Math.floor((total * a) / sum));
+  let rest = total - shares.reduce((n, a) => n + a, 0);
+  const order = amounts.map((a, i) => i).sort((i, j) => amounts[j] - amounts[i]);
+  for (let k = 0; rest > 0; k = (k + 1) % order.length, rest -= 1) shares[order[k]] += 1;
+  return shares;
+}
+
 // 1件の予約についてカメラマンへ振り込む額。キャンセル済みは当日キャンセル補償のみ。
 export function photographerPayoutFor(booking) {
   if (booking.status === 'canceled') return booking.photographer_cancel_comp || 0;

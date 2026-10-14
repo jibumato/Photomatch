@@ -4,7 +4,7 @@
 // money itself. The checks are in functions/_lib/payouts.js; the
 // 「まとめて振込済みにする」 button uses /api/payouts/release-batch.
 import { verifyUser, getProfile } from '../../_lib/supabaseAdmin.js';
-import { releaseOne } from '../../_lib/payouts.js';
+import { releaseOne, recordWithholding } from '../../_lib/payouts.js';
 
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -29,7 +29,8 @@ export async function onRequestPost({ request, env }) {
   try {
     const result = await releaseOne(env, bookingId, note);
     if (result.error) return jsonResponse({ error: result.error }, result.status);
-    return jsonResponse({ success: true, amount: result.amount });
+    const tax = await recordWithholding(env, result.booking.photographer_id, [result]);
+    return jsonResponse({ success: true, amount: result.amount, withholding: tax.withholding, net: tax.net });
   } catch (err) {
     console.error('payouts/release failed', err);
     return jsonResponse({ error: '更新に失敗しました。時間をおいて再度お試しください。' }, 502);
