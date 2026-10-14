@@ -11,7 +11,7 @@
 //   利益   = 粗利 − 手数料（概算）
 //   営業利益 = 利益 − 経費（運営が入力した経費。月は経費の日付で分ける）
 // 集計する月は「撮影日」で決める（サービスを提供した日に計上する）。
-import { photographerPayoutFor, STRIPE_FEE_RATE, CONSUMPTION_TAX_RATE } from './data.js';
+import { photographerPayoutFor, STRIPE_FEE_RATE, CONSUMPTION_TAX_RATE, jstDateIso } from './data.js';
 
 const ACTIVE = ['paid', 'confirmed', 'requested', 'completed'];
 
@@ -143,3 +143,20 @@ export function expensesCsv(list) {
   const head = ['日付', '科目', '金額（税込）', 'メモ'];
   return [head, ...list.map((e) => [e.expense_date, e.category, e.amount, e.memo || ''])].map((r) => r.map(csvCell).join(',')).join('\r\n');
 }
+
+// その月（日本時間）に送金を記録した報酬と、そこから差し引いた源泉徴収額（預り金）。
+// 源泉徴収税は、支払った月の翌月10日までに税務署へ納付する。
+export function payoutsReleasedIn(list, month) {
+  let paid = 0;
+  let withholding = 0;
+  let count = 0;
+  for (const b of list) {
+    if (b.payout_status !== 'released' || !b.payout_released_at) continue;
+    if (jstDateIso(new Date(b.payout_released_at)).slice(0, 7) !== month) continue;
+    paid += photographerPayoutFor(b);
+    withholding += b.payout_withholding || 0;
+    count += 1;
+  }
+  return { paid, withholding, transferred: paid - withholding, count };
+}
+

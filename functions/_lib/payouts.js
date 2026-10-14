@@ -1,7 +1,7 @@
 // Recording a photographer payout (the money itself goes by bank transfer,
 // done by ops). Shared by /api/payouts/release (one booking) and
 // /api/payouts/release-batch (the 「まとめて振込済みにする」 button).
-import { addDaysToIso, GUARANTEE_WINDOW_DAYS, guaranteeBlocksPayout, guaranteeClaimDeadline, photographerPayoutFor } from '../../js/data.js';
+import { addDaysToIso, GUARANTEE_WINDOW_DAYS, guaranteeBlocksPayout, guaranteeClaimDeadline, photographerPayoutFor, withholdingTaxFor, allocateWithholding } from '../../js/data.js';
 import { restSelect, restUpdate } from './supabaseAdmin.js';
 
 // Resolves to { ok: true, amount, booking } or { error, status }.
@@ -51,3 +51,20 @@ export async function releaseOne(env, bookingId, note) {
   if (!updated.length) return { error: 'この予約は送金済みか、保留中です。画面を読み込み直してください。', status: 409 };
   return { ok: true, amount, booking };
 }
+
+// 1回の振込（同じカメラマンの、同時に記録した予約）について源泉徴収額を計算し、予約ごとに
+// 割り振って bookings.payout_withholding に記録する。items: releaseOne の成功結果の配列。
+// 返り値 { gross, withholding, net }（net＝実際に振り込む額）。
+export async function recordWithholding(env, photographerId, items) {
+  const gross = items.reduce((n, r) => n + r.amount, 0);
+  const [photographer] = await restSelect(env, 'photographers', { id: `eq.${photographerId}`, select: 'withholding_tax' });
+  const applies = !photographer || photographer.withholding_tax !== false;
+  const withholding = applies ? withholdingTaxFor(gross) : 0;
+  const shares = allocateWithholding(items.map((r) => r.amount), withholding);
+  for (let i = 0; i < items.length; i++) {
+    await restUpdate(env, 'bookings', { id: `eq.${items[i].booking.id}` }, { payout_withholding: shares[i] });
+    items[i].withholding = shares[i];
+  }
+  return { gross, withholding, net: gross - withholding };
+}
+

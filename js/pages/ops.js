@@ -4,13 +4,13 @@ import {
   getGuaranteeClaimsForReview, reviewGuaranteeClaim,
   getMonitorApplicationsForReview, reviewMonitorApplication,
   getPayoutCandidates, getGuaranteeClaimsForBookings, releasePayouts, getMonitorSlotsLeft, getBankAccountsForPhotographers,
-  createPhotographerAccount, resetPhotographerPassword, markNoShow, getPhotographersForReview, setPhotographerVisibility, setPhotographerShootCount,
+  createPhotographerAccount, resetPhotographerPassword, markNoShow, getPhotographersForReview, setPhotographerVisibility, setPhotographerShootCount, setPhotographerWithholding,
   getReviewsForModeration, setReviewHidden,
   getBookingsForOps, searchBookingsForOps, getBookingsNeedingAttention, opsCancelBooking, markRefunded, setPayoutHold, sendStaffPick,
 } from '../repo.js';
 import {
   AREAS, EXTRA_OPTIONS, OPS_CANCEL_REASONS, RESCHEDULABLE_STATUSES, awaitingPhotographerAck, photographerPayoutFor, noShowQuote, jstDateIso, addDaysToIso,
-  guaranteeBlocksPayout, guaranteeClaimDeadline, MONITOR_CAPACITY, OPPOSITE_SEX_OPTION_KEY, isValidDeliveryUrl,
+  guaranteeBlocksPayout, guaranteeClaimDeadline, MONITOR_CAPACITY, OPPOSITE_SEX_OPTION_KEY, isValidDeliveryUrl, withholdingTaxFor,
 } from '../data.js';
 import { mountRescheduleModal } from '../rescheduleModal.js';
 import { safePhotoUrl } from '../util.js';
@@ -237,6 +237,10 @@ function listingCardHtml(p) {
       <div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${escapeHtml(p.area || '未設定')} ・ ${gender} ・ 料金プラン ${p.planCount}件${p.instagram ? ` ・ Instagram @${escapeHtml(p.instagram)}` : ''}</div>
       ${p.price_comment ? `<div style="font:12px/1.7 var(--pm-font-body);color:oklch(0.4 0.02 235);margin-top:6px">ひとこと：${escapeHtml(p.price_comment)}</div>` : ''}
       ${p.bio ? `<div style="font:12px/1.7 var(--pm-font-body);color:oklch(0.4 0.02 235);background:var(--pm-bg-mint);border-radius:10px;padding:10px 12px;margin-top:8px;white-space:pre-wrap">${escapeHtml(p.bio)}</div>` : ''}
+      <label style="display:flex;align-items:center;gap:6px;margin-top:10px;font:12px var(--pm-font-body);color:oklch(0.4 0.02 235);cursor:pointer">
+        <input type="checkbox" class="withholding-toggle" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.name || '')}" ${p.withholding_tax === false ? '' : 'checked'}>
+        報酬から源泉徴収する（個人の場合。法人などは外す）
+      </label>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;font:12px var(--pm-font-body);color:oklch(0.4 0.02 235)">
         撮影実績
         <input class="pm-input shoot-count-input" data-id="${escapeHtml(p.id)}" type="number" min="0" step="1" inputmode="numeric" value="${Number.isInteger(p.shoot_count) ? p.shoot_count : ''}" placeholder="未設定" style="width:96px;padding:6px 10px">
@@ -287,6 +291,24 @@ async function loadListings() {
       });
     });
   };
+  document.querySelectorAll('.withholding-toggle').forEach((box) => {
+    box.addEventListener('change', async () => {
+      const on = box.checked;
+      if (!confirm(on ? `${box.dataset.name}さんの報酬から、源泉徴収をするようにします。よろしいですか？` : `${box.dataset.name}さんの報酬から、源泉徴収をしないようにします（法人など対象外の場合のみ）。よろしいですか？`)) {
+        box.checked = !on;
+        return;
+      }
+      box.disabled = true;
+      try {
+        await setPhotographerWithholding(box.dataset.id, on);
+        await Promise.all([loadListings(), loadPayouts()]);
+      } catch (err) {
+        alert(err.message || '保存に失敗しました。');
+        box.checked = !on;
+        box.disabled = false;
+      }
+    });
+  });
   document.querySelectorAll('.btn-shoot-count-save').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const input = document.querySelector(`.shoot-count-input[data-id="${CSS.escape(btn.dataset.id)}"]`);
@@ -392,7 +414,8 @@ function payoutGroupHtml(group, { ready }) {
       <div style="min-width:0">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
           <span style="font:700 15px var(--pm-font-body)">${escapeHtml(group.photographerName)}</span>
-          <span style="font:700 14px var(--pm-font-num);color:oklch(0.4 0.14 200)">合計 ¥${group.total.toLocaleString()}（${group.items.length}件）</span>
+          <span style="font:700 14px var(--pm-font-num);color:oklch(0.4 0.14 200)">報酬 ¥${group.total.toLocaleString()}（${group.items.length}件）</span>
+          <span style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${group.withholding ? `源泉徴収 −¥${group.withholding.toLocaleString()} → <b style="color:oklch(0.3 0.02 235)">振込額 ¥${group.net.toLocaleString()}</b>` : '源泉徴収なし（対象外）'}</span>
         </div>
       </div>
     </div>
@@ -400,7 +423,7 @@ function payoutGroupHtml(group, { ready }) {
     <div style="margin-bottom:10px">${bookingLines}</div>
     ${ready ? `
     <div style="display:flex;gap:8px">
-      <button data-photographer-id="${group.photographerId}" data-booking-ids="${group.items.map((b) => b.id).join(',')}" data-total="${group.total}" class="btn-payout-release" ${group.bankAccount ? '' : 'disabled'} style="background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 18px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer">まとめて振込済みにする</button>
+      <button data-photographer-id="${group.photographerId}" data-booking-ids="${group.items.map((b) => b.id).join(',')}" data-total="${group.total}" data-withholding="${group.withholding}" data-net="${group.net}" class="btn-payout-release" ${group.bankAccount ? '' : 'disabled'} style="background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 18px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer">まとめて振込済みにする</button>
     </div>` : ''}
   </div>`;
 }
@@ -413,6 +436,7 @@ function groupByPhotographer(bookings, bankAccounts) {
       map.set(key, {
         photographerId: key,
         photographerName: b.photographers?.name || key,
+        withholdingApplies: b.photographers?.withholding_tax !== false,
         bankAccount: bankAccounts[key] || null,
         items: [],
         total: 0,
@@ -422,7 +446,11 @@ function groupByPhotographer(bookings, bankAccounts) {
     group.items.push(b);
     group.total += photographerPayoutFor(b);
   });
-  return [...map.values()];
+  // 源泉徴収は1回の振込（まとめて送る分）にかかる。表示は「まとめて振込済みにする」で送る場合の額。
+  return [...map.values()].map((g) => {
+    const withholding = g.withholdingApplies ? withholdingTaxFor(g.total) : 0;
+    return { ...g, withholding, net: g.total - withholding };
+  });
 }
 
 async function loadPayouts() {
@@ -466,7 +494,10 @@ async function loadPayouts() {
     btn.addEventListener('click', async () => {
       const ids = btn.dataset.bookingIds.split(',');
       const total = Number(btn.dataset.total).toLocaleString();
-      if (!confirm(`${ids.length}件・合計¥${total}を銀行振込済みとして記録します（実際の振込は別途行ってください）。よろしいですか？`)) return;
+      const withholding = Number(btn.dataset.withholding);
+      const net = Number(btn.dataset.net).toLocaleString();
+      const taxLine = withholding ? `\n源泉徴収：−¥${withholding.toLocaleString()}（翌月10日までに税務署へ納付）\n振込額：¥${net}` : '\n源泉徴収：なし（対象外）';
+      if (!confirm(`${ids.length}件・報酬¥${total}を銀行振込済みとして記録します（実際の振込は別途行ってください）。${taxLine}\n\nよろしいですか？`)) return;
       btn.disabled = true;
       try {
         const res = await releasePayouts(ids, '月次バッチ（月末締め・翌月25日払い）');

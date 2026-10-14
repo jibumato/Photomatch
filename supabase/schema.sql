@@ -1173,3 +1173,10 @@ grant select, insert, delete on expenses to authenticated;
 drop policy if exists "expenses: ops all" on expenses;
 create policy "expenses: ops all" on expenses for all to authenticated using (is_ops()) with check (is_ops());
 
+-- 源泉徴収（js/data.js の withholdingTaxFor）。カメラマンごとに対象かどうか（法人などは false）。
+-- 運営だけが変更する（本人用の update 権限には含めない）。
+alter table photographers add column if not exists withholding_tax boolean not null default true;
+-- 送金を記録したときに差し引いた源泉徴収額（1回の振込の税額を予約ごとに割り振ったもの）。
+-- 振込額＝報酬 − この額。税務署への納付・支払調書の作成に使う。
+alter table bookings add column if not exists payout_withholding int not null default 0;
+

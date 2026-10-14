@@ -535,7 +535,7 @@ export async function getBankAccountsForPhotographers(photographerIds) {
 export async function getPayoutCandidates() {
   const { data, error } = await supabase
     .from('bookings')
-    .select('*, photographers(name)')
+    .select('*, photographers(name, withholding_tax)')
     // paid bookings, plus canceled ones that owe a same-day compensation
     .or('status.eq.paid,and(status.eq.canceled,photographer_cancel_comp.gt.0)')
     .eq('payout_status', 'pending')
@@ -577,6 +577,11 @@ export async function getPhotographersForReview() {
 // photographers flip it on their own row.
 // verified: ops confirms the photographer has completed ID verification and
 // service training (required the first time a photographer is published).
+// Ops: whether 源泉徴収 is deducted from this photographer's payouts.
+export async function setPhotographerWithholding(photographerId, withholdingTax) {
+  return callApi('/api/photographers/settings', { photographer_id: photographerId, withholding_tax: withholdingTax }, '保存に失敗しました。');
+}
+
 // Ops: the 撮影実績 badge (「実績250+」). null hides it.
 export async function setPhotographerShootCount(photographerId, shootCount) {
   return callApi('/api/photographers/shoot-count', { photographer_id: photographerId, shoot_count: shootCount }, '保存に失敗しました。');

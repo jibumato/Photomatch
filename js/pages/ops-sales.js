@@ -2,7 +2,7 @@ import { mountLayout } from '../layout.js';
 import { requireRole, signOut } from '../auth.js';
 import { getBookingsForSales, getExpenses, addExpense, deleteExpense } from '../repo.js';
 import { jstDateIso, EXPENSE_CATEGORIES } from '../data.js';
-import { summarize, byMonth, byPhotographer, recentMonths, monthOf, bookingFinancials, isCounted, bookingsCsv, summarizeExpenses, expenseMonthOf, expensesCsv } from '../sales.js';
+import { summarize, byMonth, byPhotographer, recentMonths, monthOf, bookingFinancials, isCounted, bookingsCsv, summarizeExpenses, expenseMonthOf, expensesCsv, payoutsReleasedIn } from '../sales.js';
 
 mountLayout();
 
@@ -46,7 +46,15 @@ function renderSummary() {
   document.getElementById('sales-breakdown').innerHTML = `<div style="display:flex;gap:18px 28px;flex-wrap:wrap;font:13px var(--pm-font-body)">
     ${item('プラン売上', yen(s.planRevenue))}${item('オプション売上', yen(s.optionRevenue))}${item('キャンセル料収入', yen(s.cancelRevenue))}
     ${item('お客様からの入金', yen(s.paid))}${item('返金', yen(s.refunded))}
-    ${item('カメラマン報酬', yen(s.payout))}${item('報酬の送金', payoutNote)}</div>`;
+    ${item('カメラマン報酬', yen(s.payout))}${item('報酬の送金', payoutNote)}</div>
+    ${(() => {
+      const r = payoutsReleasedIn(state.all.filter(inScope), state.month);
+      if (!r.count) return '';
+      const due = (() => { let [y, m] = state.month.split('-').map(Number); m += 1; if (m === 13) { m = 1; y += 1; } return `${y}年${m}月10日`; })();
+      return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pm-border-faint);font:12px/1.8 var(--pm-font-body);color:oklch(0.35 0.02 235)">
+        <b>${esc(monthLabel(state.month))}に送金を記録した報酬</b>（撮影月に関係なく、送金した月で集計）：報酬 ${yen(r.paid)}（${r.count}件）／振込額 ${yen(r.transferred)}／
+        <b>源泉徴収の預り金 ${yen(r.withholding)}</b>${r.withholding ? `<span style="color:var(--pm-warn-text)">（${due}までに税務署へ納付）</span>` : ''}</div>`;
+    })()}`;
 }
 
 function renderDetail() {

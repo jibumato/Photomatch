@@ -10,6 +10,7 @@
 // 送金の保留・未納品があると、さらに後になる）。
 import {
   photographerPayoutFor, PHOTOGRAPHER_PAYOUT_RATE, OPTION_PAYOUT_PER_ITEM, GUARANTEE_WINDOW_DAYS, addDaysToIso, jstDateIso,
+  withholdingTaxFor, allocateWithholding,
 } from './data.js';
 
 export const ISSUER = 'PhotoMatch運営事務局';
@@ -45,13 +46,26 @@ export function payoutState(b, today = jstDateIso()) {
 
 // その月（撮影月）に報酬・補償が出る予約の明細。決済待ち・報酬0円（無料の再撮影、
 // 補償のないキャンセル）は載せない。
-export function statementFor(bookings, month, today = jstDateIso()) {
+// 源泉徴収：送金済みの行は、送金時に記録した額（payout_withholding）。未送金の行は、
+// 未送金分をまとめて1回で振り込むとした場合の見込み額を割り振る（withholdingApplies が
+// false のカメラマン〈法人など〉は0円）。
+export function statementFor(bookings, month, today = jstDateIso(), { withholdingApplies = true } = {}) {
   const rows = bookings
     .filter((b) => String(b.booking_date).slice(0, 7) === month && b.status !== 'pending_payment' && photographerPayoutFor(b) > 0)
     .sort((a, b) => (a.booking_date + a.start_time < b.booking_date + b.start_time ? -1 : 1))
     .map((b) => ({ booking: b, ...payoutBreakdown(b), state: payoutState(b, today) }));
+  const unpaidRows = rows.filter((r) => r.state.key !== 'released');
+  const unpaidGross = unpaidRows.reduce((n, r) => n + r.total, 0);
+  const estimate = withholdingApplies ? withholdingTaxFor(unpaidGross) : 0;
+  const shares = allocateWithholding(unpaidRows.map((r) => r.total), estimate);
+  unpaidRows.forEach((r, i) => { r.withholding = shares[i]; r.withholdingEstimated = true; });
+  rows.forEach((r) => { if (r.state.key === 'released') r.withholding = r.booking.payout_withholding || 0; });
   const sum = (pred) => rows.filter(pred).reduce((n, r) => n + r.total, 0);
+  const withholding = rows.reduce((n, r) => n + r.withholding, 0);
   return {
+    withholding,
+    net: rows.reduce((n, r) => n + r.total, 0) - withholding,
+    withholdingApplies,
     month,
     rows,
     total: sum(() => true),
