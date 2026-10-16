@@ -5,11 +5,11 @@
 // 報酬の内訳は photographerPayoutFor（js/data.js）と同じルール：
 //   プラン料金 × 50%（モニター価格は実際のプラン料金の50%）＋ オプション1件 ¥1,100、
 //   キャンセルは当日キャンセル・遅刻キャンセルの補償（¥2,000）のみ。
-// 支払予定日は「月末締め・翌月25日払い」の目安。通常の予約は撮影日から30日の保証期間を
-// 過ぎた月の翌月25日、当日キャンセルの補償は撮影月の翌月25日（マッチング数保証の申請・
-// 送金の保留・未納品があると、さらに後になる）。
+// 支払予定日は「納品月末締め・翌月25日払い」：納品した月の翌月25日、当日キャンセルの補償は
+// 撮影月の翌月25日（payoutBasisDate）。撮影前は納品期限の月の翌月25日を目安として出す。
+// 送金の保留・未納品があると、後になる。
 import {
-  photographerPayoutFor, PHOTOGRAPHER_PAYOUT_RATE, OPTION_PAYOUT_PER_ITEM, GUARANTEE_WINDOW_DAYS, addDaysToIso, jstDateIso,
+  photographerPayoutFor, PHOTOGRAPHER_PAYOUT_RATE, OPTION_PAYOUT_PER_ITEM, payoutBasisDate, deliveryDueDate, jstDateIso,
   withholdingTaxFor, allocateWithholding,
 } from './data.js';
 
@@ -38,10 +38,10 @@ export function payoutBreakdown(b) {
 export function payoutState(b, today = jstDateIso()) {
   if (b.payout_status === 'released') return { key: 'released', label: '送金済み', date: b.payout_released_at ? jstDateIso(new Date(b.payout_released_at)) : null };
   if (b.payout_hold) return { key: 'held', label: '保留中', note: b.payout_hold_reason || '' };
-  if (b.status === 'canceled') return { key: 'scheduled', label: '支払予定', date: nextMonth25(b.booking_date) };
-  if (b.booking_date > today) return { key: 'before', label: '撮影前', date: nextMonth25(addDaysToIso(b.booking_date, GUARANTEE_WINDOW_DAYS)) };
-  if (!b.delivered_at) return { key: 'undelivered', label: '未納品', note: '納品すると支払いの対象になります' };
-  return { key: 'scheduled', label: '支払予定', date: nextMonth25(addDaysToIso(b.booking_date, GUARANTEE_WINDOW_DAYS)) };
+  if (b.status === 'canceled') return { key: 'scheduled', label: '支払予定', date: nextMonth25(payoutBasisDate(b)) };
+  if (b.booking_date > today) return { key: 'before', label: '撮影前', date: nextMonth25(deliveryDueDate(b).date) };
+  if (!b.delivered_at) return { key: 'undelivered', label: '未納品', note: '納品すると、納品した月の翌月25日に支払います' };
+  return { key: 'scheduled', label: '支払予定', date: nextMonth25(payoutBasisDate(b)) };
 }
 
 // その月（撮影月）に報酬・補償が出る予約の明細。決済待ち・報酬0円（無料の再撮影、
