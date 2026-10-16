@@ -245,6 +245,68 @@ export const MEETING_POINTS = [
   { key: 'gifu1', label: '岐阜', labelEn: 'Gifu', detail: 'ドトールコーヒーショップ アスティ岐阜店 前', detailEn: 'In front of Doutor Coffee Shop Asty Gifu store', mapQuery: 'ドトールコーヒーショップ アスティ岐阜店' },
 ];
 
+// 季節ごとのおすすめ撮影ロケーション（トップページ）。season は SEASONS の key。
+// mapUrl は Google マップの共有リンク（運営が指定したものをそのまま使う）。
+export const SEASONS = [
+  { key: 'spring', months: [3, 4, 5], label: '春', labelEn: 'Spring', range: '3〜5月', rangeEn: 'Mar–May', icon: '🌸' },
+  { key: 'summer', months: [6, 7, 8], label: '夏', labelEn: 'Summer', range: '6〜8月', rangeEn: 'Jun–Aug', icon: '🌿' },
+  { key: 'autumn', months: [9, 10, 11], label: '秋', labelEn: 'Autumn', range: '9〜11月', rangeEn: 'Sep–Nov', icon: '🌳' },
+  { key: 'winter', months: [12, 1, 2], label: '冬', labelEn: 'Winter', range: '12〜2月', rangeEn: 'Dec–Feb', icon: '🚉' },
+];
+// 今の季節（JST の月で判定）。
+export function seasonForMonth(month) {
+  return SEASONS.find((s) => s.months.includes(month)) || SEASONS[0];
+}
+export const SEASONAL_LOCATIONS = [
+  {
+    key: 'nagoya', label: '名古屋', labelEn: 'Nagoya',
+    spots: [
+      { season: 'spring', name: '庄内緑地公園周辺', nameEn: 'Shonai Ryokuchi Park',
+        catch: '季節の彩りと、開放感を一枚に。', catchEn: 'Seasonal color and open space, in one shot.',
+        desc: '広い芝生と季節の花々。春の桜や新緑を背景に、明るい写真を。', descEn: 'Wide lawns and seasonal flowers. Bright photos framed by spring cherry blossoms and fresh greenery.',
+        mapUrl: 'https://maps.app.goo.gl/v2TLAb2xZ2wrv88u6' },
+      { season: 'summer', name: 'ガーデンふ頭臨港緑園', nameEn: 'Garden Pier Rinko Ryokuen',
+        catch: '海と空が広がる、爽やかなロケーション。', catchEn: 'A refreshing spot where the sea meets the sky.',
+        desc: '水辺と広場の緑を背景に、港ならではの開放感を写真に。', descEn: 'The waterfront and green plazas bring the open feel of the harbor into your photos.',
+        mapUrl: 'https://maps.app.goo.gl/TY7FRXSZe7WJiHZq9' },
+      { season: 'autumn', name: '名城公園', nameEn: 'Meijo Park',
+        catch: '緑と水辺に、季節を映して。', catchEn: 'The season, reflected in greenery and water.',
+        desc: '木々や芝生、おふけ池を背景に、落ち着きと自然の奥行きを感じる一枚を。', descEn: 'Trees, lawns, and Ofuke Pond create calm photos with natural depth.',
+        mapUrl: 'https://maps.app.goo.gl/e3Q5GFvrvEU4iBfc9' },
+      { season: 'winter', name: '栄駅周辺', nameEn: 'Around Sakae Station', note: '都会的な街並みが魅力', noteEn: 'Stylish city streets',
+        catch: '街の明かりで、都会的な一枚を。', catchEn: 'City lights for an urban look.',
+        desc: '街並みや店舗の明かりを背景に、都会ならではの雰囲気を写真に。', descEn: 'Streetscapes and shop lights give your photos a distinctly urban atmosphere.',
+        mapUrl: 'https://maps.app.goo.gl/NYJhfg4vKjhtz7J28' },
+    ],
+  },
+  {
+    key: 'gifu', label: '岐阜', labelEn: 'Gifu',
+    spots: [
+      { season: 'spring', name: '川原町広場周辺', nameEn: 'Around Kawaramachi Hiroba',
+        catch: '古い町並みと、春の彩りを。', catchEn: 'Old streets and the colors of spring.',
+        desc: '川原町の古い町並み、日中友好庭園、岐阜公園など。風情ある景色を背景に、やわらかな雰囲気の一枚を。', descEn: 'The historic Kawaramachi streets, the Japan-China Friendship Garden, Gifu Park and more — a soft, atmospheric backdrop.',
+        access: '岐阜駅からバスで約15分（250円）', accessEn: 'About 15 min by bus from Gifu Station (¥250)',
+        mapUrl: 'https://maps.app.goo.gl/Ek6m1ttjTNZU1AsJ6?g_st=ic' },
+      { season: 'summer', name: '岐阜市役所・メディアコスモス周辺', nameEn: 'Around Gifu City Hall & Media Cosmos',
+        catch: '木陰の緑で、涼やかな一枚を。', catchEn: 'Cool, shady greenery for summer.',
+        desc: '木陰の多い緑地に、暑い日でも涼めるテラスやスターバックスも。夏でも快適に、爽やかな写真を。', descEn: 'Plenty of shade, plus a terrace and a Starbucks to cool off on hot days — fresh photos in comfort, even in summer.',
+        access: '岐阜駅からバスで約15分（250円）', accessEn: 'About 15 min by bus from Gifu Station (¥250)',
+        mapUrl: 'https://maps.app.goo.gl/RUGa3BWXUrxph3AU9?g_st=ic' },
+      { season: 'autumn', name: '清水緑地', nameEn: 'Shimizu Ryokuchi',
+        catch: '水と緑の遊歩道で、自然体の一枚を。', catchEn: 'Natural shots along a leafy waterside path.',
+        desc: '岐阜駅近くの、川沿いに続く緑地。木々と水辺を背景に、秋の落ち着いた雰囲気の写真を。', descEn: 'A green strip along a stream near Gifu Station. Trees and water set a calm autumn mood.',
+        access: '岐阜駅から徒歩約5分', accessEn: 'About 5 min on foot from Gifu Station',
+        mapUrl: 'https://maps.app.goo.gl/J5JH9QHbvvrGB24u6?g_st=ic' },
+      { season: 'winter', name: '岐阜駅周辺', nameEn: 'Around Gifu Station', note: '天候に左右されない', noteEn: 'Rain or shine',
+        catch: '天候に左右されず、街の一枚を。', catchEn: 'City shots, whatever the weather.',
+        desc: '室内撮影はアクティブG、夜はイルミネーションの夜景。カフェや街並みでの撮影も、緑地へも徒歩5分。', descEn: 'Indoor shots at Active G, illuminated night views after dark, cafés and streets — and greenery just 5 min away on foot.',
+        access: '岐阜駅すぐ', accessEn: 'Right by Gifu Station',
+        // 共有リンクの指定がないため、Google マップの「岐阜駅」の検索結果を開く。
+        mapUrl: 'https://www.google.com/maps/search/?api=1&query=%E5%B2%90%E9%98%9C%E9%A7%85' },
+    ],
+  },
+];
+
 // 撮影エリア（AREAS の label、例「名古屋エリア」）に対応する集合場所。
 export function meetingPointForArea(areaLabel) {
   return MEETING_POINTS.find((mp) => String(areaLabel || '').startsWith(mp.label)) || null;

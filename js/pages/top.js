@@ -2,8 +2,10 @@ import { mountLayout } from '../layout.js';
 import {
   STATS, TARGET_PAINS, TARGET_PAINS_EN, SUPPORTED_APPS, SUPPORTED_APPS_EN,
   TESTIMONIALS, PRICING_PLANS, SAFETY_POINTS, FAQS, HOW_IT_WORKS,
+  SEASONS, SEASONAL_LOCATIONS, seasonForMonth, jstDateIso,
 } from '../data.js';
-import { getLang, L, t, discountLabelText } from '../i18n.js';
+import { getLang, L, t, tf, discountLabelText } from '../i18n.js';
+import { escapeHtml } from '../util.js';
 
 mountLayout();
 
@@ -71,6 +73,70 @@ document.getElementById('pm-safety').innerHTML = SAFETY_POINTS.map((s) => `
     </div>
     <div style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3)">${L(s, 'desc')}</div>
   </div>`).join('');
+
+// 季節のおすすめロケーション：エリアのタブ（名古屋／岐阜）＋季節ごとのカード。今の季節のカードを強調する。
+{
+  const tabsEl = document.getElementById('pm-location-tabs');
+  const gridEl = document.getElementById('pm-locations');
+  const nowSeason = seasonForMonth(Number(jstDateIso().slice(5, 7))).key;
+  const spotHtml = (spot) => {
+    const season = SEASONS.find((s) => s.key === spot.season);
+    const now = spot.season === nowSeason;
+    const name = L(spot, 'name');
+    return `
+    <div class="pm-card pm-loc-card${now ? ' is-now' : ''}" data-season="${spot.season}">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <span class="pm-loc-season"><span aria-hidden="true">${season.icon}</span>${L(season, 'label')}　${L(season, 'range')}</span>
+        ${now ? `<span class="pm-loc-now">${t('top.locations.now')}</span>` : ''}
+      </div>
+      <div style="font:700 16px/1.5 var(--pm-font-body);margin-bottom:4px">${escapeHtml(name)}</div>
+      ${spot.note ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">※${escapeHtml(L(spot, 'note'))}</div>` : ''}
+      <div style="font:700 14px/1.7 var(--pm-font-body);color:oklch(0.35 0.03 235);margin:6px 0 6px">${escapeHtml(L(spot, 'catch'))}</div>
+      <div style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:12px">${escapeHtml(L(spot, 'desc'))}</div>
+      ${spot.access ? `<div style="font:12px/1.7 var(--pm-font-body);color:oklch(0.42 0.1 215);background:var(--pm-bg-mint);border-radius:10px;padding:8px 10px;margin-bottom:12px">${escapeHtml(L(spot, 'access'))}</div>` : ''}
+      <a href="${escapeHtml(spot.mapUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(tf('top.locations.mapAria', { name }))}" style="margin-top:auto;font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210);text-decoration:underline">${t('top.locations.map')} ↗</a>
+    </div>`;
+  };
+  const show = (key) => {
+    const area = SEASONAL_LOCATIONS.find((a) => a.key === key) || SEASONAL_LOCATIONS[0];
+    tabsEl.querySelectorAll('.pm-loc-tab').forEach((b) => {
+      const on = b.dataset.area === area.key;
+      b.setAttribute('aria-selected', String(on));
+      b.tabIndex = on ? 0 : -1;
+    });
+    gridEl.setAttribute('aria-labelledby', `pm-loc-tab-${area.key}`);
+    gridEl.innerHTML = area.spots.map(spotHtml).join('');
+  };
+  tabsEl.innerHTML = SEASONAL_LOCATIONS.map((a) => `
+    <button type="button" role="tab" class="pm-loc-tab" id="pm-loc-tab-${a.key}" data-area="${a.key}" aria-controls="pm-locations">${L(a, 'label')}</button>`).join('');
+  const tabs = [...tabsEl.querySelectorAll('.pm-loc-tab')];
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => show(b.dataset.area));
+    // 左右キーでタブを移動（WAI-ARIA のタブの操作）。
+    b.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+      show(next.dataset.area);
+      next.focus();
+    });
+  });
+  show(SEASONAL_LOCATIONS[0].key);
+
+  // ヒーロー下の案内：今の季節のスポット（エリアごとに1つ）を並べ、上のセクションへ誘導する。
+  const band = document.getElementById('pm-loc-band');
+  const season = SEASONS.find((s) => s.key === nowSeason);
+  band.dataset.season = nowSeason;
+  band.innerHTML = `
+    <span class="pm-loc-band-title">${t('top.locBand.title')}</span>
+    <span class="pm-loc-band-spots">
+      <span class="pm-loc-season"><span aria-hidden="true">${season.icon}</span>${escapeHtml(tf('top.locBand.now', { season: L(season, 'label') }))}</span>
+      ${SEASONAL_LOCATIONS.map((a) => {
+        const spot = a.spots.find((s) => s.season === nowSeason);
+        return spot ? `<span class="pm-loc-band-spot">${escapeHtml(L(spot, 'name'))}<small>${escapeHtml(L(a, 'label'))}</small></span>` : '';
+      }).join('')}
+    </span>
+    <a class="pm-loc-band-link" href="#locations-section">${t('top.locBand.link')} ↓</a>`;
+}
 
 // <details>/<summary> gives keyboard (Enter/Space, Tab) and screen-reader
 // support for free — the previous clickable <div> had neither.
