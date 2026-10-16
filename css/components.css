@@ -271,3 +271,21 @@
   .pm-hero2-ctas .pm-btn-lg { flex: 0 0 auto; }
 }
 @media (prefers-reduced-motion: reduce) { .pm-hero2-glow { animation: none; } }
+
+/* 季節のおすすめロケーション（トップ） */
+.pm-loc-tabs { display: flex; justify-content: center; gap: 8px; margin: 0 0 24px; }
+.pm-loc-tab {
+  border: 1px solid var(--pm-border); background: var(--pm-bg); color: var(--pm-text-2);
+  border-radius: 100px; padding: 9px 22px; font: 700 14px var(--pm-font-body); cursor: pointer;
+}
+.pm-loc-tab[aria-selected="true"] { background: var(--pm-brand-grad); border-color: transparent; color: #fff; }
+.pm-loc-tab:focus-visible { outline: 2px solid oklch(0.55 0.14 210); outline-offset: 2px; }
+.pm-loc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+.pm-loc-card { display: flex; flex-direction: column; padding: 22px 20px; border-top: 4px solid var(--pm-loc-accent); }
+.pm-loc-card.is-now { box-shadow: 0 0 0 2px var(--pm-loc-accent), var(--pm-shadow-card); }
+.pm-loc-season { display: inline-flex; align-items: center; gap: 6px; font: 700 12px var(--pm-font-body); color: var(--pm-loc-ink); background: var(--pm-loc-soft); border-radius: 100px; padding: 4px 10px; }
+.pm-loc-now { font: 700 11px var(--pm-font-body); color: #fff; background: var(--pm-loc-ink); border-radius: 100px; padding: 3px 9px; }
+.pm-loc-card[data-season="spring"] { --pm-loc-accent: oklch(0.78 0.11 0); --pm-loc-soft: oklch(0.95 0.035 0); --pm-loc-ink: oklch(0.5 0.15 0); }
+.pm-loc-card[data-season="summer"] { --pm-loc-accent: oklch(0.75 0.12 175); --pm-loc-soft: oklch(0.95 0.035 175); --pm-loc-ink: oklch(0.45 0.1 175); }
+.pm-loc-card[data-season="autumn"] { --pm-loc-accent: oklch(0.75 0.14 55); --pm-loc-soft: oklch(0.95 0.04 60); --pm-loc-ink: oklch(0.5 0.13 50); }
+.pm-loc-card[data-season="winter"] { --pm-loc-accent: oklch(0.65 0.12 255); --pm-loc-soft: oklch(0.95 0.025 255); --pm-loc-ink: oklch(0.45 0.13 260); }

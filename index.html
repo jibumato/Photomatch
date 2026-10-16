@@ -16,7 +16,7 @@
 <link rel="icon" href="assets/photomatch-icon-transparent.png">
 <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
 <link rel="stylesheet" href="css/base.css?v=4a95132642">
-<link rel="stylesheet" href="css/components.css?v=121e31ac1d">
+<link rel="stylesheet" href="css/components.css?v=7a80babfe6">
 
 <!-- 店舗を持たない出張型なので areaServed で提供地域を示す。
      Googleビジネスプロフィール（サービス提供地域型）の登録内容と揃えること。 -->
@@ -198,12 +198,12 @@
     "/js/availability.js": "/js/availability.js?v=6c98651534",
     "/js/chat.js": "/js/chat.js?v=99ccb7ab0d",
     "/js/config.js": "/js/config.js?v=e841133368",
-    "/js/data.js": "/js/data.js?v=15809620d1",
+    "/js/data.js": "/js/data.js?v=d36d07a713",
     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=80dd5f9f12",
     "/js/i18n/columns.js": "/js/i18n/columns.js?v=a197583dfe",
     "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=1554b26024",
     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=bd7b19bf7f",
-    "/js/i18n.js": "/js/i18n.js?v=1b70750e16",
+    "/js/i18n.js": "/js/i18n.js?v=41a105fd00",
     "/js/layout.js": "/js/layout.js?v=b4870f3512",
     "/js/pages/admin.js": "/js/pages/admin.js?v=5f16cea7e5",
     "/js/pages/booking.js": "/js/pages/booking.js?v=b2cb03e80b",
@@ -224,7 +224,7 @@
     "/js/pages/search.js": "/js/pages/search.js?v=c86faef3ec",
     "/js/pages/stylist.js": "/js/pages/stylist.js?v=70685679a5",
     "/js/pages/terms.js": "/js/pages/terms.js?v=88ad4c0312",
-    "/js/pages/top.js": "/js/pages/top.js?v=5b023010b8",
+    "/js/pages/top.js": "/js/pages/top.js?v=de48dd8ed0",
     "/js/payslip.js": "/js/payslip.js?v=f756c41db9",
     "/js/profileEditor.js": "/js/profileEditor.js?v=56cd2d2c43",
     "/js/repo.js": "/js/repo.js?v=0c14584b16",
@@ -384,6 +384,16 @@
     </div>
   </section>
 
+  <!-- 季節のおすすめロケーション（中身は js/pages/top.js が SEASONAL_LOCATIONS から描画） -->
+  <section id="locations-section" class="pm-wrap" style="padding:clamp(48px,10vw,72px) clamp(20px,5vw,32px)">
+    <div class="pm-eyebrow">LOCATION</div>
+    <h2 class="pm-section-title" data-i18n="top.locations.title">季節のおすすめロケーション</h2>
+    <p class="pm-section-sub" style="margin-bottom:24px" data-i18n="top.locations.lead">季節ごとに、いちばん映える撮影スポットをご紹介します。</p>
+    <div id="pm-location-tabs" class="pm-loc-tabs" role="tablist"></div>
+    <div id="pm-locations" class="pm-loc-grid" role="tabpanel"></div>
+    <p style="font:12px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:20px 0 0;text-align:center" data-i18n="top.locations.note">※撮影場所は、季節や天候に合わせて、ご予約後にカメラマンとご相談ください。</p>
+  </section>
+
   <!-- 安心・安全 -->
   <section style="background:linear-gradient(180deg, oklch(0.97 0.02 205), var(--pm-bg));padding:clamp(48px,10vw,72px) clamp(20px,5vw,32px)">
     <div style="max-width:1080px;margin:0 auto">
@@ -405,7 +415,7 @@
     </div>
     <div id="pm-steps" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-bottom:24px"></div>
     <div style="text-align:center">
-      <a class="pm-nav-link" href="meeting-points.html" style="color:oklch(0.45 0.14 210);font-weight:700;text-decoration:underline" data-i18n="top.howItWorks.link">集合場所・持ち物・服装のくわしい案内を見る</a>
+      <a class="pm-nav-link" href="meeting-points.html" style="color:oklch(0.45 0.14 210);font-weight:700;text-decoration:underline;white-space:normal" data-i18n="top.howItWorks.link">集合場所・持ち物・服装のくわしい案内を見る</a>
     </div>
   </section>
 
@@ -437,6 +447,6 @@
 
 <footer class="pm-footer" id="pm-footer"></footer>
 
-<script type="module" src="js/pages/top.js?v=5b023010b8"></script>
+<script type="module" src="js/pages/top.js?v=de48dd8ed0"></script>
 </body>
 </html>
