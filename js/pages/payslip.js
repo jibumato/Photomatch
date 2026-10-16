@@ -75,7 +75,7 @@ function render(photographer, bookings) {
     </table></div>` : '<div class="pm-empty" style="margin:8px 0">この月に報酬の対象となる撮影はありません。</div>'}
     <div style="font:11px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin-top:16px;border-top:1px solid var(--pm-border-faint);padding-top:10px">
       ・報酬は「プラン料金の${Math.round(PHOTOGRAPHER_PAYOUT_RATE * 100)}%＋オプション1件につき${yen(OPTION_PAYOUT_PER_ITEM)}」です（モニター価格の予約は、実際のプラン料金の${Math.round(PHOTOGRAPHER_PAYOUT_RATE * 100)}%）。お客様の当日キャンセル・遅刻キャンセルは、補償のみをお支払いします。<br>
-      ・お支払いは月末締め・翌月25日に、ご登録の口座へ銀行振込します。対象は、納品済みで撮影日から30日の保証期間が過ぎた予約です。「頃」の日付は目安で、マッチング数保証の申請・送金の保留・未納品があると後になります。<br>
+      ・お支払いは納品月末締め・翌月25日に、ご登録の口座へ銀行振込します（納品した月の翌月25日。当日キャンセルの補償は撮影月の翌月25日）。「頃」の日付は目安で、送金の保留・未納品があると後になります。<br>
       ・報酬額は税込です。${st.withholdingApplies ? '源泉徴収税額は、所得税及び復興特別所得税（1回の振込につき100万円以下の部分は10.21%、超える部分は20.42%）です。未送金分は、まとめて1回で振り込む場合の見込みです。' : 'この方の報酬は、源泉徴収の対象外として扱っています。'}
     </div>`;
 }

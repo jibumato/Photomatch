@@ -832,7 +832,7 @@ alter table photographers add column if not exists stripe_payouts_enabled boolea
 
 -- 予約ごとの決済・送金情報。予約は決済前は status='pending_payment' で作成され、
 -- Stripe Webhookが checkout.session.completed を受け取った時点で 'paid' に更新する。
--- payout_status は「プラットフォームが一旦全額を預かり、保証期間（30日）経過後に
+-- payout_status は「プラットフォームが一旦全額を預かり、納品月末締め・翌月25日に
 -- opsが銀行振込でカメラマンへ報酬（プラン料金の50%＋オプション1件につき¥1,100、
 -- js/data.js の photographerPayoutFor）を送金する」運用のための状態（released 前は pending）。
 alter table bookings add column if not exists stripe_checkout_session_id text;
@@ -939,7 +939,7 @@ create or replace view booking_slots as
 -- ============================================================
 -- photographer_bank_accounts（カメラマンへの報酬振込先）
 -- ============================================================
--- 報酬はStripe Connectではなく運営による銀行振込（月末締め・翌月25日払い）
+-- 報酬はStripe Connectではなく運営による銀行振込（納品月末締め・翌月25日払い）
 -- で行うため、カメラマン本人が振込先口座を登録できるようにする。
 -- photographersテーブルは誰でも閲覧できる公開テーブル（"photographers: public
 -- read"）なので、口座番号のような機微情報は混ぜず別テーブルに分離する。
