@@ -12,7 +12,7 @@ registerDict({
 
   // -- page <title> (applied via data-i18n on the <title> element) --
   'monitor.pageTitle': { ja: 'モニター価格プラン募集 | PhotoMatch', en: 'Monitor Pricing Plan | PhotoMatch' },
-  'meeting.pageTitle': { ja: '集合場所 | PhotoMatch', en: 'Meeting Points | PhotoMatch' },
+  'meeting.pageTitle': { ja: '集合場所・撮影当日の案内（名古屋・岐阜）| PhotoMatch', en: 'Meeting Points | PhotoMatch' },
   'confirm.pageTitle': { ja: 'メールアドレスの確認 | PhotoMatch', en: 'Confirm Your Email | PhotoMatch' },
   'reset.pageTitle': { ja: 'パスワード再設定 | PhotoMatch', en: 'Reset Password | PhotoMatch' },
   // -- meta descriptions (applied by setMetaDescription) --

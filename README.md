@@ -229,6 +229,16 @@ Stripe の管理画面 → 開発者 → Webhook（イベントの送信先）�
 - `charge.refunded`
 - `charge.dispute.created` / `charge.dispute.closed`
 
+## SEO（生成ページ・構造化データ）
+
+- `node scripts/build-articles.mjs` で、次をまとめて生成する（生成物は手で編集しない）
+  - コラム記事の個別ページ（`column-<id>.html`。Article ＋ パンくずの構造化データつき）
+  - エリア別ページ（`nagoya.html` / `gifu.html`。`scripts/area-pages.mjs`）。料金・季節のロケーション・集合場所・撮影の流れ・よくある質問を静的HTMLで出力し、Service ＋ パンくずの構造化データを付ける。文言は `js/data.js` の `AREA_PAGES`
+  - `sitemap.xml`、トップの FAQ 構造化データ
+- 料金・季節のロケーション・集合場所・FAQ を `js/data.js` で変えたら、このスクリプトを実行してエリア別ページにも反映する
+- SNS共有用の画像は `assets/og-image.jpg`（1200×630）。公開ページの `og:image` はすべてこれ
+- カメラマンのプロフィール（`profile.html?id=…`）は、読み込み後にタイトル・説明文・正規URLをカメラマンごとに設定する
+
 ## CSS / JS を変更したら（キャッシュ対策）
 
 `css/` や `js/` を変更したら、コミット前に次を実行する。

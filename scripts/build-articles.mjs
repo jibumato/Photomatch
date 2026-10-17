@@ -15,6 +15,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { COLUMN_ARTICLES, FAQS } from '../js/data.js';
+import { buildAreaPages } from './area-pages.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE = 'https://photo-match.jp';
@@ -67,6 +68,16 @@ function render(article) {
       logo: { '@type': 'ImageObject', url: `${SITE}/assets/photomatch-logo-full-transparent.png` },
     },
     articleSection: article.tag,
+    image: `${SITE}/assets/og-image.jpg`,
+  };
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'トップ', item: `${SITE}/` },
+      { '@type': 'ListItem', position: 2, name: 'コラム', item: `${SITE}/column.html` },
+      { '@type': 'ListItem', position: 3, name: article.title, item: url },
+    ],
   };
 
   return `<!DOCTYPE html>
@@ -83,7 +94,10 @@ function render(article) {
 <meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${url}">
 <meta property="og:site_name" content="PhotoMatch">
-<meta property="og:image" content="${SITE}/assets/photomatch-logo-full.png">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:image" content="${SITE}/assets/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="assets/photomatch-icon-transparent.png">
 <link rel="stylesheet" href="css/tokens.css">
@@ -91,6 +105,9 @@ function render(article) {
 <link rel="stylesheet" href="css/components.css">
 <script type="application/ld+json">
 ${JSON.stringify(jsonLd, null, 2)}
+</script>
+<script type="application/ld+json">
+${JSON.stringify(breadcrumbLd, null, 2)}
 </script>
 </head>
 <body>
@@ -143,6 +160,9 @@ for (const article of COLUMN_ARTICLES) {
 }
 console.log(`${count} 記事を生成しました。`);
 
+// エリア別ページ（nagoya.html / gifu.html）
+const areaPaths = buildAreaPages(ROOT, SITE);
+
 // ---------------------------------------------------------------
 // sitemap.xml
 // ---------------------------------------------------------------
@@ -152,6 +172,7 @@ console.log(`${count} 記事を生成しました。`);
 const STATIC_PAGES = [
   { path: '', priority: '1.0', changefreq: 'weekly' },
   { path: 'search.html', priority: '0.9', changefreq: 'weekly' },
+  { path: 'monitor.html', priority: '0.5', changefreq: 'monthly' },
   { path: 'column.html', priority: '0.8', changefreq: 'weekly' },
   { path: 'meeting-points.html', priority: '0.7', changefreq: 'monthly' },
   { path: 'terms.html', priority: '0.3', changefreq: 'yearly' },
@@ -160,6 +181,7 @@ const STATIC_PAGES = [
 const today = new Date().toISOString().slice(0, 10);
 const urls = [
   ...STATIC_PAGES.map((p) => ({ loc: `${SITE}/${p.path}`, priority: p.priority, changefreq: p.changefreq })),
+  ...areaPaths.map((p) => ({ loc: `${SITE}/${p}`, priority: '0.9', changefreq: 'monthly' })),
   ...COLUMN_ARTICLES.map((a) => ({ loc: `${SITE}/${pageFor(a.id)}`, priority: '0.8', changefreq: 'monthly' })),
 ];
 
