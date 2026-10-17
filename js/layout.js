@@ -58,6 +58,12 @@ function footerHtml() {
       <a href="terms.html?key=privacy" data-i18n="footer.privacy">プライバシーポリシー</a>
       <a href="terms.html?key=terms" data-i18n="footer.terms">利用規約</a>
     </div>
+    <div class="pm-footer-links">
+      <div class="pm-h" data-i18n="footer.areas">対応エリア</div>
+      <a href="nagoya.html" data-i18n="footer.areaNagoya">名古屋で撮影</a>
+      <a href="gifu.html" data-i18n="footer.areaGifu">岐阜で撮影</a>
+      <a href="meeting-points.html" data-i18n="footer.meeting">集合場所</a>
+    </div>
   </div>`;
 }
 

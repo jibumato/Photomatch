@@ -32,6 +32,18 @@ function instagramLinkHtml(raw) {
     const profileEl = document.getElementById('pm-profile');
     profileEl.style.display = 'flex';
 
+    // 検索結果・SNS共有用に、カメラマンごとのタイトル・説明文・正規URLを付ける。
+    const areaLabel = areaText(photographer.area) || '';
+    document.title = getLang() === 'en'
+      ? `${photographer.name}${areaLabel ? ` (${areaLabel})` : ''} | PhotoMatch`
+      : `${photographer.name}${areaLabel ? `（${areaLabel}のカメラマン）` : ''} | PhotoMatch`;
+    const bioText = String(localizedField(photographer, 'bio', 'bio_en') || '').replace(/\s+/g, ' ').trim();
+    if (bioText) document.querySelector('meta[name="description"]')?.setAttribute('content', bioText.length > 110 ? `${bioText.slice(0, 109)}…` : bioText);
+    const canonical = document.createElement('link');
+    canonical.rel = 'canonical';
+    canonical.href = `https://photo-match.jp/profile.html?id=${encodeURIComponent(id)}`;
+    document.head.appendChild(canonical);
+
     const photoUrl = safePhotoUrl(photographer.photo_url);
     document.getElementById('pm-header-block').innerHTML = `
       ${photoUrl

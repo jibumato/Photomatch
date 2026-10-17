@@ -307,6 +307,30 @@ export const SEASONAL_LOCATIONS = [
   },
 ];
 
+// エリア別のランディングページ（nagoya.html / gifu.html）。scripts/area-pages.mjs が
+// このデータと PRICING_PLANS / SEASONAL_LOCATIONS / MEETING_POINTS から静的HTMLを生成する。
+// key は AREAS・SEASONAL_LOCATIONS の key と同じ。
+export const AREA_PAGES = [
+  {
+    key: 'nagoya', name: '名古屋', city: '名古屋市', eyebrow: 'NAGOYA',
+    title: '名古屋のマッチングアプリ写真撮影｜プロが45分で出張撮影 ¥6,800〜 | PhotoMatch',
+    description: '名古屋（栄・オアシス21前集合）で、マッチングアプリ用プロフィール写真の出張撮影を予約できます。審査済みのプロカメラマンが45分で自然な一枚を撮影。¥6,800〜（税込）、通常3営業日以内に納品。',
+    h1: '名古屋でマッチングアプリの写真撮影',
+    lead: '栄のオアシス21前に集合して、45分で撮影。名古屋の街並みや公園を背景に、審査済みのプロカメラマンが、アプリ映えする自然な一枚を撮影します。表情やポーズはカメラマンがリードするので、撮られ慣れていない方も安心です。',
+    spotsLead: '庄内緑地公園・ガーデンふ頭・名城公園・栄。季節ごとに、いちばん映えるスポットで撮影できます。',
+    ctaTitle: '名古屋で、次のマッチングにつながる一枚を。',
+  },
+  {
+    key: 'gifu', name: '岐阜', city: '岐阜市', eyebrow: 'GIFU',
+    title: '岐阜のマッチングアプリ写真撮影｜プロが45分で出張撮影 ¥6,800〜 | PhotoMatch',
+    description: '岐阜駅（アスティ岐阜）集合で、マッチングアプリ用プロフィール写真の出張撮影を予約できます。川原町・清水緑地など季節のスポットで、審査済みのプロカメラマンが45分で撮影。¥6,800〜（税込）。',
+    h1: '岐阜でマッチングアプリの写真撮影',
+    lead: 'JR岐阜駅のアスティ岐阜に集合して、45分で撮影。川原町の古い町並みや駅近くの緑地を背景に、審査済みのプロカメラマンが、アプリ映えする自然な一枚を撮影します。表情やポーズはカメラマンがリードするので、撮られ慣れていない方も安心です。',
+    spotsLead: '川原町・メディアコスモス・清水緑地・岐阜駅周辺。季節ごとに、いちばん映えるスポットで撮影できます。',
+    ctaTitle: '岐阜で、次のマッチングにつながる一枚を。',
+  },
+];
+
 // 撮影エリア（AREAS の label、例「名古屋エリア」）に対応する集合場所。
 export function meetingPointForArea(areaLabel) {
   return MEETING_POINTS.find((mp) => String(areaLabel || '').startsWith(mp.label)) || null;
