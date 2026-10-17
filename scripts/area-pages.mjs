@@ -12,7 +12,7 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  AREAS, AREA_PAGES, PRICING_PLANS, SEASONS, SEASONAL_LOCATIONS, MEETING_POINTS, HOW_IT_WORKS, FAQS,
+  AREAS, AREA_PAGES, PRICING_PLANS, SEASONS, SEASONAL_LOCATIONS, MEETING_POINTS, HOW_IT_WORKS, FAQS, COLUMN_ARTICLES,
 } from '../js/data.js';
 
 const esc = (s) => String(s)
@@ -44,6 +44,10 @@ function render(page, SITE) {
   const searchUrl = `search.html?area=${encodeURIComponent(area.label)}`;
   const others = AREA_PAGES.filter((p) => p.key !== page.key);
   const faqs = FAQS.slice(0, 4);
+  // 関連コラム：そのエリアのコラムを先に、残りは一覧の順で3本。
+  const columns = [...COLUMN_ARTICLES]
+    .sort((a, b) => (b.tag === page.columnTag) - (a.tag === page.columnTag) || a.priority - b.priority)
+    .slice(0, 3);
   const minPrice = Math.min(...PRICING_PLANS.map((p) => Number(p.price.replace(/,/g, ''))));
 
   const jsonLd = [
@@ -175,6 +179,16 @@ ${faqs.map((f) => `      <details class="pm-card pm-faq-item" style="border-radi
       </details>`).join('\n')}
     </div>
     <p style="font:13px var(--pm-font-body);margin:14px 0 0;text-align:center"><a href="./#faq-section" style="color:oklch(0.45 0.14 210);text-decoration:underline">ほかの質問を見る</a></p>
+  </section>
+
+  <section class="pm-wrap-mid" style="padding:clamp(40px,8vw,56px) clamp(20px,5vw,32px) 0">
+    <h2 class="pm-section-title">関連コラム</h2>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:20px">
+${columns.map((a) => `      <a href="column-${a.id}.html" class="pm-card" style="display:block;padding:16px 18px;text-decoration:none;color:inherit">
+        <span style="font:700 11px var(--pm-font-body);color:oklch(0.48 0.1 210);background:oklch(0.95 0.03 205);padding:3px 10px;border-radius:100px">${esc(a.tag)}</span>
+        <h3 style="font:700 15px/1.6 var(--pm-font-body);margin:8px 0 0">${esc(a.title)}</h3>
+      </a>`).join('\n')}
+    </div>
   </section>
 
   <section style="max-width:900px;margin:56px auto 0;padding:0 clamp(20px,5vw,32px) 24px">

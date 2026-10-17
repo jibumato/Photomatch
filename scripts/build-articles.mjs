@@ -35,7 +35,10 @@ const summarize = (text) => {
 const pageFor = (id) => `column-${id}.html`;
 
 function relatedHtml(current) {
-  const others = COLUMN_ARTICLES.filter((a) => a.id !== current.id).slice(0, 3);
+  // 同じタグの記事を先に、残りは一覧と同じ順（priority）で3本。
+  const others = COLUMN_ARTICLES.filter((a) => a.id !== current.id)
+    .sort((a, b) => (b.tag === current.tag) - (a.tag === current.tag) || a.priority - b.priority)
+    .slice(0, 3);
   return `
   <section class="pm-wrap-narrow" style="padding:0 clamp(20px,5vw,32px)">
     <h2 data-i18n="column.related" style="font:700 17px var(--pm-font-body);margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid var(--pm-border-soft)">ほかのコラム</h2>
@@ -128,7 +131,8 @@ ${JSON.stringify(breadcrumbLd, null, 2)}
     <div data-col-lead style="font:15px/1.9 var(--pm-font-body);color:oklch(0.32 0.02 235);background:oklch(0.97 0.015 210);border-left:3px solid oklch(0.7 0.12 210);border-radius:0 12px 12px 0;padding:18px 20px;margin-bottom:36px">${esc(article.lead)}</div>
 ${article.sections.map((s, i) => `    <div style="margin-bottom:36px">
       <h2 data-col-h="${i}" style="font:700 19px var(--pm-font-body);margin:0 0 12px;padding-bottom:12px;border-bottom:1px solid var(--pm-border-soft)">${esc(s.h)}</h2>
-      <p data-col-b="${i}" style="font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0">${esc(s.b)}</p>
+      <p data-col-b="${i}" style="font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0">${esc(s.b)}</p>${s.link ? `
+      <p style="margin:12px 0 0"><a data-col-link="${i}" href="${esc(s.link.href)}" style="font:700 14px var(--pm-font-body);color:oklch(0.45 0.14 210);text-decoration:underline">${esc(s.link.text)} →</a></p>` : ''}
     </div>`).join('\n')}
   </article>
 
