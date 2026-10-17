@@ -86,6 +86,36 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://photo-match.jp/column-gifu.html</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://photo-match.jp/column-nagoya-spots.html</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://photo-match.jp/column-main-sub.html</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://photo-match.jp/column-camera-shy.html</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://photo-match.jp/column-omiai-with.html</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://photo-match.jp/column-price.html</loc>
     <lastmod>2026-10-17</lastmod>
     <changefreq>monthly</changefreq>

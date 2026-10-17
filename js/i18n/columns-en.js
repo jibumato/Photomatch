@@ -131,4 +131,59 @@ export const COLUMN_EN = {
       },
     ],
   },
+  gifu: {
+    title: 'Getting Dating-App Photos Taken in Gifu? Seasonal Spots from Kawaramachi to Shimizu Ryokuchi',
+    lead: 'For profile photos in Gifu, the appeal is its calm locations — the old streets of Kawaramachi, green spaces near the station — that feel different from Nagoya. Here are our seasonal picks and how a shoot works.',
+    sections: [
+      { h: 'Gifu Makes Calm, Natural Shots Easy', b: 'Compared with downtown Nagoya, the area around Gifu Station has a more relaxed flow of people, so it is easy to focus on the shoot without worrying about onlookers. Old streets, green spaces and city streets give plenty of variety. A soft, not-too-urban look comes across as approachable — ideal for a main dating-app photo.' },
+      { h: 'Spring: Around Kawaramachi Hiroba', b: 'This area brings together the old streets of Kawaramachi, the Japan-China Friendship Garden and Gifu Park. Lattice-fronted townhouses and garden greenery make for calm, soft photos, and spring adds fresh leaves and flowers for a seasonal feel. About 15 minutes by bus from Gifu Station (¥250).' },
+      { h: 'Summer: Around Gifu City Hall & Media Cosmos', b: 'Plenty of shade, plus terraces and cafés to cool off on hot days. Heat and glare can make your face tense in summer, but here you can take breaks in the shade and keep a fresh expression. Natural light filtered through greenery flatters the skin. About 15 minutes by bus from Gifu Station (¥250).' },
+      { h: 'Autumn: Shimizu Ryokuchi / Winter: Around Gifu Station', b: 'Shimizu Ryokuchi is a green strip along a stream, about 5 minutes on foot from Gifu Station — trees and water set a calm autumn mood. In winter or when the weather looks iffy, head to the station area: indoor shots at Active G, illuminated night views, cafés and city streets, whatever the weather.' },
+      { h: 'Meet at Gifu Station, Shoot for 45 Minutes', b: 'In the Gifu area, PhotoMatch meets at Asty Gifu (in front of Doutor Coffee) at JR Gifu Station. You can decide the location with your photographer based on the season and weather. The shoot takes 45 minutes, prices start at ¥6,800 (tax incl.), and photos are usually delivered within 3 business days.', link: 'More about shooting in Gifu' },
+    ],
+  },
+  'nagoya-spots': {
+    title: 'Photogenic Spots in Nagoya: Where to Take Profile Photos, Season by Season',
+    lead: 'The background you choose changes how your dating-app profile photo comes across. Here are spots in Nagoya that suit profile photos, organized by season.',
+    sections: [
+      { h: 'What Makes a Good Spot for Profile Photos', b: 'Three things: (1) an uncluttered background that lets you stand out, (2) natural light that flatters the skin, and (3) a seasonal feel or atmosphere that gives people something to talk about. On dating apps, places that look like "somewhere I went on a day off" work better than famous landmarks themselves.' },
+      { h: 'Spring: Shonai Ryokuchi Park', b: 'A park with wide lawns and seasonal flowers. In spring, cherry blossoms and fresh greenery make for bright, open photos. It is easy to get both main and sub photos here — full-length shots on the lawn, soft expressions in the shade of the trees.' },
+      { h: 'Summer: Garden Pier Rinko Ryokuen', b: 'The open feel of the harbor, with the sea and sky spreading out before you. The waterfront and green plazas give a fresh, healthy look. By choosing the time of day, you can avoid the glare of strong summer sun and get a natural expression.' },
+      { h: 'Autumn: Meijo Park / Winter: Around Sakae Station', b: 'Meijo Park offers trees, lawns and Ofuke Pond for calm photos with natural depth; autumn colors add a mature, gentle mood. In winter, head to Sakae. Streetscapes and shop lights give an urban, polished look, and night street snaps make great sub photos.' },
+      { h: 'Ask Your Photographer About the Location', b: 'In the Nagoya area, PhotoMatch meets in front of Oasis 21 in Sakae. You can decide the location with your photographer based on the season, the weather and the look you want. Just tell them something like "I want to look fresh" or "I want a calm feel."', link: 'More about shooting in Nagoya' },
+    ],
+  },
+  'main-sub': {
+    title: 'Main Photo vs. Sub Photos on Dating Apps: How Many, and Which Ones?',
+    lead: 'You may put effort into your main photo but pick your sub photos almost at random. Each has its own role. Here is how many photos to post and how to combine them.',
+    sections: [
+      { h: 'The Main Photo Is the Door; Sub Photos Are What Is Inside', b: 'Your main photo is the "door" people see in search results and recommendations: your face clearly visible, bright, with a natural smile. Sub photos are what people check after opening your profile to see what you are like — your overall look, how you spend your days off, a range of expressions — filling in what the main photo cannot.' },
+      { h: 'Aim for 3 to 5 Photos', b: 'With just one photo there is too little information, and people hesitate. On the other hand, a row of similar photos actually weakens the impression. Aim for one main photo plus 2–4 sub photos, each telling the viewer something different.' },
+      { h: 'Sample Sub-Photo Combinations', b: '(1) A full-length shot in casual clothes (shows your build and style), (2) a profile or looking-away shot (shows your natural side), (3) a shot with a hobby or favorite place (a conversation starter), (4) a shot with a different outfit or location (shows another side of you). Picking from these four gives a well-balanced profile.' },
+      { h: 'Sub Photos to Avoid', b: 'Avoid a profile full of group shots where no one can tell which person is you, heavily edited photos, photos from years ago, and photos where your face is too small to see. Photos of only food or scenery also reduce the information about you if there are too many — keep it to one at most and center your profile on photos of you.' },
+      { h: 'Get Your Main and Sub Photos in One Shoot', b: 'Preparing main and sub photos on separate days is a hassle. A PhotoMatch shoot takes 45 minutes, changing location, angle and expression as we go, and the Standard plan delivers 20 photos. You can choose your main and sub photos from them, so you get a consistent profile in one go.', link: 'Check availability' },
+    ],
+  },
+  'camera-shy': {
+    title: 'Not Comfortable in Front of the Camera? What Happens on the Day, and Tips for a Natural Smile',
+    lead: '"I hate having my photo taken." "My smile looks forced." If that sounds like you, a pro shoot is especially worth it. Here is how the day goes and how to look natural on camera.',
+    sections: [
+      { h: 'The Less You Like Photos, the More a Pro Helps', b: 'Most camera shyness comes from not knowing where to stand or what face to make. In a pro shoot, the photographer guides your position, pose and gaze one step at a time. You do not have to figure anything out, so you can focus on your expression.' },
+      { h: 'How the Day Goes', b: 'After booking, you can tell us the look you want and anything you are self-conscious about in the counseling sheet. On the day, we meet at the meeting point, confirm the image you have in mind, and start shooting. The shoot takes 45 minutes and you are free to go when it ends. Photos usually arrive within 3 business days, so you can pick your main and sub photos once you see them.' },
+      { h: 'Tips for a Natural Smile', b: 'Expressions that come out during conversation look more natural than a smile made on command, so we recommend chatting with the photographer while shooting. Breathing out before lifting the corners of your mouth, walking while being photographed, and including shots looking away from the camera also help loosen up a stiff expression.' },
+      { h: 'Getting Ready the Day Before and On the Day', b: 'Get a good night\'s sleep to avoid puffiness. On the day, tidy your hair and wear clean, everyday clothes. Bring one or two changes of clothes for shots with a different feel, plus small items like lip balm or hand cream to freshen up.' },
+      { h: 'It Is Fine to Be Nervous', b: 'Everyone is nervous at the start of a shoot. After a few minutes, most people get used to it and their expression softens. Photographers have seen plenty of nervous clients — just tell them up front that you are not comfortable with photos, and they will go at your pace.', link: 'Meeting points and what to expect on the day' },
+    ],
+  },
+  'omiai-with': {
+    title: 'Profile Photos for Omiai and with: Showing Sincerity and Personality',
+    lead: 'The basics of a good photo are the same on every app, but what users look for differs a little from app to app. Here is how to choose photos that fit Omiai and with.',
+    sections: [
+      { h: 'The Basics Are the Same Everywhere', b: 'Your face clearly visible, a bright and natural smile, and a clean look — these three are essential on any app. On top of that, adjusting your main and sub photos to suit each app\'s atmosphere and what its users value makes them even more effective.' },
+      { h: 'Omiai: Lead with Sincerity and a Clean Look', b: 'Omiai is known as an app where many people are looking for something serious. For your main photo, choose a bright shot in calm clothing with your face clearly visible. Including a shot in a jacket or collared shirt conveys sincerity. Keep unusual photos and heavy editing to a minimum.' },
+      { h: 'with: Sub Photos That Show Your Personality and Hobbies', b: 'with emphasizes meeting people through personality and values, so consistency between your profile text and photos makes a good impression. Sub photos that spark conversation — hobbies, favorite places, natural expressions — also make it easier to start messaging.' },
+      { h: 'Using the Same Photos on Several Apps', b: 'It helps to shoot two styles: one more formal and one more casual. You can then swap your main photo per app — the formal one on Omiai, the casual one on with. Bring one change of clothes on the day and you can get both in a single shoot.' },
+      { h: 'Check Out Our Pairs Article Too', b: 'The thinking behind a good main photo is the same on Pairs and other apps. We cover what makes a main photo that gets more likes in a separate column.', link: 'Read how to choose your Pairs main photo' },
+    ],
+  },
 };

@@ -20,6 +20,7 @@ registerDict({
   // -- shared by the list and the article pages --
   'column.readMin': { ja: '読了 約{min}分', en: 'About {min} min read' },
   'column.tag.local': { ja: '名古屋ローカル', en: 'Nagoya Local' },
+  'column.tag.gifu': { ja: '岐阜ローカル', en: 'Gifu Local' },
   'column.tag.howto': { ja: 'ノウハウ', en: 'How-To' },
   'column.tag.solve': { ja: 'お悩み解決', en: 'Troubleshooting' },
   'column.tag.byApp': { ja: 'アプリ別', en: 'By App' },
@@ -39,6 +40,7 @@ registerDict({
 // Japanese tag (as stored in COLUMN_ARTICLES.tag) -> dictionary key.
 const TAG_KEYS = {
   '名古屋ローカル': 'column.tag.local',
+  '岐阜ローカル': 'column.tag.gifu',
   'ノウハウ': 'column.tag.howto',
   'お悩み解決': 'column.tag.solve',
   'アプリ別': 'column.tag.byApp',

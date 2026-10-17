@@ -37,6 +37,7 @@ function applyEnglish() {
     (en.sections || []).forEach((s, i) => {
       setText(art.querySelector(`[data-col-h="${i}"]`), s.h);
       setText(art.querySelector(`[data-col-b="${i}"]`), s.b);
+      setText(art.querySelector(`[data-col-link="${i}"]`), s.link && `${s.link} →`);
     });
     document.title = `${en.title} | PhotoMatch`;
     const meta = document.querySelector('meta[name="description"]');
