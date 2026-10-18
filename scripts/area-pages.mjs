@@ -132,7 +132,7 @@ ${jsonLd.map((ld) => `<script type="application/ld+json">\n${JSON.stringify(ld, 
     <div class="pm-loc-grid">
 ${spots.map(spotCard).join('\n')}
     </div>
-    <p style="font:12px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:16px 0 0;text-align:center">※撮影場所は、季節や天候に合わせて、ご予約後にカメラマンとご相談ください。</p>
+    <p style="font:12px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:16px 0 0;text-align:center">※撮影場所は、撮影日の季節のロケーション（季節ごとに1か所）です。</p>
   </section>
 
   <section class="pm-wrap-mid" style="padding:clamp(40px,8vw,56px) clamp(20px,5vw,32px) 0">

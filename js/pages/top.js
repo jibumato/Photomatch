@@ -127,12 +127,10 @@ document.getElementById('pm-safety').innerHTML = SAFETY_POINTS.map((s) => `
 
   // ヒーロー下の案内：今の季節のスポット（エリアごとに1つ）を並べ、上のセクションへ誘導する。
   const band = document.getElementById('pm-loc-band');
-  const season = SEASONS.find((s) => s.key === nowSeason);
   band.dataset.season = nowSeason;
   band.innerHTML = `
     <span class="pm-loc-band-title">${t('top.locBand.title')}</span>
     <span class="pm-loc-band-spots">
-      <span class="pm-loc-season"><span aria-hidden="true">${season.icon}</span>${escapeHtml(tf('top.locBand.now', { season: L(season, 'label') }))}</span>
       ${SEASONAL_LOCATIONS.map((a) => {
         const spot = a.spots.find((s) => s.season === nowSeason);
         return spot ? `<span class="pm-loc-band-spot">${escapeHtml(L(spot, 'name'))}<small>${escapeHtml(L(a, 'label'))}</small></span>` : '';
