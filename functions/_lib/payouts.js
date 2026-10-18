@@ -1,10 +1,11 @@
 // Recording a photographer payout (the money itself goes by bank transfer,
 // done by ops). Shared by /api/payouts/release (one booking) and
 // /api/payouts/release-batch (the 「まとめて振込済みにする」 button).
-import { photographerPayoutFor, withholdingTaxFor, allocateWithholding } from '../../js/data.js';
+import { photographerPayoutFor, taxDeductionFor, withholdingTaxFor, allocateWithholding } from '../../js/data.js';
 import { restSelect, restUpdate } from './supabaseAdmin.js';
 
-// Resolves to { ok: true, amount, booking } or { error, status }.
+// Resolves to { ok: true, amount, taxDeduction, booking } or { error, status }.
+// amount は報酬（税込）、taxDeduction はインボイス未登録の人から差し引く消費税相当額。
 export async function releaseOne(env, bookingId, note) {
   const [booking] = await restSelect(env, 'bookings', { id: `eq.${bookingId}`, select: '*' });
   if (!booking) return { error: '予約が見つかりません。', status: 404 };
@@ -25,6 +26,9 @@ export async function releaseOne(env, bookingId, note) {
 
   const [bank] = await restSelect(env, 'photographer_bank_accounts', { photographer_id: `eq.${booking.photographer_id}`, select: 'id' });
   if (!bank) return { error: 'カメラマンの振込先口座がまだ登録されていません。', status: 400 };
+  // select '*'：schema.sql の列追加の前でも送金できるように（列がなければ差し引きなし）。
+  const [photographer] = await restSelect(env, 'photographers', { id: `eq.${booking.photographer_id}`, select: '*' });
+  const taxDeduction = taxDeductionFor(booking, photographer);
 
   // Conditional, so a double click (or a hold set a moment ago) can't record
   // the same payout twice or release a held one.
@@ -32,24 +36,28 @@ export async function releaseOne(env, bookingId, note) {
     payout_status: 'released',
     payout_released_at: new Date().toISOString(),
     payout_note: note,
+    ...(taxDeduction ? { payout_tax_deduction: taxDeduction } : {}),
   });
   if (!updated.length) return { error: 'この予約は送金済みか、保留中です。画面を読み込み直してください。', status: 409 };
-  return { ok: true, amount, booking };
+  return { ok: true, amount, taxDeduction, booking };
 }
 
 // 1回の振込（同じカメラマンの、同時に記録した予約）について源泉徴収額を計算し、予約ごとに
 // 割り振って bookings.payout_withholding に記録する。items: releaseOne の成功結果の配列。
-// 返り値 { gross, withholding, net }（net＝実際に振り込む額）。
+// 源泉徴収は、消費税相当額を差し引いた後の報酬額を基準にする。
+// 返り値 { gross, taxDeduction, withholding, net }（net＝実際に振り込む額）。
 export async function recordWithholding(env, photographerId, items) {
   const gross = items.reduce((n, r) => n + r.amount, 0);
+  const taxDeduction = items.reduce((n, r) => n + (r.taxDeduction || 0), 0);
+  const base = gross - taxDeduction;
   const [photographer] = await restSelect(env, 'photographers', { id: `eq.${photographerId}`, select: 'withholding_tax' });
   const applies = !photographer || photographer.withholding_tax !== false;
-  const withholding = applies ? withholdingTaxFor(gross) : 0;
-  const shares = allocateWithholding(items.map((r) => r.amount), withholding);
+  const withholding = applies ? withholdingTaxFor(base) : 0;
+  const shares = allocateWithholding(items.map((r) => r.amount - (r.taxDeduction || 0)), withholding);
   for (let i = 0; i < items.length; i++) {
     await restUpdate(env, 'bookings', { id: `eq.${items[i].booking.id}` }, { payout_withholding: shares[i] });
     items[i].withholding = shares[i];
   }
-  return { gross, withholding, net: gross - withholding };
+  return { gross, taxDeduction, withholding, net: base - withholding };
 }
 

@@ -4,13 +4,13 @@ import {
   getGuaranteeClaimsForReview, reviewGuaranteeClaim,
   getMonitorApplicationsForReview, reviewMonitorApplication,
   getPayoutCandidates, releasePayouts, getMonitorSlotsLeft, getBankAccountsForPhotographers,
-  createPhotographerAccount, resetPhotographerPassword, markNoShow, getPhotographersForReview, setPhotographerVisibility, setPhotographerShootCount, setPhotographerWithholding,
+  createPhotographerAccount, resetPhotographerPassword, markNoShow, getPhotographersForReview, setPhotographerVisibility, setPhotographerShootCount, setPhotographerInvoice, setPhotographerWithholding,
   getReviewsForModeration, setReviewHidden,
   getBookingsForOps, searchBookingsForOps, getBookingsNeedingAttention, opsCancelBooking, markRefunded, setPayoutHold, sendStaffPick,
 } from '../repo.js';
 import {
   AREAS, EXTRA_OPTIONS, OPS_CANCEL_REASONS, RESCHEDULABLE_STATUSES, awaitingPhotographerAck, photographerPayoutFor, noShowQuote, jstDateIso, addDaysToIso,
-  payoutBasisDate, payoutMonthClosed, guaranteeClaimDeadline, MONITOR_CAPACITY, OPPOSITE_SEX_OPTION_KEY, isValidDeliveryUrl, withholdingTaxFor,
+  payoutBasisDate, payoutMonthClosed, taxDeductionFor, isInvoiceRegistered, guaranteeClaimDeadline, MONITOR_CAPACITY, OPPOSITE_SEX_OPTION_KEY, isValidDeliveryUrl, withholdingTaxFor,
 } from '../data.js';
 import { mountRescheduleModal } from '../rescheduleModal.js';
 import { safePhotoUrl } from '../util.js';
@@ -240,6 +240,14 @@ function listingCardHtml(p) {
         報酬から源泉徴収する（個人の場合。法人などは外す）
       </label>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;font:12px var(--pm-font-body);color:oklch(0.4 0.02 235)">
+        インボイス登録番号
+        <input class="pm-input invoice-number-input" data-id="${escapeHtml(p.id)}" type="text" value="${escapeHtml(p.invoice_number || '')}" placeholder="T＋13桁（未登録なら空欄）" maxlength="16" style="width:190px;padding:6px 10px">
+        未登録の場合、消費税相当額を差し引く撮影日
+        <input class="pm-input tax-deduction-from-input" data-id="${escapeHtml(p.id)}" type="date" value="${escapeHtml(p.tax_deduction_from || '')}" style="width:150px;padding:6px 10px">
+        <button class="pm-btn-outline btn-invoice-save" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.name || '')}" style="font-size:12px;padding:6px 14px">保存</button>
+      </div>
+      <div style="font:11px/1.7 var(--pm-font-body);color:var(--pm-text-3);margin-top:4px">${isInvoiceRegistered(p) ? 'インボイス登録済み：報酬から消費税相当額は差し引きません。' : (p.tax_deduction_from ? `インボイス未登録：${escapeHtml(p.tax_deduction_from)} 以降の撮影の報酬から、消費税相当額（10/110）を差し引きます。` : 'インボイス未登録：差し引く日が空欄のため、今は差し引いていません（本人と合意してから日付を入れてください）。')}</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;font:12px var(--pm-font-body);color:oklch(0.4 0.02 235)">
         撮影実績
         <input class="pm-input shoot-count-input" data-id="${escapeHtml(p.id)}" type="number" min="0" step="1" inputmode="numeric" value="${Number.isInteger(p.shoot_count) ? p.shoot_count : ''}" placeholder="未設定" style="width:96px;padding:6px 10px">
         件（一覧に「実績◯+」と表示。空欄で非表示）
@@ -323,6 +331,28 @@ async function loadListings() {
       }
     });
   });
+  document.querySelectorAll('.btn-invoice-save').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = CSS.escape(btn.dataset.id);
+      const number = document.querySelector(`.invoice-number-input[data-id="${id}"]`).value.trim().toUpperCase().replace(/[-\s]/g, '');
+      const from = document.querySelector(`.tax-deduction-from-input[data-id="${id}"]`).value;
+      if (number && !/^T\d{13}$/.test(number)) { alert('登録番号は「T」と13桁の数字で入力してください（例：T1234567890123）。'); return; }
+      const what = number
+        ? `インボイス登録番号を ${number} にします（報酬から消費税相当額は差し引きません）。`
+        : (from
+          ? `インボイス未登録として、${from} 以降の撮影の報酬から消費税相当額（10/110）を差し引きます。\n報酬の減額にあたるため、本人と合意し、契約書に定めたうえで設定してください。`
+          : 'インボイス未登録・差し引きなしにします。');
+      if (!confirm(`${btn.dataset.name}さん：${what}\n\nよろしいですか？`)) return;
+      btn.disabled = true;
+      try {
+        await setPhotographerInvoice(btn.dataset.id, number, from);
+        await loadListings();
+      } catch (err) {
+        alert(err.message || '保存に失敗しました。');
+        btn.disabled = false;
+      }
+    });
+  });
   bind('.btn-listing-approve', true, (name) => `${name}さんを公開します。検索ページ・プロフィールページに表示され、予約を受け付けるようになります。よろしいですか？`);
   bind('.btn-listing-hide', false, (name) => `${name}さんの掲載を停止します。検索ページに表示されなくなり、新規の予約を受け付けなくなります（本人は再開できません）。よろしいですか？`);
 }
@@ -396,7 +426,7 @@ function payoutGroupHtml(group, { ready }) {
     const noShow = noShowQuote(b).allowed
       ? ` <button data-booking-id="${b.id}" class="btn-no-show" style="background:none;border:none;padding:0 0 0 6px;font:700 11px var(--pm-font-body);color:var(--pm-warn-text);text-decoration:underline;cursor:pointer">遅刻キャンセルにする</button>`
       : '';
-    return `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">・${b.booking_date} ${String(b.start_time || '').slice(0, 5)}　${what}　依頼者：${escapeHtml(b.customer_name || '-')}　¥${amount.toLocaleString()}${b.payout_hold ? `　<b style="color:var(--pm-warn-text)">送金保留中（${escapeHtml(b.payout_hold_reason || '')}）</b>` : ''}${b.status !== 'canceled' && !b.delivered_at ? '　<b style="color:var(--pm-warn-text)">未納品</b>' : ''}${!ready && !b.payout_hold && payoutBasisDate(b) && !payoutMonthClosed(b) ? '　<span style="color:var(--pm-text-muted)">今月締め（翌月25日払い）</span>' : ''}${noShow}</div>`;
+    return `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">・${b.booking_date} ${String(b.start_time || '').slice(0, 5)}　${what}　依頼者：${escapeHtml(b.customer_name || '-')}　¥${amount.toLocaleString()}${taxDeductionFor(b, b.photographers) ? `（消費税相当額 −¥${taxDeductionFor(b, b.photographers).toLocaleString()}）` : ''}${b.payout_hold ? `　<b style="color:var(--pm-warn-text)">送金保留中（${escapeHtml(b.payout_hold_reason || '')}）</b>` : ''}${b.status !== 'canceled' && !b.delivered_at ? '　<b style="color:var(--pm-warn-text)">未納品</b>' : ''}${!ready && !b.payout_hold && payoutBasisDate(b) && !payoutMonthClosed(b) ? '　<span style="color:var(--pm-text-muted)">今月締め（翌月25日払い）</span>' : ''}${noShow}</div>`;
   }).join('');
   return `
   <div class="pm-card" style="padding:18px 20px">
@@ -405,7 +435,7 @@ function payoutGroupHtml(group, { ready }) {
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
           <span style="font:700 15px var(--pm-font-body)">${escapeHtml(group.photographerName)}</span>
           <span style="font:700 14px var(--pm-font-num);color:oklch(0.4 0.14 200)">報酬 ¥${group.total.toLocaleString()}（${group.items.length}件）</span>
-          <span style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${group.withholding ? `源泉徴収 −¥${group.withholding.toLocaleString()} → <b style="color:oklch(0.3 0.02 235)">振込額 ¥${group.net.toLocaleString()}</b>` : '源泉徴収なし（対象外）'}</span>
+          <span style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${group.taxDeduction ? `消費税相当額（インボイス未登録）−¥${group.taxDeduction.toLocaleString()} ・ ` : ''}${group.withholding ? `源泉徴収 −¥${group.withholding.toLocaleString()}` : '源泉徴収なし（対象外）'} → <b style="color:oklch(0.3 0.02 235)">振込額 ¥${group.net.toLocaleString()}</b></span>
         </div>
       </div>
     </div>
@@ -413,7 +443,7 @@ function payoutGroupHtml(group, { ready }) {
     <div style="margin-bottom:10px">${bookingLines}</div>
     ${ready ? `
     <div style="display:flex;gap:8px">
-      <button data-photographer-id="${group.photographerId}" data-booking-ids="${group.items.map((b) => b.id).join(',')}" data-total="${group.total}" data-withholding="${group.withholding}" data-net="${group.net}" class="btn-payout-release" ${group.bankAccount ? '' : 'disabled'} style="background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 18px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer">まとめて振込済みにする</button>
+      <button data-photographer-id="${group.photographerId}" data-booking-ids="${group.items.map((b) => b.id).join(',')}" data-total="${group.total}" data-tax-deduction="${group.taxDeduction}" data-withholding="${group.withholding}" data-net="${group.net}" class="btn-payout-release" ${group.bankAccount ? '' : 'disabled'} style="background:var(--pm-brand-grad-soft);border:none;border-radius:100px;padding:9px 18px;font:700 12px var(--pm-font-body);color:#fff;cursor:pointer">まとめて振込済みにする</button>
     </div>` : ''}
   </div>`;
 }
@@ -430,16 +460,21 @@ function groupByPhotographer(bookings, bankAccounts) {
         bankAccount: bankAccounts[key] || null,
         items: [],
         total: 0,
+        taxDeduction: 0,
       });
     }
     const group = map.get(key);
     group.items.push(b);
     group.total += photographerPayoutFor(b);
+    // インボイス未登録の人は消費税相当額を差し引く（functions/_lib/payouts.js と同じ計算）。
+    group.taxDeduction += taxDeductionFor(b, b.photographers);
   });
-  // 源泉徴収は1回の振込（まとめて送る分）にかかる。表示は「まとめて振込済みにする」で送る場合の額。
+  // 源泉徴収は1回の振込（まとめて送る分）にかかり、消費税相当額を差し引いた後の額が基準。
+  // 表示は「まとめて振込済みにする」で送る場合の額。
   return [...map.values()].map((g) => {
-    const withholding = g.withholdingApplies ? withholdingTaxFor(g.total) : 0;
-    return { ...g, withholding, net: g.total - withholding };
+    const base = g.total - g.taxDeduction;
+    const withholding = g.withholdingApplies ? withholdingTaxFor(base) : 0;
+    return { ...g, withholding, net: base - withholding };
   });
 }
 
@@ -477,9 +512,12 @@ async function loadPayouts() {
     btn.addEventListener('click', async () => {
       const ids = btn.dataset.bookingIds.split(',');
       const total = Number(btn.dataset.total).toLocaleString();
+      const taxDeduction = Number(btn.dataset.taxDeduction);
       const withholding = Number(btn.dataset.withholding);
       const net = Number(btn.dataset.net).toLocaleString();
-      const taxLine = withholding ? `\n源泉徴収：−¥${withholding.toLocaleString()}（翌月10日までに税務署へ納付）\n振込額：¥${net}` : '\n源泉徴収：なし（対象外）';
+      const taxLine = (taxDeduction ? `\n消費税相当額の控除（インボイス未登録）：−¥${taxDeduction.toLocaleString()}` : '')
+        + (withholding ? `\n源泉徴収：−¥${withholding.toLocaleString()}（翌月10日までに税務署へ納付）` : '\n源泉徴収：なし（対象外）')
+        + `\n振込額：¥${net}`;
       if (!confirm(`${ids.length}件・報酬¥${total}を銀行振込済みとして記録します（実際の振込は別途行ってください）。${taxLine}\n\nよろしいですか？`)) return;
       btn.disabled = true;
       try {

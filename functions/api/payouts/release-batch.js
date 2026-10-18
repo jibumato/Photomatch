@@ -47,7 +47,8 @@ export async function onRequestPost({ request, env }) {
     } catch (err) {
       console.error('release-batch: withholding failed', photographerId, err);
       const gross = items.reduce((n, r) => n + r.amount, 0);
-      transfers[photographerId] = { gross, withholding: 0, net: gross, failed: true };
+      const taxDeduction = items.reduce((n, r) => n + (r.taxDeduction || 0), 0);
+      transfers[photographerId] = { gross, taxDeduction, withholding: 0, net: gross - taxDeduction, failed: true };
     }
   }
 
@@ -60,7 +61,9 @@ export async function onRequestPost({ request, env }) {
       if (!pro || !pro.email) continue;
       const total = items.reduce((sum, r) => sum + r.amount, 0);
       const t = transfers[photographerId];
-      const taxLines = t.withholding ? `\n源泉徴収税額（所得税及び復興特別所得税）：−¥${t.withholding.toLocaleString()}\nお振込額：¥${t.net.toLocaleString()}` : '';
+      const taxLines = (t.taxDeduction ? `\n消費税相当額の控除（インボイス未登録）：−¥${t.taxDeduction.toLocaleString()}` : '')
+        + (t.withholding ? `\n源泉徴収税額（所得税及び復興特別所得税）：−¥${t.withholding.toLocaleString()}` : '')
+        + (t.taxDeduction || t.withholding ? `\nお振込額：¥${t.net.toLocaleString()}` : '');
       const lines = items.map((r) => `・${r.booking.booking_date} ${r.booking.status === 'canceled' ? '当日キャンセル補償' : r.booking.plan_name}　¥${r.amount.toLocaleString()}`).join('\n');
       await sendEmail(env, {
         to: pro.email,

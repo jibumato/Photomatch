@@ -10,7 +10,7 @@ import { loadDailyWeather } from '../weather.js';
 import { mountProfileEditor } from '../profileEditor.js';
 import {
   AREAS, SLOT_TIMES, TOTAL_BOOKING_DAYS, WEEKDAY_JP, PENDING_PAYMENT_HOLD_MIN, buildBookingDays, weatherIconFor,
-  EXTRA_OPTIONS, COUNSELING_QUESTIONS, meetingPointForArea, deliveryDueDate, photographerPayoutFor, isValidDeliveryUrl, jstDateIso,
+  EXTRA_OPTIONS, COUNSELING_QUESTIONS, meetingPointForArea, deliveryDueDate, photographerPayoutFor, recordedOrEstimatedTaxDeduction, isValidDeliveryUrl, jstDateIso,
   awaitingPhotographerAck, PHOTOGRAPHER_ACK_HOURS,
 } from '../data.js';
 import { takenIntervalsFrom, openSetFrom, cellState as slotState } from '../availability.js';
@@ -371,7 +371,8 @@ function renderEarnings() {
   rows.forEach((b) => {
     const m = b.booking_date.slice(0, 7);
     const g = (months[m] = months[m] || { total: 0, released: 0, count: 0, undelivered: 0 });
-    const amount = photographerPayoutFor(b);
+    // インボイス未登録で消費税相当額を差し引く場合は、差し引いた後の額（明細と同じ）。
+    const amount = photographerPayoutFor(b) - recordedOrEstimatedTaxDeduction(b, state.photographer);
     g.total += amount; g.count += 1;
     if (b.payout_status === 'released') g.released += amount;
     if (b.status !== 'canceled' && !b.delivered_at) g.undelivered += 1;
@@ -394,7 +395,7 @@ function bankAccountFormHtml(account) {
   const a = account || {};
   return `
     <div style="font:700 15px var(--pm-font-body);margin-bottom:6px">報酬の振込先を登録する</div>
-    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 14px">お客様からのお支払いは一旦PhotoMatchでお預かりし、納品月末締め・翌月25日払い（納品した月の翌月25日）で運営より銀行振込にてお支払いします。報酬は「プラン料金の50%＋オプション1件につき¥1,100」です。お客様の当日キャンセルの場合は、補償として¥2,000（税込）をお支払いします。</p>
+    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 14px">お客様からのお支払いは一旦PhotoMatchでお預かりし、納品月末締め・翌月25日払い（納品した月の翌月25日）で運営より銀行振込にてお支払いします。報酬は「プラン料金の50%＋オプション1件につき¥1,100」です。お客様の当日キャンセルの場合は、補償として¥2,000（税込）をお支払いします。インボイス（適格請求書発行事業者）に未登録の方は、契約で定めた日以降の撮影分について、報酬から消費税相当額（10/110）を差し引きます。</p>
     <div style="display:flex;flex-direction:column;gap:14px;max-width:400px">
       <div class="pm-field">
         <label>金融機関名</label>
@@ -563,6 +564,7 @@ async function init() {
   }
 
   state.photographerId = photographer.id;
+  state.photographer = photographer;
   state.area = AREAS.find((a) => a.label === photographer.area) || AREAS[0];
   document.getElementById('pm-admin').style.display = 'block';
   mountProfileEditor(document.getElementById('pm-profile-section'), photographer, profile.id);

@@ -1180,3 +1180,15 @@ alter table photographers add column if not exists withholding_tax boolean not n
 -- 振込額＝報酬 − この額。税務署への納付・支払調書の作成に使う。
 alter table bookings add column if not exists payout_withholding int not null default 0;
 
+
+-- インボイス未登録のカメラマンの報酬から、消費税相当額を差し引く（js/data.js の taxDeductionFor）。
+-- invoice_number：適格請求書発行事業者の登録番号（T＋13桁）。入っている人には差し引かない。
+-- tax_deduction_from：差し引きを始める撮影日（本人と合意し、契約書に定めた日）。空なら差し引かない。
+-- どちらも運営だけが変更する（本人用の update 権限には含めない）。
+alter table photographers add column if not exists invoice_number text;
+alter table photographers add column if not exists tax_deduction_from date;
+alter table photographers drop constraint if exists photographers_invoice_number_format;
+alter table photographers add constraint photographers_invoice_number_format
+  check (invoice_number is null or invoice_number ~ '^T[0-9]{13}$') not valid;
+-- 送金を記録したときに差し引いた消費税相当額。振込額＝報酬 − この額 − 源泉徴収額。
+alter table bookings add column if not exists payout_tax_deduction int not null default 0;

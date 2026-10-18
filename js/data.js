@@ -174,7 +174,7 @@ export const LEGAL_PAGES = {
       { h: '3. 予約が入ったら', b: '予約が確定すると、メールでお知らせします。管理画面の予約一覧で、日時・プラン・オプション・連絡先・集合場所と、お客様の事前カウンセリングの回答を確認できます。お客様との連絡は、サイト内のメッセージで行ってください（新着メッセージはメールでもお知らせします）。集合場所は、エリアごとに決まった場所です。' },
       { h: '4. 撮影当日', b: '撮影は、公園や街なかなど公共の場所で行い、密室での撮影は行わないでください。お客様が集合時間に15分以上遅れた場合は、運営にご連絡ください。運営が当日キャンセルとして処理します。' },
       { h: '5. 納品', b: '撮影日から3営業日以内（スピード納品のオプションがある場合は翌営業日。土日・祝日を除く）に、管理画面の「納品する」から、写真のアルバム（Googleフォトなど）のリンクを登録してください。お客様にメールで届き、マイページにも表示されます。期限は予約一覧に表示されます。全データ納品・スキンレタッチ（20枚まで）・スピード納品のオプションが付いた予約は、その内容で納品してください。「異性スタッフ写真セレクト」は、運営のスタッフが行います。' },
-      { h: '6. 報酬', b: '報酬は「プラン料金の50%＋オプション1件につき¥1,100」です（モニター価格の予約は、実際のプラン料金の50%）。お客様の当日キャンセル・遅刻によるキャンセルの場合は、補償として¥2,000をお支払いします。それ以外のキャンセル、運営の判断によるキャンセル、マッチング数保証による無料再撮影は、報酬の対象外です。お支払いは納品月末締め・翌月25日に、ご登録の口座へ銀行振込します（納品した月の翌月25日。当日キャンセルの補償は撮影した月の翌月25日）。不審請求の申し立てなどがあった予約は、確認が済むまでお支払いを保留します。報酬の見込みと送金の状況は、管理画面の「報酬」で確認できます。' },
+      { h: '6. 報酬', b: '報酬は「プラン料金の50%＋オプション1件につき¥1,100」です（モニター価格の予約は、実際のプラン料金の50%）。お客様の当日キャンセル・遅刻によるキャンセルの場合は、補償として¥2,000をお支払いします。それ以外のキャンセル、運営の判断によるキャンセル、マッチング数保証による無料再撮影は、報酬の対象外です。お支払いは納品月末締め・翌月25日に、ご登録の口座へ銀行振込します（納品した月の翌月25日。当日キャンセルの補償は撮影した月の翌月25日）。インボイス（適格請求書発行事業者）に未登録の方は、契約で定めた日以降の撮影分について、報酬から消費税相当額（10/110）を差し引きます。登録された方は、登録番号を運営にお知らせください。不審請求の申し立てなどがあった予約は、確認が済むまでお支払いを保留します。報酬の見込みと送金の状況は、管理画面の「報酬」で確認できます。' },
       { h: '7. 日程変更・キャンセル', b: 'お客様は、撮影日の3日前まで無料で日程を変更・キャンセルできます。2日前以降の日程変更は、「あんしん振替プラン」に加入したお客様だけが1回できます。悪天候やカメラマンのご都合で撮影できないときは、運営が日程変更またはキャンセルを行います。いずれの場合も、メールでお知らせし、元の枠は再び予約を受け付けられる状態になります。ご都合で撮影できなくなったときは、できるだけ早く運営にご連絡ください。' },
       { h: '8. マッチング数保証', b: 'お客様の申請を運営が承認した場合、同じプランで無料の再撮影を行います。お客様がマイページから日時を選ぶと、通常の予約と同じくメールでお知らせします。受け付けられる日時は、シフトで開けておいてください。' },
       { h: '9. 禁止事項', b: 'お客様と、サイト外の連絡先（電話番号・SNSなど）を交換すること、サイトを通さずに取引することは禁止です。撮影した写真を、お客様の事前の許諾なく、作例やSNSなどに掲載・二次利用しないでください。お客様の個人情報は、撮影と納品以外の目的に使わないでください。違反があった場合は、掲載を停止することがあります。' },
@@ -221,8 +221,8 @@ export const FAQS = [
     a: '清潔感のある普段着がおすすめです。白・ネイビー・ベージュなど明るめの無地は写真映えします。過度な柄物や暗い色は避けると仕上がりが良くなります。',
     aEn: "Clean, everyday clothes work best. Light, plain colors like white, navy, or beige photograph well — busy patterns and dark colors tend to work less well." },
   { q: '撮影中に着替えることはできますか？', qEn: 'Can I change outfits during the shoot?',
-    a: '着替えもできます（1〜2着が目安です）。トイレなどの個室で着替える時間も、45分の撮影時間に含まれます。上に羽織るだけ・重ね着を脱ぐだけなど、すぐに替えられる服を選ぶと、撮影の時間をたっぷり使えます。',
-    aEn: "Yes — one or two outfits is a good guide. The time it takes to change (for example in a restroom) counts toward the 45-minute shoot, so clothes that are quick to switch — like a jacket you can put on or a layer you can take off — leave you more time for photos." },
+    a: '着替えもできます（1〜2着が目安です）。撮影中に着替える場合は、お着替えの服を現地にご持参ください。なお、着替えのお時間も撮影時間（45分）に含まれます。上に羽織るだけ・重ね着を脱ぐだけなど、すぐに替えられる服を選ぶと、撮影の時間をたっぷり使えます。',
+    aEn: "Yes — one or two outfits is a good guide. If you'd like to change during the shoot, please bring your change of clothes with you. Note that the time it takes to change is included in the shoot time (45 minutes), so clothes that are quick to switch — like a jacket you can put on or a layer you can take off — leave you more time for photos." },
   { q: 'カフェで撮影することはできますか？', qEn: 'Can we shoot in a cafe?',
     a: '撮影は、公園や街なか、アーケードなどの公共の場所が基本です。お店の中での撮影には、お店ごとの許可が必要なため、お客様ご自身でお店に撮影の許可をとっていただいた場合に限り、カメラマンと相談のうえで対応します。その場合も、集合場所からお店までの移動時間や待ち時間は45分の撮影時間に含まれ、飲食代はお客様のご負担です。待ち時間を減らすため、テイクアウトの飲み物をお持ちいただくのがおすすめです。',
     aEn: "Shoots are mainly in public places like parks, streets and arcades. Shooting inside a shop needs that shop's permission, so we can only do it — after checking with your photographer — if you have asked the shop and received permission yourself. Even then, travel from the meeting point and any waiting time count toward the 45-minute shoot, and food and drinks are at your own cost. Bringing a takeout drink is a good way to save time." },
@@ -441,7 +441,7 @@ export const COLUMN_ARTICLES = [
       { h: '春：川原町広場周辺', b: '川原町の古い町並み、日中友好庭園、岐阜公園などが集まるエリアです。格子戸の町家や庭園の緑を背景にすると、落ち着きのある、やわらかな雰囲気の一枚になります。春は新緑や花が加わり、季節感のある写真が撮れます。岐阜駅からバスで約15分（250円）です。' },
       { h: '夏：岐阜市役所・メディアコスモス周辺', b: '木陰が多く、暑い日でも涼めるテラスやカフェがあるエリアです。夏の撮影は汗や日差しで表情が硬くなりがちですが、日陰でこまめに休みながら撮れるので、爽やかな表情を保てます。緑の中の自然光は肌をきれいに見せてくれます。岐阜駅からバスで約15分（250円）です。' },
       { h: '秋：清水緑地／冬：岐阜駅周辺', b: '清水緑地は岐阜駅から徒歩約5分、川沿いに続く緑地です。木々と水辺を背景に、秋らしい落ち着いた写真が撮れます。冬や天気が心配な日は岐阜駅周辺へ。アクティブGでの屋内撮影、夜はイルミネーションの夜景、カフェや街並みでの撮影もでき、天候に左右されません。' },
-      { h: '集合は岐阜駅、撮影は45分', b: 'PhotoMatchの岐阜エリアは、JR岐阜駅のアスティ岐阜（ドトールコーヒーショップ前）に集合します。撮影場所は、季節や天候に合わせてカメラマンと相談して決められます。撮影は45分、料金は¥6,800〜（税込）、写真は通常3営業日以内にお届けします。', link: { href: 'gifu.html', text: '岐阜エリアの撮影について詳しく見る' } },
+      { h: '集合は岐阜駅、撮影は45分', b: 'PhotoMatchの岐阜エリアは、JR岐阜駅のアスティ岐阜（ドトールコーヒーショップ前）に集合し、撮影日の季節に合わせた上記のスポットで撮影します。撮影は45分、料金は¥6,800〜（税込）、写真は通常3営業日以内にお届けします。', link: { href: 'gifu.html', text: '岐阜エリアの撮影について詳しく見る' } },
     ],
   },
   {
@@ -453,7 +453,7 @@ export const COLUMN_ARTICLES = [
       { h: '春：庄内緑地公園周辺', b: '広い芝生と季節の花々が広がる公園です。春は桜や新緑を背景に、明るく開放感のある写真が撮れます。芝生の上での全身カットや、木陰でのやわらかい表情のカットなど、メイン写真とサブ写真をまとめて撮りやすいスポットです。' },
       { h: '夏：ガーデンふ頭臨港緑園', b: '海と空が広がる、港ならではの開放感が魅力です。水辺と広場の緑を背景にすると、爽やかで健康的な印象の写真になります。夏の強い日差しは、時間帯を選ぶことで、まぶしさを抑えた自然な表情を撮れます。' },
       { h: '秋：名城公園／冬：栄駅周辺', b: '名城公園は、木々や芝生、おふけ池を背景に、落ち着きと自然の奥行きを感じる写真が撮れるスポットです。秋の色づきは、大人っぽく穏やかな雰囲気を後押しします。冬は栄駅周辺へ。街並みや店舗の明かりを背景にした写真は、都会的で洗練された印象になり、夜の街スナップもサブ写真に向いています。' },
-      { h: '場所選びはカメラマンに相談を', b: 'PhotoMatchの名古屋エリアは、栄のオアシス21前に集合します。季節や天候、なりたい雰囲気に合わせて、撮影場所はカメラマンと相談して決められます。「爽やかに見せたい」「落ち着いた雰囲気にしたい」など、イメージを伝えるだけで大丈夫です。', link: { href: 'nagoya.html', text: '名古屋エリアの撮影について詳しく見る' } },
+      { h: '撮影場所は季節ごとに1か所', b: 'PhotoMatchの名古屋エリアは、栄のオアシス21前に集合し、撮影日の季節に合わせたスポットで撮影します（春は庄内緑地公園周辺、夏はガーデンふ頭臨港緑園、秋は名城公園、冬は栄駅周辺）。「爽やかに見せたい」「落ち着いた雰囲気にしたい」など、なりたいイメージは、予約後のカウンセリングシートで事前にお伝えください。', link: { href: 'nagoya.html', text: '名古屋エリアの撮影について詳しく見る' } },
     ],
   },
   {
@@ -813,6 +813,31 @@ export function allocateWithholding(amounts, total) {
   const order = amounts.map((a, i) => i).sort((i, j) => amounts[j] - amounts[i]);
   for (let k = 0; rest > 0; k = (k + 1) % order.length, rest -= 1) shares[order[k]] += 1;
   return shares;
+}
+
+// インボイス（適格請求書発行事業者）に登録していないカメラマンへの報酬は、運営が仕入税額控除を
+// 受けられない（経過措置で一部のみ）ため、消費税相当額（税込報酬の 10/110、1円未満切り捨て）を
+// 差し引いて支払う。不利益変更になるので、本人と合意し、契約書に定めたうえで、運営画面で
+// 「控除を始める撮影日」（photographers.tax_deduction_from）を入れた日以降の撮影だけに適用する。
+//   ・登録番号（photographers.invoice_number、T＋13桁）が入っている人には適用しない
+//   ・当日キャンセルの補償は、撮影（役務）の対価ではない（不課税）ので適用しない
+//   ・源泉徴収は、差し引いた後の報酬額を基準にする
+// 送金を記録したときの額は bookings.payout_tax_deduction に残す（明細・売上管理はその額を使う）。
+export const INVOICE_NUMBER_RE = /^T\d{13}$/;
+export const isInvoiceRegistered = (photographer) => INVOICE_NUMBER_RE.test(String((photographer && photographer.invoice_number) || ''));
+export function taxDeductionApplies(booking, photographer) {
+  if (!booking || !photographer || booking.status === 'canceled') return false;
+  if (isInvoiceRegistered(photographer) || !photographer.tax_deduction_from) return false;
+  return String(booking.booking_date) >= String(photographer.tax_deduction_from);
+}
+export const consumptionTaxIncluded = (amount) => Math.floor((Math.max(0, amount || 0) * 10) / 110);
+// 1件の予約の、消費税相当額の控除（未送金の見込み）。送金済みは payout_tax_deduction を使う。
+export function taxDeductionFor(booking, photographer) {
+  return taxDeductionApplies(booking, photographer) ? consumptionTaxIncluded(photographerPayoutFor(booking)) : 0;
+}
+// 送金済みなら記録した額、未送金なら今の設定での見込み。
+export function recordedOrEstimatedTaxDeduction(booking, photographer) {
+  return booking.payout_status === 'released' ? (booking.payout_tax_deduction || 0) : taxDeductionFor(booking, photographer);
 }
 
 // 1件の予約についてカメラマンへ振り込む額。キャンセル済みは当日キャンセル補償のみ。
