@@ -316,7 +316,7 @@ export async function getBookingsForSales(fromIso, toIso) {
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase
       .from('bookings')
-      .select('*, photographers(name)')
+      .select('*, photographers(*)')
       .gte('booking_date', fromIso)
       .lte('booking_date', toIso)
       .order('booking_date', { ascending: true })
@@ -535,7 +535,7 @@ export async function getBankAccountsForPhotographers(photographerIds) {
 export async function getPayoutCandidates() {
   const { data, error } = await supabase
     .from('bookings')
-    .select('*, photographers(name, withholding_tax)')
+    .select('*, photographers(*)')
     // paid bookings, plus canceled ones that owe a same-day compensation
     .or('status.eq.paid,and(status.eq.canceled,photographer_cancel_comp.gt.0)')
     .eq('payout_status', 'pending')
@@ -580,6 +580,11 @@ export async function getPhotographersForReview() {
 // Ops: whether 源泉徴収 is deducted from this photographer's payouts.
 export async function setPhotographerWithholding(photographerId, withholdingTax) {
   return callApi('/api/photographers/settings', { photographer_id: photographerId, withholding_tax: withholdingTax }, '保存に失敗しました。');
+}
+
+// Ops: インボイスの登録番号と、未登録の人から消費税相当額を差し引き始める撮影日（'' で解除）。
+export async function setPhotographerInvoice(photographerId, invoiceNumber, taxDeductionFrom) {
+  return callApi('/api/photographers/settings', { photographer_id: photographerId, invoice_number: invoiceNumber, tax_deduction_from: taxDeductionFrom }, '保存に失敗しました。');
 }
 
 // Ops: the 撮影実績 badge (「実績250+」). null hides it.

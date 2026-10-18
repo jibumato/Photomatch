@@ -30,7 +30,7 @@ export async function onRequestPost({ request, env }) {
     const result = await releaseOne(env, bookingId, note);
     if (result.error) return jsonResponse({ error: result.error }, result.status);
     const tax = await recordWithholding(env, result.booking.photographer_id, [result]);
-    return jsonResponse({ success: true, amount: result.amount, withholding: tax.withholding, net: tax.net });
+    return jsonResponse({ success: true, amount: result.amount, tax_deduction: tax.taxDeduction, withholding: tax.withholding, net: tax.net });
   } catch (err) {
     console.error('payouts/release failed', err);
     return jsonResponse({ error: '更新に失敗しました。時間をおいて再度お試しください。' }, 502);

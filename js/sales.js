@@ -5,13 +5,14 @@
 //   売上   = お客様から受け取った額 − 返金した額
 //            （キャンセル料は、返金しなかった分としてここに入る）
 //   原価   = カメラマンへの報酬（photographerPayoutFor：プラン料金の50％＋オプション1件¥1,100、
-//            キャンセルは当日補償のみ）
+//            キャンセルは当日補償のみ）。インボイス未登録の人から差し引く消費税相当額は除く
+//            （送金済みは記録した額、未送金は今の設定での見込み。b.photographers が必要）
 //   粗利   = 売上 − 原価
 //   手数料 = Stripe の決済手数料の概算（受け取った額 × STRIPE_FEE_RATE。返金しても戻らない）
 //   利益   = 粗利 − 手数料（概算）
 //   営業利益 = 利益 − 経費（運営が入力した経費。月は経費の日付で分ける）
 // 集計する月は「撮影日」で決める（サービスを提供した日に計上する）。
-import { photographerPayoutFor, STRIPE_FEE_RATE, CONSUMPTION_TAX_RATE, jstDateIso } from './data.js';
+import { photographerPayoutFor, recordedOrEstimatedTaxDeduction, STRIPE_FEE_RATE, CONSUMPTION_TAX_RATE, jstDateIso } from './data.js';
 
 const ACTIVE = ['paid', 'confirmed', 'requested', 'completed'];
 
@@ -32,7 +33,7 @@ export function bookingFinancials(b) {
   const paid = wasPaid(b) ? b.total_price : 0;
   const refunded = paid ? Math.min(paid, b.refund_amount || 0) : 0;
   const net = paid - refunded;
-  const payout = isCounted(b) ? photographerPayoutFor(b) : 0;
+  const payout = isCounted(b) ? photographerPayoutFor(b) - recordedOrEstimatedTaxDeduction(b, b.photographers) : 0;
   const fee = Math.round(paid * STRIPE_FEE_RATE);
   const canceled = b.status === 'canceled';
   return {
@@ -144,7 +145,8 @@ export function expensesCsv(list) {
   return [head, ...list.map((e) => [e.expense_date, e.category, e.amount, e.memo || ''])].map((r) => r.map(csvCell).join(',')).join('\r\n');
 }
 
-// その月（日本時間）に送金を記録した報酬と、そこから差し引いた源泉徴収額（預り金）。
+// その月（日本時間）に送金を記録した報酬（インボイス未登録の人の消費税相当額を差し引いた後）と、
+// そこから差し引いた源泉徴収額（預り金）。
 // 源泉徴収税は、支払った月の翌月10日までに税務署へ納付する。
 export function payoutsReleasedIn(list, month) {
   let paid = 0;
@@ -153,7 +155,7 @@ export function payoutsReleasedIn(list, month) {
   for (const b of list) {
     if (b.payout_status !== 'released' || !b.payout_released_at) continue;
     if (jstDateIso(new Date(b.payout_released_at)).slice(0, 7) !== month) continue;
-    paid += photographerPayoutFor(b);
+    paid += photographerPayoutFor(b) - (b.payout_tax_deduction || 0);
     withholding += b.payout_withholding || 0;
     count += 1;
   }

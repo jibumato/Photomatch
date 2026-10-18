@@ -10,7 +10,7 @@
 // 送金の保留・未納品があると、後になる。
 import {
   photographerPayoutFor, PHOTOGRAPHER_PAYOUT_RATE, OPTION_PAYOUT_PER_ITEM, payoutBasisDate, deliveryDueDate, jstDateIso,
-  withholdingTaxFor, allocateWithholding,
+  withholdingTaxFor, allocateWithholding, recordedOrEstimatedTaxDeduction,
 } from './data.js';
 
 export const ISSUER = 'PhotoMatch運営事務局';
@@ -49,22 +49,27 @@ export function payoutState(b, today = jstDateIso()) {
 // 源泉徴収：送金済みの行は、送金時に記録した額（payout_withholding）。未送金の行は、
 // 未送金分をまとめて1回で振り込むとした場合の見込み額を割り振る（withholdingApplies が
 // false のカメラマン〈法人など〉は0円）。
-export function statementFor(bookings, month, today = jstDateIso(), { withholdingApplies = true } = {}) {
+// 消費税相当額の控除（インボイス未登録の人）：送金済みは記録した額（payout_tax_deduction）、
+// 未送金は photographer の今の設定での見込み。源泉徴収は控除後の額を基準にする。
+export function statementFor(bookings, month, today = jstDateIso(), { withholdingApplies = true, photographer = null } = {}) {
   const rows = bookings
     .filter((b) => String(b.booking_date).slice(0, 7) === month && b.status !== 'pending_payment' && photographerPayoutFor(b) > 0)
     .sort((a, b) => (a.booking_date + a.start_time < b.booking_date + b.start_time ? -1 : 1))
     .map((b) => ({ booking: b, ...payoutBreakdown(b), state: payoutState(b, today) }));
+  rows.forEach((r) => { r.taxDeduction = recordedOrEstimatedTaxDeduction(r.booking, photographer); });
   const unpaidRows = rows.filter((r) => r.state.key !== 'released');
-  const unpaidGross = unpaidRows.reduce((n, r) => n + r.total, 0);
-  const estimate = withholdingApplies ? withholdingTaxFor(unpaidGross) : 0;
-  const shares = allocateWithholding(unpaidRows.map((r) => r.total), estimate);
+  const unpaidBase = unpaidRows.reduce((n, r) => n + r.total - r.taxDeduction, 0);
+  const estimate = withholdingApplies ? withholdingTaxFor(unpaidBase) : 0;
+  const shares = allocateWithholding(unpaidRows.map((r) => r.total - r.taxDeduction), estimate);
   unpaidRows.forEach((r, i) => { r.withholding = shares[i]; r.withholdingEstimated = true; });
   rows.forEach((r) => { if (r.state.key === 'released') r.withholding = r.booking.payout_withholding || 0; });
   const sum = (pred) => rows.filter(pred).reduce((n, r) => n + r.total, 0);
   const withholding = rows.reduce((n, r) => n + r.withholding, 0);
+  const taxDeduction = rows.reduce((n, r) => n + r.taxDeduction, 0);
   return {
     withholding,
-    net: rows.reduce((n, r) => n + r.total, 0) - withholding,
+    taxDeduction,
+    net: rows.reduce((n, r) => n + r.total, 0) - taxDeduction - withholding,
     withholdingApplies,
     month,
     rows,
