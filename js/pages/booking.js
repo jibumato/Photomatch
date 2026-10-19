@@ -489,10 +489,26 @@ function renderPaymentSummary() {
   document.getElementById('payment-submit-label').textContent = tf('booking.payment.submitLabel', { total: `¥${s.grandTotal.toLocaleString()}` });
 }
 
+// 利用規約などへの同意（チェックするまで決済に進めない。サーバーでも確かめ、同意日時を記録する）。
+const agreeBox = document.getElementById('agree-terms');
+const syncAgree = () => { document.getElementById('payment-submit').disabled = !agreeBox.checked; };
+agreeBox.addEventListener('change', () => {
+  syncAgree();
+  if (agreeBox.checked) document.getElementById('err-payment').style.display = 'none';
+});
+// ブラウザがチェック状態を復元したとき（再読み込み・戻る）にもボタンを合わせる。
+syncAgree();
+window.addEventListener('pageshow', syncAgree);
+
 document.getElementById('payment-submit').addEventListener('click', async () => {
   const errorEl = document.getElementById('err-payment');
   errorEl.style.display = 'none';
   const btn = document.getElementById('payment-submit');
+  if (!agreeBox.checked) {
+    errorEl.textContent = t('booking.payment.agreeRequired');
+    errorEl.style.display = 'block';
+    return;
+  }
   btn.disabled = true;
   const s = currentSummary();
   try {
@@ -514,13 +530,14 @@ document.getElementById('payment-submit').addEventListener('click', async () => 
       customer_contact: state.phone ? `${state.email} / ${state.phone}` : state.email,
       option_keys: state.options,
       customer_gender: state.gender || undefined,
+      terms_agreed: agreeBox.checked,
     }, t('booking.payment.checkoutFailed'), t('booking.payment.checkoutFailedRetry'));
     location.href = data.url;
   } catch (err) {
     errorEl.textContent = err.message || t('booking.payment.checkoutFailedRetry');
     errorEl.style.display = 'block';
     console.error(err);
-    btn.disabled = false;
+    btn.disabled = !agreeBox.checked;
   }
 });
 

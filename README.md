@@ -62,6 +62,7 @@ update profiles set role = 'ops' where email = 'info.photomatch@gmail.com';
 ### 決済
 - お客様は予約時に全額をクレジットカードで支払う（Stripe Checkout。コンビニ払いなどの後払い型は使わない）。予約は Stripe の Webhook を受けて「確定」になる
 - 価格は税込表示のため、Stripe Tax（自動税計算）は使わない
+- お支払い画面で「利用規約・プライバシーポリシー・キャンセルポリシーに同意します」にチェックしないと、決済ボタンが押せない。サーバー（`/api/checkout/create-session`）でも `terms_agreed: true` がないと予約を作らず、同意した日時を `bookings.terms_agreed_at` に残す
 
 ### お客様都合のキャンセル（マイページ → `/api/bookings/cancel`）
 | 時期（日本時間） | キャンセル料 | カメラマンへの補償 |

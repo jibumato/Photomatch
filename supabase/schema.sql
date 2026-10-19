@@ -1192,3 +1192,7 @@ alter table photographers add constraint photographers_invoice_number_format
   check (invoice_number is null or invoice_number ~ '^T[0-9]{13}$') not valid;
 -- 送金を記録したときに差し引いた消費税相当額。振込額＝報酬 − この額 − 源泉徴収額。
 alter table bookings add column if not exists payout_tax_deduction int not null default 0;
+
+-- 予約時に、利用規約・プライバシーポリシー・キャンセルポリシーへの同意にチェックした日時
+-- （/api/checkout/create-session が記録する。同意がないと決済に進めない）。
+alter table bookings add column if not exists terms_agreed_at timestamptz;
