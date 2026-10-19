@@ -231,6 +231,8 @@ const DICT = {
   'booking.payment.stripeNote': { ja: 'Stripeの決済ページへ移動します。カード情報はPhotoMatchのサーバーを経由しません。', en: "You'll be taken to Stripe's secure payment page. Your card details never pass through PhotoMatch's servers." },
   'booking.payment.cancelTitle': { ja: 'キャンセルポリシー', en: 'Cancellation Policy' },
   'booking.payment.cancelBody': { ja: '撮影日の3日前まで：無料 ／ 2日前：プラン料金の50% ／ 前日・当日：プラン料金の100%（オプション料金は全額返金）', en: '3+ days before: free ／ 2 days before: 50% of the plan fee ／ the day before or same day: 100% of the plan fee (options fully refunded).' },
+  'booking.payment.agree': { ja: '<a href="terms.html?key=terms" target="_blank" rel="noopener">利用規約</a>・<a href="terms.html?key=privacy" target="_blank" rel="noopener">プライバシーポリシー</a>・上記のキャンセルポリシーを確認し、同意します', en: 'I have read and agree to the <a href="terms.html?key=terms" target="_blank" rel="noopener">Terms of Service</a>, the <a href="terms.html?key=privacy" target="_blank" rel="noopener">Privacy Policy</a>, and the cancellation policy above' },
+  'booking.payment.agreeRequired': { ja: 'お支払いの前に、利用規約などへの同意にチェックを入れてください。', en: 'Please check the box to agree to the terms before paying.' },
   'booking.payment.submit': { ja: 'Stripeの決済ページへ進む', en: "Continue to Stripe" },
   'booking.confirm.title': { ja: 'お支払い・ご予約が完了しました', en: 'Payment Complete — Booking Confirmed' },
   'booking.confirm.checkingTitle': { ja: 'お支払いを確認しています…', en: 'Confirming your payment…' },

@@ -37,7 +37,11 @@ export async function onRequestPost({ request, env }) {
     customer_contact: customerContact,
     option_keys: optionKeys,
     customer_gender: requestedGender,
+    terms_agreed: termsAgreed,
   } = payload || {};
+
+  // 利用規約・プライバシーポリシー・キャンセルポリシーへの同意（予約画面のチェック）。
+  if (termsAgreed !== true) return jsonResponse({ error: '利用規約などへの同意が必要です。予約画面でチェックを入れてから、お支払いへお進みください。' }, 400);
 
   if (!photographerId || !planName || !bookingDate || !startTime || !customerName || !customerContact) {
     return jsonResponse({ error: '入力内容をご確認ください。' }, 400);
@@ -112,7 +116,7 @@ export async function onRequestPost({ request, env }) {
   const optionsTotal = optionsTotalFor(validOptionKeys);
   const totalPrice = planPrice + optionsTotal;
 
-  const booking = await restInsert(env, 'bookings', {
+  const bookingRow = {
     client_id: user.id,
     photographer_id: photographerId,
     plan_name: plan.name,
@@ -133,7 +137,16 @@ export async function onRequestPost({ request, env }) {
     options_total: optionsTotal,
     total_price: totalPrice,
     status: 'pending_payment',
-  });
+  };
+  // 同意した日時を残す。schema.sql の列追加の前でも予約できるよう、列がなければ外して入れ直す。
+  let booking;
+  try {
+    booking = await restInsert(env, 'bookings', { ...bookingRow, terms_agreed_at: new Date().toISOString() });
+  } catch (err) {
+    if (!String(err.message).includes('terms_agreed_at')) throw err;
+    console.error('bookings.terms_agreed_at is missing — run supabase/schema.sql');
+    booking = await restInsert(env, 'bookings', bookingRow);
+  }
 
   // Remember the gender on the account too (the browser can't write profiles),
   // so the next booking is pre-filled. Best effort.
