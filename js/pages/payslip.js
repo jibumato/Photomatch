@@ -38,8 +38,9 @@ function stateCell(s) {
 
 function render(photographer, bookings) {
   const st = statementFor(bookings, month, jstDateIso(), { withholdingApplies: photographer.withholding_tax !== false, photographer });
-  // 消費税相当額の控除（インボイス未登録）の列は、差し引きがある月だけ出す。
-  const showTax = st.taxDeduction > 0;
+  // 消費税相当額の控除の列・欄は、インボイス未登録の人には常に出す（差し引きがなければ「—」／¥0）。
+  // 登録済みの人は、過去に差し引いた記録がある月だけ出す。
+  const showTax = st.taxDeduction > 0 || !isInvoiceRegistered(photographer);
   const estimated = (r) => (r.state.key !== 'released' ? '<br><span style="color:var(--pm-text-muted);font-size:11px">見込み</span>' : '');
   const rows = st.rows.map((r) => {
     const b = r.booking;
@@ -63,7 +64,7 @@ function render(photographer, bookings) {
     <div style="font:700 17px var(--pm-font-body);border-bottom:1.5px solid oklch(0.3 0.02 235);display:inline-block;padding:0 24px 4px 0;margin-bottom:16px">${esc(photographer.name)} 様</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
       ${box('報酬合計（税込）', yen(st.total))}
-      ${showTax ? box('消費税相当額の控除', `−${yen(st.taxDeduction)}`) : ''}
+      ${showTax ? box('消費税相当額の控除', st.taxDeduction ? `−${yen(st.taxDeduction)}` : '¥0') : ''}
       ${box('源泉徴収税額', st.withholding || st.withholdingApplies ? `−${yen(st.withholding)}` : '対象外')}
       ${box('差引支払額', yen(st.net))}
       ${box('うち未送金', yen(st.unpaid), st.unpaid ? 'var(--pm-warn-text)' : '')}
@@ -73,7 +74,7 @@ function render(photographer, bookings) {
       <thead><tr><th>撮影日</th><th>注文番号</th><th>お客様</th><th>内容・計算</th><th class="num">報酬</th>${showTax ? '<th class="num">消費税相当額</th>' : ''}<th class="num">源泉徴収</th><th>状態</th></tr></thead>
       <tbody>${rows}</tbody>
       <tfoot>
-        <tr><td colspan="4" style="text-align:right;font-weight:700;padding-top:10px">報酬合計</td><td class="num" style="font-weight:800;padding-top:10px">${yen(st.total)}</td>${showTax ? `<td class="num" style="padding-top:10px">−${yen(st.taxDeduction)}</td>` : ''}<td class="num" style="padding-top:10px">${st.withholding ? `−${yen(st.withholding)}` : '—'}</td><td></td></tr>
+        <tr><td colspan="4" style="text-align:right;font-weight:700;padding-top:10px">報酬合計</td><td class="num" style="font-weight:800;padding-top:10px">${yen(st.total)}</td>${showTax ? `<td class="num" style="padding-top:10px">${st.taxDeduction ? `−${yen(st.taxDeduction)}` : '—'}</td>` : ''}<td class="num" style="padding-top:10px">${st.withholding ? `−${yen(st.withholding)}` : '—'}</td><td></td></tr>
         <tr><td colspan="4" style="text-align:right;font-weight:700">差引支払額</td><td class="num" colspan="${showTax ? 3 : 2}" style="font-weight:800;font-size:15px">${yen(st.net)}</td><td></td></tr>
       </tfoot>
     </table></div>` : '<div class="pm-empty" style="margin:8px 0">この月に報酬の対象となる撮影はありません。</div>'}
@@ -82,7 +83,7 @@ function render(photographer, bookings) {
       ・お支払いは納品月末締め・翌月25日に、ご登録の口座へ銀行振込します（納品した月の翌月25日。当日キャンセルの補償は撮影月の翌月25日）。「頃」の日付は目安で、送金の保留・未納品があると後になります。<br>
       ${isInvoiceRegistered(photographer)
     ? `・インボイス登録番号：${esc(photographer.invoice_number)}<br>`
-    : (photographer.tax_deduction_from ? `・インボイス（適格請求書発行事業者）に未登録のため、${jpDate(photographer.tax_deduction_from)}以降の撮影分の報酬から、消費税相当額（報酬の10/110、1円未満切り捨て）を差し引いています。当日キャンセルの補償は対象外です。源泉徴収税額は、差し引いた後の額をもとに計算しています。<br>` : '')}
+    : (photographer.tax_deduction_from ? `・インボイス（適格請求書発行事業者）に未登録のため、${jpDate(photographer.tax_deduction_from)}以降の撮影分の報酬から、消費税相当額（報酬の10/110、1円未満切り捨て）を差し引いています。当日キャンセルの補償は対象外です。源泉徴収税額は、差し引いた後の額をもとに計算しています。<br>` : '・インボイス（適格請求書発行事業者）に未登録です。消費税相当額の差し引きは、運営と合意した日以降の撮影分から始まります（現在は差し引いていません）。登録された場合は、登録番号を運営にお知らせください。<br>')}
       ・報酬額は税込です。${st.withholdingApplies ? '源泉徴収税額は、所得税及び復興特別所得税（1回の振込につき100万円以下の部分は10.21%、超える部分は20.42%）です。未送金分は、まとめて1回で振り込む場合の見込みです。' : 'この方の報酬は、源泉徴収の対象外として扱っています。'}
     </div>`;
 }
