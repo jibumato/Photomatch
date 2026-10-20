@@ -833,7 +833,7 @@ alter table photographers add column if not exists stripe_payouts_enabled boolea
 -- 予約ごとの決済・送金情報。予約は決済前は status='pending_payment' で作成され、
 -- Stripe Webhookが checkout.session.completed を受け取った時点で 'paid' に更新する。
 -- payout_status は「プラットフォームが一旦全額を預かり、納品月末締め・翌月25日に
--- opsが銀行振込でカメラマンへ報酬（プラン料金の50%＋オプション1件につき¥1,100、
+-- opsが銀行振込でカメラマンへ報酬（プラン料金の50%＋オプション1件につき¥1,500、
 -- js/data.js の photographerPayoutFor）を送金する」運用のための状態（released 前は pending）。
 alter table bookings add column if not exists stripe_checkout_session_id text;
 alter table bookings add column if not exists stripe_payment_intent_id text;

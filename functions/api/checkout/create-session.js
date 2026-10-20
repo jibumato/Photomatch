@@ -111,7 +111,7 @@ export async function onRequestPost({ request, env }) {
   }
 
   // Keep only known option keys, once each: the charge, the stored options and
-  // the photographer payout (¥1,100 per option) must all count the same list.
+  // the photographer payout (¥1,500 per option) must all count the same list.
   const validOptionKeys = EXTRA_OPTIONS.map((o) => o.key).filter((k) => (Array.isArray(optionKeys) ? optionKeys : []).includes(k));
   const optionsTotal = optionsTotalFor(validOptionKeys);
   const totalPrice = planPrice + optionsTotal;
