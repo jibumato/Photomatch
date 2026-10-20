@@ -395,7 +395,7 @@ function bankAccountFormHtml(account) {
   const a = account || {};
   return `
     <div style="font:700 15px var(--pm-font-body);margin-bottom:6px">報酬の振込先を登録する</div>
-    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 14px">お客様からのお支払いは一旦PhotoMatchでお預かりし、納品月末締め・翌月25日払い（納品した月の翌月25日）で運営より銀行振込にてお支払いします。報酬は「プラン料金の50%＋オプション1件につき¥1,100」です。お客様の当日キャンセルの場合は、補償として¥2,000（税込）をお支払いします。インボイス（適格請求書発行事業者）に未登録の方は、契約で定めた日以降の撮影分について、報酬から消費税相当額（10/110）を差し引きます。</p>
+    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 14px">お客様からのお支払いは一旦PhotoMatchでお預かりし、納品月末締め・翌月25日払い（納品した月の翌月25日）で運営より銀行振込にてお支払いします。報酬は「プラン料金の50%＋オプション1件につき¥1,500」です。お客様の当日キャンセルの場合は、補償として¥2,000（税込）をお支払いします。インボイス（適格請求書発行事業者）に未登録の方は、契約で定めた日以降の撮影分について、報酬から消費税相当額（10/110）を差し引きます。</p>
     <div style="display:flex;flex-direction:column;gap:14px;max-width:400px">
       <div class="pm-field">
         <label>金融機関名</label>
