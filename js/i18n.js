@@ -354,7 +354,7 @@ const DICT = {
   'top.locBand.link': { ja: 'スポットを見る', en: 'See the spots' },
   'top.locations.title': { ja: '季節のおすすめロケーション', en: 'Seasonal Photo Spots' },
   'top.locations.lead': { ja: '季節ごとに、いちばん映える撮影スポットをご紹介します。', en: 'The spots that look their best each season.' },
-  'top.locations.note': { ja: '※撮影場所は、撮影日の季節のロケーション（各エリア・季節ごとに1か所）です。', en: '※ Your shoot takes place at the location for that season (one per season in each area).' },
+  'top.locations.note': { ja: '※撮影場所は、撮影日の季節のロケーション（各エリア・季節ごとに1か所）です。ただし、18時以降の撮影は、名古屋は栄エリア、岐阜は岐阜駅周辺のみとなります。', en: '※ Your shoot takes place at the location for that season (one per season in each area). Shoots that start at 6:00 pm or later are held only in the Sakae area (Nagoya) or around Gifu Station (Gifu).' },
   'top.locations.areaLink': { ja: '{area}での撮影について詳しく見る →', en: 'More about shooting in {area} →' },
   'top.locations.now': { ja: '今の季節', en: 'In season now' },
   'top.locations.map': { ja: 'Googleマップで見る', en: 'View on Google Maps' },
