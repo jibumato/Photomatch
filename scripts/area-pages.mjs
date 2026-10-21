@@ -132,7 +132,7 @@ ${jsonLd.map((ld) => `<script type="application/ld+json">\n${JSON.stringify(ld, 
     <div class="pm-loc-grid">
 ${spots.map(spotCard).join('\n')}
     </div>
-    <p style="font:12px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:16px 0 0;text-align:center">※撮影場所は、撮影日の季節のロケーション（季節ごとに1か所）です。</p>
+    <p style="font:12px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:16px 0 0;text-align:center">※撮影場所は、撮影日の季節のロケーション（季節ごとに1か所）です。ただし、18時以降の撮影は、${esc(page.eveningPlace)}のみとなります。</p>
   </section>
 
   <section class="pm-wrap-mid" style="padding:clamp(40px,8vw,56px) clamp(20px,5vw,32px) 0">
@@ -154,6 +154,7 @@ ${PRICING_PLANS.map((p) => `      <a href="search.html?area=${encodeURIComponent
       <div style="padding:20px 24px 16px">
         <h3 style="font:700 16px var(--pm-font-body);margin:0 0 6px">${esc(mp.label)}エリアの集合場所</h3>
         <p style="font:14px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0">${esc(mp.detail)}</p>
+        <p style="font:700 13px/1.8 var(--pm-font-body);color:oklch(0.4 0.1 215);margin:8px 0 0">${esc(mp.evening)}</p>
       </div>
       <iframe title="${esc(mp.label)}エリアの集合場所の地図" src="https://www.google.com/maps?q=${encodeURIComponent(mp.mapQuery)}&amp;output=embed" width="100%" height="240" style="border:0;display:block" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
