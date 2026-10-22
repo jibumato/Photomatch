@@ -336,8 +336,6 @@ const DICT = {
   'top.reason2.desc': { ja: 'サイト経由の予約なら、1ヶ月運用してもマッチング数が増えなかった場合、無料で再撮影します。', en: "Book through the site and if your match count hasn't improved after a month, we'll reshoot for free." },
   'top.reason3.title': { ja: '料金を事前に明示', en: 'Upfront Pricing' },
   'top.reason3.desc': { ja: 'プラン料金・納品枚数・所要時間を予約前に確認でき、当日の認識違いを防ぎます。', en: 'See the plan price, photo count, and duration before you book — no surprises on the day.' },
-  'top.reason4.title': { ja: '撮影許可の取得も対応', en: 'Location Permits Handled for You' },
-  'top.reason4.desc': { ja: 'ロケーション撮影に必要な許可取得は運営・カメラマン側で対応。お客様は手間なく当日を迎えられます。', en: 'We take care of any permits the shoot location needs, so you can just show up.' },
   'top.solution.ctaNote': { ja: '空き枠の確認は会員登録なしでできます', en: 'No account needed to check availability' },
   // STATS/TESTIMONIALS/TARGET_PAINS/HOW_IT_WORKS/SAFETY_POINTS/FAQS/PRICING_PLANS
   // text lives alongside its Japanese source as additive *En fields on the
