@@ -249,6 +249,7 @@ Stripe の管理画面 → 開発者 → Webhook（イベントの送信先）�
   - `sitemap.xml`、トップの FAQ 構造化データ
 - 料金・季節のロケーション・集合場所・FAQ を `js/data.js` で変えたら、このスクリプトを実行してエリア別ページにも反映する
 - SNS共有用の画像は `assets/og-image.jpg`（1200×630）。公開ページの `og:image` はすべてこれ
+- **正規URL（canonical・og:url・サイトマップ）は拡張子なしで書く**（例 `https://photo-match.jp/nagoya`）。Cloudflare Pages は `/xxx.html` を `/xxx` へ、`/index.html` を `/` へ転送するため、`.html` のままだと Search Console で「ページにリダイレクトがあります」「重複しています。ユーザーにより、正規ページとして選択されていません」になる。生成ページは `scripts/build-articles.mjs` の `canonicalUrl` で作る。サイト内リンク（`href="xxx.html"`）はローカル確認のためそのまま
 - カメラマンのプロフィール（`profile.html?id=…`）は、読み込み後にタイトル・説明文・正規URLをカメラマンごとに設定する
 
 ## CSS / JS を変更したら（キャッシュ対策）

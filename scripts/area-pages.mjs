@@ -40,7 +40,8 @@ function render(page, SITE) {
   const area = AREAS.find((a) => a.key === page.key);
   const spots = SEASONAL_LOCATIONS.find((l) => l.key === page.key).spots;
   const mp = MEETING_POINTS.find((m) => area.label.startsWith(m.label));
-  const url = `${SITE}/${areaPageFor(page.key)}`;
+  // 正規URLは拡張子なし（Cloudflare Pages が /xxx.html を /xxx へ転送するため。build-articles.mjs の canonicalUrl と同じ）。
+  const url = `${SITE}/${page.key}`;
   const searchUrl = `search.html?area=${encodeURIComponent(area.label)}`;
   const others = AREA_PAGES.filter((p) => p.key !== page.key);
   const faqs = FAQS.slice(0, 4);
