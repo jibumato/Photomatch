@@ -1,17 +1,20 @@
 User-agent: *
 Allow: /
 
-# 会員・運営専用ページ（各HTMLでも noindex を指定済み）
-Disallow: /mypage.html
-Disallow: /login.html
-Disallow: /booking.html
-Disallow: /pro-login.html
-Disallow: /admin.html
-Disallow: /ops-login.html
-Disallow: /reset-password.html
-Disallow: /ops.html
+# 会員・運営専用ページ（各HTMLでも noindex を指定済み）。
+# Cloudflare Pages は /xxx.html を /xxx へ転送するので、拡張子なしで書く
+# （前方一致なので /xxx と /xxx.html の両方が対象になる）。
+Disallow: /mypage
+Disallow: /login
+Disallow: /booking
+Disallow: /pro-login
+Disallow: /admin
+Disallow: /ops
+Disallow: /reset-password
+Disallow: /payslip
+Disallow: /email-confirmed
 
-# コラムの旧URL。記事ごとの個別ページ（/column-<id>.html）へ転送するだけのページ。
-Disallow: /article.html
+# コラムの旧URL。記事ごとの個別ページ（/column-<id>）へ転送するだけのページ。
+Disallow: /article
 
 Sitemap: https://photo-match.jp/sitemap.xml

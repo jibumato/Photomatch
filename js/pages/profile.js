@@ -41,7 +41,8 @@ function instagramLinkHtml(raw) {
     if (bioText) document.querySelector('meta[name="description"]')?.setAttribute('content', bioText.length > 110 ? `${bioText.slice(0, 109)}…` : bioText);
     const canonical = document.createElement('link');
     canonical.rel = 'canonical';
-    canonical.href = `https://photo-match.jp/profile.html?id=${encodeURIComponent(id)}`;
+    // Cloudflare Pages は /profile.html を /profile へ転送するので、正規URLは拡張子なし。
+    canonical.href = `https://photo-match.jp/profile?id=${encodeURIComponent(id)}`;
     document.head.appendChild(canonical);
 
     const photoUrl = safePhotoUrl(photographer.photo_url);

@@ -33,6 +33,11 @@ const summarize = (text) => {
 };
 
 const pageFor = (id) => `column-${id}.html`;
+// 検索エンジンに伝える正規URL。Cloudflare Pages は /xxx.html を /xxx へ 308 で転送し、
+// /index.html を / へ転送するため、canonical・og:url・サイトマップは拡張子なしで書く
+// （.html のままだと「ページにリダイレクトがあります」「重複…正規ページとして選択されていません」になる）。
+// サイト内のリンク（href="xxx.html"）はローカル確認のためそのまま。
+export const canonicalUrl = (path) => `${SITE}/${String(path).replace(/(^|\/)index\.html$/, '$1').replace(/\.html$/, '')}`;
 
 function relatedHtml(current) {
   // 同じタグの記事を先に、残りは一覧と同じ順（priority）で3本。
@@ -55,7 +60,7 @@ ${others.map((a) => `      <a href="${pageFor(a.id)}" data-col-card="${a.id}" cl
 }
 
 function render(article) {
-  const url = `${SITE}/${pageFor(article.id)}`;
+  const url = canonicalUrl(pageFor(article.id));
   const desc = summarize(article.lead);
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -78,7 +83,7 @@ function render(article) {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'トップ', item: `${SITE}/` },
-      { '@type': 'ListItem', position: 2, name: 'コラム', item: `${SITE}/column.html` },
+      { '@type': 'ListItem', position: 2, name: 'コラム', item: canonicalUrl('column.html') },
       { '@type': 'ListItem', position: 3, name: article.title, item: url },
     ],
   };
@@ -184,9 +189,9 @@ const STATIC_PAGES = [
 
 const today = new Date().toISOString().slice(0, 10);
 const urls = [
-  ...STATIC_PAGES.map((p) => ({ loc: `${SITE}/${p.path}`, priority: p.priority, changefreq: p.changefreq })),
-  ...areaPaths.map((p) => ({ loc: `${SITE}/${p}`, priority: '0.9', changefreq: 'monthly' })),
-  ...COLUMN_ARTICLES.map((a) => ({ loc: `${SITE}/${pageFor(a.id)}`, priority: '0.8', changefreq: 'monthly' })),
+  ...STATIC_PAGES.map((p) => ({ loc: canonicalUrl(p.path), priority: p.priority, changefreq: p.changefreq })),
+  ...areaPaths.map((p) => ({ loc: canonicalUrl(p), priority: '0.9', changefreq: 'monthly' })),
+  ...COLUMN_ARTICLES.map((a) => ({ loc: canonicalUrl(pageFor(a.id)), priority: '0.8', changefreq: 'monthly' })),
 ];
 
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
