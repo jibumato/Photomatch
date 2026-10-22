@@ -10,7 +10,7 @@ import {
 } from '../repo.js';
 import {
   AREAS, EXTRA_OPTIONS, OPS_CANCEL_REASONS, RESCHEDULABLE_STATUSES, awaitingPhotographerAck, photographerPayoutFor, noShowQuote, jstDateIso, addDaysToIso,
-  payoutBasisDate, payoutMonthClosed, taxDeductionFor, isInvoiceRegistered, guaranteeClaimDeadline, MONITOR_CAPACITY, OPPOSITE_SEX_OPTION_KEY, isValidDeliveryUrl, withholdingTaxFor,
+  payoutBasisDate, payoutMonthClosed, payoutOptionCount, taxDeductionFor, isInvoiceRegistered, guaranteeClaimDeadline, MONITOR_CAPACITY, OPPOSITE_SEX_OPTION_KEY, isValidDeliveryUrl, withholdingTaxFor,
 } from '../data.js';
 import { mountRescheduleModal } from '../rescheduleModal.js';
 import { safePhotoUrl } from '../util.js';
@@ -418,9 +418,10 @@ function payoutGroupHtml(group, { ready }) {
   const bookingLines = group.items.map((b) => {
     const amount = photographerPayoutFor(b);
     const optionCount = (b.options || []).length;
+    const payoutOptions = payoutOptionCount(b);
     const what = b.status === 'canceled'
       ? '当日キャンセル補償'
-      : `${escapeHtml(b.plan_name || '')}${optionCount ? `＋オプション${optionCount}件` : ''}`;
+      : `${escapeHtml(b.plan_name || '')}${optionCount ? `＋オプション${optionCount}件${payoutOptions !== optionCount ? `（報酬対象${payoutOptions}件）` : ''}` : ''}`;
     // Lateness can only be judged once the shoot has started; until its
     // payout is sent, ops can still turn it into a same-day cancellation.
     const noShow = noShowQuote(b).allowed
