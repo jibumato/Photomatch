@@ -76,8 +76,8 @@ export const HOW_IT_WORKS = [
   {
     step: '03',
     title: '3営業日以内にお届け', titleEn: 'Delivered Within 3 Business Days',
-    desc: '撮影後は解散。通常3営業日以内に、レタッチ済みのデータをメールでお届けします。',
-    descEn: "That's it for the day — retouched photos arrive by email, usually within 3 business days.",
+    desc: '撮影後は解散。通常3営業日以内に、撮影のデータをメールでお届けします。',
+    descEn: "That's it for the day — your photos arrive by email, usually within 3 business days.",
     note: 'そのままマッチングアプリのメイン写真に使えます',
     noteEn: 'Ready to use as your main dating-app photo',
     img: 'assets/how-it-works-03-delivery.jpg',
