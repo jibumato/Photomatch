@@ -10,7 +10,7 @@
 // お名前・メール・電話番号などの個人情報は、イベントにも入れない。
 // プライバシーポリシー（js/data.js の LEGAL_PAGES.privacy の「6. アクセス解析ツールについて」）に、利用を明記している。
 
-export const GA_MEASUREMENT_ID = '';
+export const GA_MEASUREMENT_ID = 'G-JMP7045LFD';
 
 const EXCLUDED_PAGES = [
   'ops', 'ops-login', 'ops-sales', 'admin', 'pro-login', 'payslip',
