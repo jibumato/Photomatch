@@ -1,3 +1,4 @@
+import { trackEvent, trackEventOnce } from '../analytics.js';
 import { mountLayout } from '../layout.js';
 import { getSession, getProfile, signInOrSignUp, resendSignupEmail } from '../auth.js';
 import { getPhotographer, getPlans, getBooking, getTakenSlots, getOpenShifts, isBookable, callApi, hasUnusedMonitorPrice } from '../repo.js';
@@ -519,6 +520,13 @@ document.getElementById('payment-submit').addEventListener('click', async () => 
     // Saved so a canceled/abandoned Stripe Checkout can restore this exact
     // slot/contact selection instead of losing it on the redirect back.
     saveDraft();
+    // アクセス解析：決済へ進んだ（個人情報は送らない）。
+    trackEvent('begin_checkout', {
+      currency: 'JPY',
+      value: s.grandTotal,
+      items: [{ item_id: s.plan.name, item_name: s.plan.name, price: s.planPrice },
+        ...s.selectedOptions.map((o) => ({ item_id: o.key, item_name: o.label, price: o.price }))],
+    });
     const data = await callApi('/api/checkout/create-session', {
       photographer_id: photographerId,
       plan_name: s.plan.name,
@@ -548,6 +556,14 @@ document.getElementById('payment-submit').addEventListener('click', async () => 
 // this page never trusts the redirect alone).
 function showConfirmForBooking(booking) {
   showStep('confirm');
+  // アクセス解析：予約（決済）完了。再読み込みで二重に数えないよう、予約ごとに1回だけ。
+  trackEventOnce(`purchase_${booking.id}`, 'purchase', {
+    transaction_id: booking.order_number || booking.id,
+    currency: 'JPY',
+    value: booking.total_price,
+    items: [{ item_id: booking.plan_name, item_name: booking.plan_name, price: booking.plan_price },
+      ...bookingOptionItems(booking).map((o) => ({ item_id: o.key || o.label, item_name: o.label, price: o.price }))],
+  });
   document.getElementById('confirm-lead').textContent = tf('booking.confirm.lead', { name: state.photographer.name });
   const options = bookingOptionItems(booking);
   const optionsHtml = options.map((o) => `<div>${tf('booking.confirm.optionLine', { label: L(o, 'label'), price: o.price.toLocaleString() })}</div>`).join('');

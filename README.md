@@ -252,6 +252,13 @@ Stripe の管理画面 → 開発者 → Webhook（イベントの送信先）�
 - **正規URL（canonical・og:url・サイトマップ）は拡張子なしで書く**（例 `https://photo-match.jp/nagoya`）。Cloudflare Pages は `/xxx.html` を `/xxx` へ、`/index.html` を `/` へ転送するため、`.html` のままだと Search Console で「ページにリダイレクトがあります」「重複しています。ユーザーにより、正規ページとして選択されていません」になる。生成ページは `scripts/build-articles.mjs` の `canonicalUrl` で作る。サイト内リンク（`href="xxx.html"`）はローカル確認のためそのまま
 - カメラマンのプロフィール（`profile.html?id=…`）は、読み込み後にタイトル・説明文・正規URLをカメラマンごとに設定する
 
+## アクセス解析（Google アナリティクス 4）
+
+- `js/analytics.js` の `GA_MEASUREMENT_ID` に GA4 の測定 ID（`G-XXXXXXXXXX`）を入れると、全ページ（`layout.js` の `mountLayout`）で計測が始まる。空の間は何も読み込まない
+- 計測しないページ：運営画面・カメラマンの管理画面・報酬明細・ログイン（カメラマン・運営）・パスワード再設定・メール確認、ローカル確認（localhost）
+- イベント：`begin_checkout`（お支払いへ進んだ）、`purchase`（予約・決済の完了。注文番号と金額。予約ごとに1回だけ）。お名前・連絡先などの個人情報は送らない
+- プライバシーポリシーの「6. アクセス解析ツールについて」に利用を明記している（GA の利用規約で必要）
+
 ## CSS / JS を変更したら（キャッシュ対策）
 
 `css/` や `js/` を変更したら、コミット前に次を実行する。
