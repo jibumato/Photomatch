@@ -1,3 +1,4 @@
+import { initAnalytics } from './analytics.js';
 import { getSession, signOut } from './auth.js';
 import { getLang, setLang, applyI18n, t } from './i18n.js';
 
@@ -68,6 +69,7 @@ function footerHtml() {
 }
 
 export async function mountLayout() {
+  initAnalytics();
   const headerEl = document.getElementById('pm-header');
   const footerEl = document.getElementById('pm-footer');
 

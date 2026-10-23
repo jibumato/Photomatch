@@ -46,7 +46,7 @@ function render(photographer, bookings) {
     const b = r.booking;
     const detail = b.status === 'canceled'
       ? `当日キャンセル補償${b.cancel_reason === 'no_show' ? '（遅刻キャンセル）' : ''}`
-      : `${esc(b.plan_name)}${b.monitor_application_id ? '（モニター価格）' : ''}<br><span style="color:var(--pm-text-muted)">プラン料金 ${yen(b.plan_price)} × ${Math.round(PHOTOGRAPHER_PAYOUT_RATE * 100)}% ＝ ${yen(r.planPart)}${r.optionCount ? ` ／ オプション ${r.optionCount}件 × ${yen(OPTION_PAYOUT_PER_ITEM)} ＝ ${yen(r.optionPart)}` : ''}</span>`;
+      : `${esc(b.plan_name)}${b.monitor_application_id ? '（モニター価格）' : ''}<br><span style="color:var(--pm-text-muted)">プラン料金 ${yen(b.plan_price)} × ${Math.round(PHOTOGRAPHER_PAYOUT_RATE * 100)}% ＝ ${yen(r.planPart)}${r.optionCount ? ` ／ オプション ${r.optionCount}件 × ${yen(OPTION_PAYOUT_PER_ITEM)} ＝ ${yen(r.optionPart)}` : ''}${r.excludedOptions.length ? `<br>${r.excludedOptions.map(esc).join('・')}：報酬の対象外` : ''}</span>`;
     return `<tr><td style="white-space:nowrap">${md(b.booking_date)} ${esc(String(b.start_time).slice(0, 5))}</td><td style="white-space:nowrap">${esc(b.order_number || '—')}</td>
       <td>${esc(b.customer_name || '')} 様</td><td>${detail}</td><td class="num"><b>${yen(r.total)}</b></td>${showTax ? `<td class="num">${r.taxDeduction ? `−${yen(r.taxDeduction)}${estimated(r)}` : '—'}</td>` : ''}<td class="num">${r.withholding ? `−${yen(r.withholding)}${r.withholdingEstimated ? '<br><span style="color:var(--pm-text-muted);font-size:11px">見込み</span>' : ''}` : '—'}</td><td style="white-space:nowrap">${stateCell(r.state)}</td></tr>`;
   }).join('');
@@ -79,7 +79,7 @@ function render(photographer, bookings) {
       </tfoot>
     </table></div>` : '<div class="pm-empty" style="margin:8px 0">この月に報酬の対象となる撮影はありません。</div>'}
     <div style="font:11px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin-top:16px;border-top:1px solid var(--pm-border-faint);padding-top:10px">
-      ・報酬は「プラン料金の${Math.round(PHOTOGRAPHER_PAYOUT_RATE * 100)}%＋オプション1件につき${yen(OPTION_PAYOUT_PER_ITEM)}」です（モニター価格の予約は、実際のプラン料金の${Math.round(PHOTOGRAPHER_PAYOUT_RATE * 100)}%）。お客様の当日キャンセル・遅刻キャンセルは、補償のみをお支払いします。<br>
+      ・報酬は「プラン料金の${Math.round(PHOTOGRAPHER_PAYOUT_RATE * 100)}%＋オプション1件につき${yen(OPTION_PAYOUT_PER_ITEM)}」です（モニター価格の予約は、実際のプラン料金の${Math.round(PHOTOGRAPHER_PAYOUT_RATE * 100)}%）。「あんしん振替プラン」「異性スタッフ写真セレクト」は、報酬の対象外のオプションです。お客様の当日キャンセル・遅刻キャンセルは、補償のみをお支払いします。<br>
       ・お支払いは納品月末締め・翌月25日に、ご登録の口座へ銀行振込します（納品した月の翌月25日。当日キャンセルの補償は撮影月の翌月25日）。「頃」の日付は目安で、送金の保留・未納品があると後になります。<br>
       ${isInvoiceRegistered(photographer)
     ? `・インボイス登録番号：${esc(photographer.invoice_number)}<br>`

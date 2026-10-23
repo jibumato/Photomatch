@@ -3,13 +3,14 @@
 // 明細の単位は「撮影月」（管理画面の「報酬」・売上管理と同じ）。
 //
 // 報酬の内訳は photographerPayoutFor（js/data.js）と同じルール：
-//   プラン料金 × 50%（モニター価格は実際のプラン料金の50%）＋ オプション1件 ¥1,500、
+//   プラン料金 × 50%（モニター価格は実際のプラン料金の50%）＋ 報酬対象のオプション1件 ¥1,500
+//   （あんしん振替プラン・異性スタッフ写真セレクトは対象外）、
 //   キャンセルは当日キャンセル・遅刻キャンセルの補償（¥2,000）のみ。
 // 支払予定日は「納品月末締め・翌月25日払い」：納品した月の翌月25日、当日キャンセルの補償は
 // 撮影月の翌月25日（payoutBasisDate）。撮影前は納品期限の月の翌月25日を目安として出す。
 // 送金の保留・未納品があると、後になる。
 import {
-  photographerPayoutFor, PHOTOGRAPHER_PAYOUT_RATE, OPTION_PAYOUT_PER_ITEM, payoutBasisDate, deliveryDueDate, jstDateIso,
+  photographerPayoutFor, PHOTOGRAPHER_PAYOUT_RATE, OPTION_PAYOUT_PER_ITEM, EXTRA_OPTIONS, payoutOptionCount, isPayoutOption, payoutBasisDate, deliveryDueDate, jstDateIso,
   withholdingTaxFor, allocateWithholding, recordedOrEstimatedTaxDeduction,
 } from './data.js';
 
@@ -26,12 +27,15 @@ export function nextMonth25(iso) {
 export function payoutBreakdown(b) {
   if (b.status === 'canceled') {
     const comp = b.photographer_cancel_comp || 0;
-    return { planPart: 0, optionCount: 0, optionPart: 0, comp, total: comp };
+    return { planPart: 0, optionCount: 0, optionPart: 0, excludedOptions: [], comp, total: comp };
   }
   const planPart = Math.round((b.plan_price || 0) * PHOTOGRAPHER_PAYOUT_RATE);
-  const optionCount = (b.options || []).length;
+  const optionCount = payoutOptionCount(b);
   const optionPart = OPTION_PAYOUT_PER_ITEM * optionCount;
-  return { planPart, optionCount, optionPart, comp: 0, total: planPart + optionPart };
+  // 報酬の対象外のオプション（明細に「対象外」と出す）。
+  const excludedOptions = (b.options || []).filter((o) => !isPayoutOption(o))
+    .map((o) => (EXTRA_OPTIONS.find((x) => x.key === o.key) || {}).label || o.label || o.key);
+  return { planPart, optionCount, optionPart, excludedOptions, comp: 0, total: planPart + optionPart };
 }
 
 // 明細の1行の状態：送金済み／保留中／未納品／撮影前／支払予定。

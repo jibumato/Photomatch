@@ -10,7 +10,7 @@ import { loadDailyWeather } from '../weather.js';
 import { mountProfileEditor } from '../profileEditor.js';
 import {
   AREAS, SLOT_TIMES, TOTAL_BOOKING_DAYS, WEEKDAY_JP, PENDING_PAYMENT_HOLD_MIN, buildBookingDays, weatherIconFor,
-  EXTRA_OPTIONS, COUNSELING_QUESTIONS, meetingPointForArea, deliveryDueDate, photographerPayoutFor, recordedOrEstimatedTaxDeduction, isValidDeliveryUrl, jstDateIso,
+  EXTRA_OPTIONS, COUNSELING_QUESTIONS, meetingPointForArea, deliveryDueDate, photographerPayoutFor, recordedOrEstimatedTaxDeduction, isPayoutOption, isValidDeliveryUrl, jstDateIso,
   awaitingPhotographerAck, PHOTOGRAPHER_ACK_HOURS,
 } from '../data.js';
 import { takenIntervalsFrom, openSetFrom, cellState as slotState } from '../availability.js';
@@ -213,7 +213,7 @@ function bookingCardHtml(b, meta) {
   const overdue = !canceled && !b.delivered_at && jstDateIso() > due.date;
   const lines = [
     `${b.booking_date}（${b.start_time.slice(0, 5)}〜${b.end_time.slice(0, 5)}）${b.order_number ? `<span style="font:11px var(--pm-font-num);color:var(--pm-text-muted);margin-left:8px">注文番号 ${escapeHtml(b.order_number)}</span>` : ''}`,
-    `${escapeHtml(b.plan_name || '')}${b.monitor_application_id ? '（モニター価格）' : ''}${options.length ? `　オプション：${options.map((o) => escapeHtml(o.label)).join('、')}` : '　オプションなし'}`,
+    `${escapeHtml(b.plan_name || '')}${b.monitor_application_id ? '（モニター価格）' : ''}${options.length ? `　オプション：${options.map((o) => `${escapeHtml(o.label)}${isPayoutOption(o) ? '' : '<span style="color:var(--pm-text-muted)">（報酬対象外）</span>'}`).join('、')}` : '　オプションなし'}`,
     `${escapeHtml(b.area || '')}${mp ? `　集合：${escapeHtml(mp.detail)}` : ''}`,
     `連絡先：${escapeHtml(b.customer_contact || '-')}`,
   ];
@@ -395,7 +395,7 @@ function bankAccountFormHtml(account) {
   const a = account || {};
   return `
     <div style="font:700 15px var(--pm-font-body);margin-bottom:6px">報酬の振込先を登録する</div>
-    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 14px">お客様からのお支払いは一旦PhotoMatchでお預かりし、納品月末締め・翌月25日払い（納品した月の翌月25日）で運営より銀行振込にてお支払いします。報酬は「プラン料金の50%＋オプション1件につき¥1,500」です。お客様の当日キャンセルの場合は、補償として¥2,000（税込）をお支払いします。インボイス（適格請求書発行事業者）に未登録の方は、契約で定めた日以降の撮影分について、報酬から消費税相当額（10/110）を差し引きます。</p>
+    <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 14px">お客様からのお支払いは一旦PhotoMatchでお預かりし、納品月末締め・翌月25日払い（納品した月の翌月25日）で運営より銀行振込にてお支払いします。報酬は「プラン料金の50%＋オプション1件につき¥1,500」です（「あんしん振替プラン」「異性スタッフ写真セレクト」は報酬の対象外）。お客様の当日キャンセルの場合は、補償として¥2,000（税込）をお支払いします。インボイス（適格請求書発行事業者）に未登録の方は、契約で定めた日以降の撮影分について、報酬から消費税相当額（10/110）を差し引きます。</p>
     <div style="display:flex;flex-direction:column;gap:14px;max-width:400px">
       <div class="pm-field">
         <label>金融機関名</label>

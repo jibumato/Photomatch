@@ -136,7 +136,8 @@ export const LEGAL_PAGES = {
       { h: '3. 第三者提供', b: '撮影の実施に必要な範囲で担当カメラマンに共有するほかは、法令に基づく場合を除き第三者へ提供しません。', hEn: '3. Disclosure to Third Parties', bEn: 'We share information with your assigned photographer only as far as needed to carry out the shoot. Otherwise we do not provide it to third parties, except where required by law.' },
       { h: '4. 決済情報の取り扱い', b: 'クレジットカード情報は決済代行事業者（Stripe）が安全に処理し、当サービスはカード番号を保持しません。', hEn: '4. Handling of Payment Information', bEn: 'Credit card information is processed securely by our payment provider, Stripe. We do not store your card number.' },
       { h: '5. 撮影データ', b: '納品データはお客様に帰属します。事前の許諾なく広告等に二次利用することはありません。', hEn: '5. Photo Data', bEn: 'Delivered photos belong to you. We will not reuse them in advertising or elsewhere without your prior consent.' },
-      { h: '6. お問い合わせ', b: '個人情報の開示・訂正・削除のご要望は info.photomatch@gmail.com までご連絡ください。', hEn: '6. Contact', bEn: 'To request disclosure, correction, or deletion of your personal information, please contact info.photomatch@gmail.com.' },
+      { h: '6. アクセス解析ツールについて', b: '当サービスでは、サイトの利用状況を把握してサービスを改善するために、Google LLC のアクセス解析ツール「Google アナリティクス」を利用しています。Google アナリティクスは Cookie を使用して、閲覧したページ・利用環境・予約の完了などの情報を収集します。これらの情報は匿名で収集され、お名前・メールアドレスなど個人を特定する情報は含みません。収集されたデータは Google のプライバシーポリシー（https://policies.google.com/privacy）に基づいて管理されます。Cookie を無効にするか、Google アナリティクス オプトアウト アドオン（https://tools.google.com/dlpage/gaoptout）を利用することで、収集を拒否できます。', hEn: '6. Analytics', bEn: 'To understand how the site is used and improve the Service, we use Google Analytics, an analytics tool provided by Google LLC. Google Analytics uses cookies to collect information such as the pages you view, your browsing environment, and completed bookings. This information is collected anonymously and does not include information that identifies you, such as your name or email address. The data is handled under Google\'s Privacy Policy (https://policies.google.com/privacy). You can opt out by disabling cookies or by using the Google Analytics Opt-out Browser Add-on (https://tools.google.com/dlpage/gaoptout).' },
+      { h: '7. お問い合わせ', b: '個人情報の開示・訂正・削除のご要望は info.photomatch@gmail.com までご連絡ください。', hEn: '7. Contact', bEn: 'To request disclosure, correction, or deletion of your personal information, please contact info.photomatch@gmail.com.' },
     ],
   },
   terms: {
@@ -174,7 +175,7 @@ export const LEGAL_PAGES = {
       { h: '3. 予約が入ったら', b: '予約が確定すると、メールでお知らせします。管理画面の予約一覧で、日時・プラン・オプション・連絡先・集合場所と、お客様の事前カウンセリングの回答を確認できます。お客様との連絡は、サイト内のメッセージで行ってください（新着メッセージはメールでもお知らせします）。集合場所は、エリアごとに決まった場所です。' },
       { h: '4. 撮影当日', b: '撮影は、公園や街なかなど公共の場所で行い、密室での撮影は行わないでください。お客様が集合時間に15分以上遅れた場合は、運営にご連絡ください。運営が当日キャンセルとして処理します。' },
       { h: '5. 納品', b: '撮影日から3営業日以内（スピード納品のオプションがある場合は翌営業日。土日・祝日を除く）に、管理画面の「納品する」から、写真のアルバム（Googleフォトなど）のリンクを登録してください。お客様にメールで届き、マイページにも表示されます。期限は予約一覧に表示されます。全データ納品・スキンレタッチ（20枚まで）・スピード納品のオプションが付いた予約は、その内容で納品してください。「異性スタッフ写真セレクト」は、運営のスタッフが行います。' },
-      { h: '6. 報酬', b: '報酬は「プラン料金の50%＋オプション1件につき¥1,500」です（モニター価格の予約は、実際のプラン料金の50%）。お客様の当日キャンセル・遅刻によるキャンセルの場合は、補償として¥2,000をお支払いします。それ以外のキャンセル、運営の判断によるキャンセル、マッチング数保証による無料再撮影は、報酬の対象外です。お支払いは納品月末締め・翌月25日に、ご登録の口座へ銀行振込します（納品した月の翌月25日。当日キャンセルの補償は撮影した月の翌月25日）。インボイス（適格請求書発行事業者）に未登録の方は、契約で定めた日以降の撮影分について、報酬から消費税相当額（10/110）を差し引きます。登録された方は、登録番号を運営にお知らせください。不審請求の申し立てなどがあった予約は、確認が済むまでお支払いを保留します。報酬の見込みと送金の状況は、管理画面の「報酬」で確認できます。' },
+      { h: '6. 報酬', b: '報酬は「プラン料金の50%＋オプション1件につき¥1,500」です（モニター価格の予約は、実際のプラン料金の50%）。ただし、「あんしん振替プラン」と「異性スタッフ写真セレクト」は、カメラマンの作業が増えないオプションのため、報酬の対象外です（お客様が追加しても報酬は増えません）。お客様の当日キャンセル・遅刻によるキャンセルの場合は、補償として¥2,000をお支払いします。それ以外のキャンセル、運営の判断によるキャンセル、マッチング数保証による無料再撮影は、報酬の対象外です。お支払いは納品月末締め・翌月25日に、ご登録の口座へ銀行振込します（納品した月の翌月25日。当日キャンセルの補償は撮影した月の翌月25日）。インボイス（適格請求書発行事業者）に未登録の方は、契約で定めた日以降の撮影分について、報酬から消費税相当額（10/110）を差し引きます。登録された方は、登録番号を運営にお知らせください。不審請求の申し立てなどがあった予約は、確認が済むまでお支払いを保留します。報酬の見込みと送金の状況は、管理画面の「報酬」で確認できます。' },
       { h: '7. 日程変更・キャンセル', b: 'お客様は、撮影日の3日前まで無料で日程を変更・キャンセルできます。2日前以降の日程変更は、「あんしん振替プラン」に加入したお客様だけが1回できます。悪天候やカメラマンのご都合で撮影できないときは、運営が日程変更またはキャンセルを行います。いずれの場合も、メールでお知らせし、元の枠は再び予約を受け付けられる状態になります。ご都合で撮影できなくなったときは、できるだけ早く運営にご連絡ください。' },
       { h: '8. マッチング数保証', b: 'お客様の申請を運営が承認した場合、同じプランで無料の再撮影を行います。お客様がマイページから日時を選ぶと、通常の予約と同じくメールでお知らせします。受け付けられる日時は、シフトで開けておいてください。' },
       { h: '9. 禁止事項', b: 'お客様と、サイト外の連絡先（電話番号・SNSなど）を交換すること、サイトを通さずに取引することは禁止です。撮影した写真を、お客様の事前の許諾なく、作例やSNSなどに掲載・二次利用しないでください。お客様の個人情報は、撮影と納品以外の目的に使わないでください。違反があった場合は、掲載を停止することがあります。' },
@@ -615,9 +616,15 @@ export function addMinutes(timeStr, mins) {
 // カメラマンが受け取る割合（残りがPhotoMatchのプラットフォーム手数料）。
 // EXTRA_OPTIONS の料金とあわせ、サーバー側（functions/_lib/pricing.js）も
 // ここを直接参照して請求額を計算する。変更はここだけでよい。
-// 報酬 = プラン料金 × PHOTOGRAPHER_PAYOUT_RATE ＋ オプション1件につき OPTION_PAYOUT_PER_ITEM。
+// 報酬 = プラン料金 × PHOTOGRAPHER_PAYOUT_RATE ＋ 報酬対象のオプション1件につき OPTION_PAYOUT_PER_ITEM。
+// カメラマンの作業が増えないオプション（NON_PAYOUT_OPTION_KEYS）は、報酬の対象外。
 export const PHOTOGRAPHER_PAYOUT_RATE = 0.5;
 export const OPTION_PAYOUT_PER_ITEM = 1500;
+// 報酬の対象外のオプション：あんしん振替プラン（日程変更の権利）、異性スタッフ写真セレクト（運営スタッフが選ぶ）。
+export const NON_PAYOUT_OPTION_KEYS = ['reschedule', 'oppositeSexPick'];
+export const isPayoutOption = (option) => !NON_PAYOUT_OPTION_KEYS.includes(option && option.key);
+// 報酬の対象になるオプションの件数。
+export const payoutOptionCount = (booking) => (booking.options || []).filter(isPayoutOption).length;
 // 当日キャンセルのときだけ、カメラマンへ補償として支払う額（税込）。
 export const SAME_DAY_CANCEL_COMPENSATION = 2000;
 
@@ -844,7 +851,7 @@ export function recordedOrEstimatedTaxDeduction(booking, photographer) {
 export function photographerPayoutFor(booking) {
   if (booking.status === 'canceled') return booking.photographer_cancel_comp || 0;
   return Math.round(booking.plan_price * PHOTOGRAPHER_PAYOUT_RATE)
-    + OPTION_PAYOUT_PER_ITEM * (booking.options || []).length;
+    + OPTION_PAYOUT_PER_ITEM * payoutOptionCount(booking);
 }
 
 // 決済待ち（pending_payment）の予約が枠を押さえておく時間（分）。Stripe Checkout の
