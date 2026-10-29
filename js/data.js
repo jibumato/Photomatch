@@ -295,7 +295,8 @@ export const SEASONAL_LOCATIONS = [
       { season: 'winter', name: '栄駅周辺', nameEn: 'Around Sakae Station', note: '都会的な街並みが魅力', noteEn: 'Stylish city streets',
         catch: '街の明かりで、都会的な一枚を。', catchEn: 'City lights for an urban look.',
         desc: '街並みや店舗の明かりを背景に、都会ならではの雰囲気を写真に。', descEn: 'Streetscapes and shop lights give your photos a distinctly urban atmosphere.',
-        mapUrl: 'https://maps.app.goo.gl/NYJhfg4vKjhtz7J28' },
+        mapUrl: 'https://maps.app.goo.gl/NYJhfg4vKjhtz7J28',
+        img: 'assets/location-nagoya-winter.jpg', imgAlt: 'オアシス21の水の宇宙船から見た中部電力 MIRAI TOWER と栄の街並み', imgAltEn: 'Chubu Electric Power MIRAI TOWER and the Sakae skyline, seen from Oasis 21' },
     ],
   },
   {
