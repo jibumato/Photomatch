@@ -342,7 +342,7 @@ const DICT = {
   // arrays in js/data.js (see L() below) rather than here, so a translation
   // never drifts out of sync with the content it belongs to.
   'top.results.title': { ja: '名古屋エリアでの実績', en: 'Our Track Record in the Nagoya Area' },
-  'top.voice.title': { ja: '利用者の口コミ', en: 'What Customers Say' },
+  'top.voice.title': { ja: 'お客様の声', en: 'Customer Voices' },
   'top.results.sourceNote': { ja: '※撮影実績は、代表カメラマンTAKUMIとカメラマンなつめのこれまでの撮影活動（PhotoMatch開始前を含む）の合計です。', en: "※ The shoot count combines the shooting careers of lead photographer TAKUMI and photographer Natsume, including work before PhotoMatch launched." },
   'top.pricing.title': { ja: 'シンプルな料金プラン', en: 'Simple, Transparent Pricing' },
   'top.pricing.studioCompare': { ja: 'スタジオの婚活・プロフィール写真は相場 ', en: 'Studio matchmaking / profile photos typically run ' },

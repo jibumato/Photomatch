@@ -31,13 +31,24 @@ document.getElementById('pm-pains').innerHTML = painsList.map((p) => `
 document.getElementById('pm-apps').innerHTML = SUPPORTED_APPS.map((a) => `
   <span style="padding:9px 18px;border-radius:100px;background:oklch(0.97 0.012 215);border:1px solid var(--pm-border);font:700 14px var(--pm-font-num);color:oklch(0.38 0.03 235)">${getLang() === 'en' ? (SUPPORTED_APPS_EN[a] || a) : a}</span>`).join('');
 
-// No testimonials yet -> drop the whole 口コミ block instead of showing an empty heading.
+// No testimonials yet -> drop the whole お客様の声 block instead of showing an empty heading.
+const voicePhoto = (photo, label) => `
+  <figure style="margin:0;position:relative">
+    <img src="${photo.src}" alt="${L(photo, 'alt')}" width="720" height="960" loading="lazy" style="display:block;width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;border-radius:12px">
+    <figcaption style="position:absolute;left:10px;top:10px;padding:4px 10px;border-radius:100px;font:800 11px/1.4 var(--pm-font-num);letter-spacing:0.08em;${label === 'AFTER' ? 'background:var(--pm-brand-grad);color:#fff' : 'background:oklch(1 0 0 / 0.9);color:oklch(0.4 0.02 235)'}">${label}</figcaption>
+  </figure>`;
 if (TESTIMONIALS.length) {
   document.getElementById('pm-testimonials').innerHTML = TESTIMONIALS.map((item) => `
-  <div class="pm-card" style="padding:24px">
-    <div style="font:13px var(--pm-font-body);color:var(--pm-star);margin-bottom:10px">${item.starsLabel}</div>
-    <div style="font:14px/1.8 var(--pm-font-body);color:oklch(0.35 0.02 235);margin-bottom:16px">${L(item, 'comment')}</div>
-    <div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3)">${L(item, 'name')}</div>
+  <div class="pm-card" style="padding:clamp(16px,4vw,24px)">
+    ${item.before && item.after ? `
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:clamp(6px,2vw,12px);margin-bottom:20px">
+      ${voicePhoto(item.before, 'BEFORE')}
+      <span aria-hidden="true" style="font:800 18px var(--pm-font-num);color:oklch(0.6 0.12 210)">→</span>
+      ${voicePhoto(item.after, 'AFTER')}
+    </div>` : ''}
+    ${item.starsLabel ? `<div style="font:13px var(--pm-font-body);color:var(--pm-star);margin-bottom:10px">${item.starsLabel}</div>` : ''}
+    <blockquote style="margin:0;font:14px/1.9 var(--pm-font-body);color:oklch(0.35 0.02 235)">“${L(item, 'comment')}”</blockquote>
+    ${item.name ? `<div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3);margin-top:16px">${L(item, 'name')}</div>` : ''}
   </div>`).join('');
 } else {
   document.getElementById('pm-voice').remove();
