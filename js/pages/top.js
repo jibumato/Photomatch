@@ -6,19 +6,21 @@ import {
 } from '../data.js';
 import { getLang, L, t, tf, discountLabelText } from '../i18n.js';
 import { escapeHtml } from '../util.js';
+import { observeReveal, slideTabIndicator } from '../motion.js';
 
 mountLayout();
 
 document.getElementById('pm-stats').innerHTML = STATS.map((s) => `
-  <div class="pm-card" style="text-align:center;padding:28px 16px">
-    <div style="font:800 32px var(--pm-font-num);background:linear-gradient(120deg, oklch(0.6 0.15 200), oklch(0.55 0.15 245));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px">${s.value}</div>
+  <div class="pm-card pm-stat" data-reveal="zoom" style="text-align:center;padding:28px 16px">
+    <div data-count style="font:800 clamp(36px,9vw,44px) var(--pm-font-num);background:linear-gradient(120deg, oklch(0.6 0.15 200), oklch(0.55 0.15 245));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">${s.value}</div>
+    <span class="pm-stat-bar" aria-hidden="true"></span>
     <div style="font:13px var(--pm-font-body);color:var(--pm-text-3)">${L(s, 'label')}</div>
   </div>`).join('');
 
 // Hero keeps a one-line version of the stats so the trust signal is still
 // seen by people who leave before the full 実績 section further down.
 document.getElementById('pm-hero-proof').innerHTML = STATS.map((s) => `
-  <span style="white-space:nowrap">${L(s, 'label')} <b style="font:800 15px var(--pm-font-num);color:oklch(0.45 0.14 210)">${s.value}</b></span>`).join('<span style="color:var(--pm-text-muted);margin:0 10px">／</span>')
+  <span style="white-space:nowrap">${L(s, 'label')} <b data-count data-count-delay="900" style="font:800 15px var(--pm-font-num);color:oklch(0.45 0.14 210)">${s.value}</b></span>`).join('<span style="color:var(--pm-text-muted);margin:0 10px">／</span>')
   + `<a href="#results-section" style="display:block;margin-top:4px;font:11px var(--pm-font-body);color:var(--pm-text-muted);text-decoration:underline">${getLang() === 'en' ? '※ track record of our photographers (see below)' : '※カメラマンの実績の合計です（詳細は下記）'}</a>`;
 
 const painsList = getLang() === 'en' ? TARGET_PAINS_EN : TARGET_PAINS;
@@ -35,15 +37,15 @@ document.getElementById('pm-apps').innerHTML = SUPPORTED_APPS.map((a) => `
 // Before is shown small and After large, so the change reads at a glance.
 const voiceBeforeAfter = (before, after, badge) => `
   <div style="display:grid;grid-template-columns:minmax(0,0.5fr) minmax(0,1fr);align-items:end;gap:clamp(14px,4vw,28px);margin-bottom:22px">
-    <figure style="margin:0 0 clamp(8px,3vw,20px)">
+    <figure data-reveal="left" style="margin:0 0 clamp(8px,3vw,20px)">
       <div style="font:800 10px/1 var(--pm-font-num);letter-spacing:0.14em;color:var(--pm-text-muted);margin-bottom:8px">BEFORE</div>
       <img src="${before.src}" alt="${L(before, 'alt')}" width="720" height="960" loading="lazy" style="display:block;width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;border-radius:10px;transform:rotate(-3deg);box-shadow:0 4px 12px oklch(0.3 0.02 235 / 0.15);border:4px solid #fff">
     </figure>
-    <figure style="margin:0;position:relative">
+    <figure data-reveal="zoom" style="--i:3;margin:0;position:relative">
       <img src="${after.src}" alt="${L(after, 'alt')}" width="720" height="960" loading="lazy" style="display:block;width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;border-radius:16px;box-shadow:0 0 0 3px #fff,0 0 0 6px oklch(0.7 0.13 205),0 18px 40px oklch(0.55 0.15 220 / 0.35)">
       <figcaption style="position:absolute;left:12px;top:12px;padding:6px 14px;border-radius:100px;background:var(--pm-brand-grad);color:#fff;font:800 13px/1.3 var(--pm-font-num);letter-spacing:0.12em;box-shadow:0 4px 12px oklch(0.5 0.15 220 / 0.35)">AFTER</figcaption>
-      ${badge ? `<span class="pm-like-badge">${badge}</span>` : ''}
-      <span aria-hidden="true" style="position:absolute;left:0;top:50%;transform:translate(-62%,-50%);display:flex;align-items:center;justify-content:center;width:clamp(34px,9vw,46px);height:clamp(34px,9vw,46px);border-radius:50%;background:var(--pm-brand-grad);color:#fff;font:800 clamp(16px,4vw,20px)/1 var(--pm-font-num);box-shadow:0 0 0 4px #fff,0 6px 16px oklch(0.5 0.15 220 / 0.35)">→</span>
+      ${badge ? `<span class="pm-like-badge" data-reveal="pop" style="--i:9">${badge}</span>` : ''}
+      <span aria-hidden="true" class="pm-voice-arrow" data-reveal="pop" style="--i:6;position:absolute;left:0;top:50%;transform:translate(-62%,-50%);display:flex;align-items:center;justify-content:center;width:clamp(34px,9vw,46px);height:clamp(34px,9vw,46px);border-radius:50%;background:var(--pm-brand-grad);color:#fff;font:800 clamp(16px,4vw,20px)/1 var(--pm-font-num);box-shadow:0 0 0 4px #fff,0 6px 16px oklch(0.5 0.15 220 / 0.35)">→</span>
     </figure>
   </div>`;
 if (TESTIMONIALS.length) {
@@ -57,6 +59,10 @@ if (TESTIMONIALS.length) {
 } else {
   document.getElementById('pm-voice').remove();
 }
+
+// 3ステップのタイムライン（線が伸びて番号が順番に出る）。下のカードと同じ内容なので読み上げからは外している。
+document.getElementById('pm-flow').innerHTML = HOW_IT_WORKS.map((s) => `
+  <li><span class="pm-flow-num">${s.step}</span><span class="pm-flow-label">${L(s, 'flow')}<small>${L(s, 'flowSub')}</small></span></li>`).join('');
 
 document.getElementById('pm-steps').innerHTML = HOW_IT_WORKS.map((s) => `
   <div class="pm-card" style="padding:26px 24px;position:relative">
@@ -74,7 +80,7 @@ document.getElementById('pm-pricing').innerHTML = PRICING_PLANS.map((pl) => `
       <span style="font:600 14px var(--pm-font-num);color:var(--pm-text-muted);text-decoration:line-through">¥${pl.originalPrice}</span>
       <span style="font:700 11px var(--pm-font-body);color:#fff;background:var(--pm-warn);padding:2px 8px;border-radius:100px">${discountLabelText(pl.discountLabel)}</span>
     </div>` : ''}
-    <div style="font:800 26px var(--pm-font-num);margin-bottom:4px">¥${pl.price}</div>
+    <div style="font:800 26px var(--pm-font-num);margin-bottom:4px"><span data-count data-count-duration="1100">¥${pl.price}</span></div>
     <div style="font:11px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${t('profile.taxIncluded')}</div>
     <div style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:16px">${L(pl, 'desc')}</div>
     <div style="display:flex;align-items:center;justify-content:center;gap:6px;background:var(--pm-brand-grad);color:#fff;border-radius:10px;padding:12px;font:700 13px var(--pm-font-body)">${t('profile.bookThisPlan')}</div>
@@ -120,11 +126,13 @@ document.getElementById('pm-safety').innerHTML = SAFETY_POINTS.map((s) => `
       b.setAttribute('aria-selected', String(on));
       b.tabIndex = on ? 0 : -1;
     });
+    slideTabIndicator(tabsEl);
     gridEl.setAttribute('aria-labelledby', `pm-loc-tab-${area.key}`);
     gridEl.innerHTML = area.spots.map(spotHtml).join('');
     const areaLink = document.getElementById('pm-loc-area-link');
     areaLink.href = `${area.key}.html`;
     areaLink.textContent = tf('top.locations.areaLink', { area: L(area, 'label') });
+    observeReveal(gridEl.parentElement);
   };
   tabsEl.innerHTML = SEASONAL_LOCATIONS.map((a) => `
     <button type="button" role="tab" class="pm-loc-tab" id="pm-loc-tab-${a.key}" data-area="${a.key}" aria-controls="pm-locations">${L(a, 'label')}</button>`).join('');
@@ -177,8 +185,13 @@ faqEl.innerHTML = FAQS.map((f) => `
   if (bar && heroCta && finalCta && 'IntersectionObserver' in window) {
     const heroVisible = new Set();
     const finalVisible = new Set();
-    const update = () => { bar.style.display = heroVisible.size || finalVisible.size ? 'none' : ''; };
+    // 出し入れは .is-off で下へすべらせる（css/components.css）
+    bar.classList.add('is-off');
+    bar.style.display = '';
+    const update = () => { bar.classList.toggle('is-off', Boolean(heroVisible.size || finalVisible.size)); };
     new IntersectionObserver(([e]) => { e.isIntersecting ? heroVisible.add(1) : heroVisible.delete(1); update(); }).observe(heroCta);
     new IntersectionObserver(([e]) => { e.isIntersecting ? finalVisible.add(1) : finalVisible.delete(1); update(); }).observe(finalCta);
   }
 }
+
+observeReveal();

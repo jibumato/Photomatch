@@ -273,12 +273,15 @@
 @media (prefers-reduced-motion: reduce) { .pm-hero2-glow { animation: none; } }
 
 /* 季節のおすすめロケーション（トップ） */
-.pm-loc-tabs { display: flex; justify-content: center; gap: 8px; margin: 0 0 24px; }
+/* 名古屋／岐阜の切り替え：白いレールの上を、グラデーションのつまみ（.pm-loc-tab-ind）がすべる */
+.pm-loc-tabs { position: relative; display: flex; width: max-content; max-width: 100%; margin: 0 auto 24px; gap: 4px; padding: 4px; background: #fff; border: 1px solid var(--pm-border); border-radius: 100px; }
 .pm-loc-tab {
-  border: 1px solid var(--pm-border); background: var(--pm-bg); color: var(--pm-text-2);
-  border-radius: 100px; padding: 9px 22px; font: 700 14px var(--pm-font-body); cursor: pointer;
+  position: relative; z-index: 1; border: none; background: transparent; color: var(--pm-text-2);
+  border-radius: 100px; padding: 9px 26px; font: 700 14px var(--pm-font-body); cursor: pointer; transition: color 0.3s ease;
 }
-.pm-loc-tab[aria-selected="true"] { background: var(--pm-brand-grad); border-color: transparent; color: #fff; }
+.pm-loc-tab[aria-selected="true"] { color: #fff; }
+.pm-loc-tabs:not(.has-ind) .pm-loc-tab[aria-selected="true"] { background: var(--pm-brand-grad); }
+.pm-loc-tab-ind { position: absolute; z-index: 0; top: 4px; bottom: 4px; left: 0; width: 0; border-radius: 100px; background: var(--pm-brand-grad); box-shadow: var(--pm-shadow-cta); transition: translate 0.45s cubic-bezier(0.34, 1.3, 0.64, 1), width 0.45s cubic-bezier(0.34, 1.3, 0.64, 1); }
 .pm-loc-tab:focus-visible { outline: 2px solid oklch(0.55 0.14 210); outline-offset: 2px; }
 .pm-loc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
 .pm-loc-card { display: flex; flex-direction: column; padding: 22px 20px; border-top: 4px solid var(--pm-loc-accent); }
@@ -326,3 +329,203 @@
   86% { transform: rotate(-6deg) scale(0.97); }
 }
 @media (prefers-reduced-motion: reduce) { .pm-like-badge { animation: none; } }
+
+/* ===== モーション（js/motion.js）=====
+   .pm-motion は、動きを減らす設定でないときだけ js/motion.js が <html> に付ける。
+   付いていなければ全部そのまま表示される。transform ではなく translate / scale を使うので、
+   要素がもともと持っている transform（傾き・位置ずらし）とぶつからない。 */
+.pm-motion [data-reveal] {
+  opacity: 0; translate: 0 26px;
+  transition: opacity 0.7s ease, translate 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), scale 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.25s ease, transform 0.3s ease;
+  transition-delay: calc(var(--i, 0) * 90ms), calc(var(--i, 0) * 90ms), calc(var(--i, 0) * 90ms), 0s, 0s;
+}
+.pm-motion [data-reveal="left"] { translate: -40px 0; }
+.pm-motion [data-reveal="right"] { translate: 40px 0; }
+.pm-motion [data-reveal="zoom"] { translate: 0 16px; scale: 0.9; }
+.pm-motion [data-reveal="pop"] { translate: none; scale: 0.4; transition-timing-function: ease, cubic-bezier(0.34, 1.56, 0.64, 1), cubic-bezier(0.34, 1.56, 0.64, 1), ease, ease; }
+.pm-motion [data-reveal].is-in { opacity: 1; translate: 0 0; scale: 1; }
+@media print { .pm-motion [data-reveal] { opacity: 1 !important; translate: none !important; scale: none !important; } }
+
+/* カードは触れると影が付く（料金・ロケーション）。影の transition は .pm-motion [data-reveal] 側に含めてある */
+#pm-pricing .pm-card:hover, .pm-loc-card:hover { box-shadow: var(--pm-shadow-card); }
+.pm-loc-photo { transition: scale 0.6s ease; }
+.pm-loc-card:hover .pm-loc-photo { scale: 1.04; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ヒーロー：読み込み時に、上から順番にふわっと（JS を待たないよう CSS だけで動かす）。
+     写真は LCP を遅らせないよう、透明にはせず位置と大きさだけ動かす。 */
+  .pm-hero2-badge, .pm-hero2-title, .pm-hero2-lead, .pm-hero2-chips li, .pm-hero2-ctas, .pm-hero2-proof {
+    animation: pm-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .pm-hero2-title { animation-delay: 0.08s; }
+  .pm-hero2-lead { animation-delay: 0.18s; }
+  .pm-hero2-chips li { animation-name: pm-pop; animation-duration: 0.6s; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .pm-hero2-chips li:nth-child(1) { animation-delay: 0.35s; }
+  .pm-hero2-chips li:nth-child(2) { animation-delay: 0.45s; }
+  .pm-hero2-chips li:nth-child(3) { animation-delay: 0.55s; }
+  .pm-hero2-chips li:nth-child(4) { animation-delay: 0.65s; }
+  .pm-hero2-ctas { animation-delay: 0.75s; }
+  .pm-hero2-proof { animation-delay: 0.85s; }
+  .pm-hero2-photos figure { animation: pm-photo-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .pm-hero2-photos figure:nth-child(2) { animation-delay: 0.1s; }
+  .pm-hero2-photos figure:nth-child(3) { animation-delay: 0.2s; }
+  .pm-hero2-photos figure:nth-child(4) { animation-delay: 0.3s; }
+  /* 見出しの「“選ばれる一枚”を。」に、光が一度だけ流れる */
+  .pm-hero2-hl {
+    background-image: linear-gradient(110deg, oklch(0.64 0.15 200) 0%, oklch(0.56 0.16 245) 40%, oklch(0.85 0.1 200) 50%, oklch(0.56 0.16 245) 60%, oklch(0.64 0.15 200) 100%);
+    background-size: 250% 100%; animation: pm-shine-text 2.4s 0.6s ease-in-out both;
+  }
+  /* 最後の予約ボタンに、ときどき光が走る */
+  #final-cta-section .pm-btn { position: relative; overflow: hidden; }
+  #final-cta-section .pm-btn::after {
+    content: ''; position: absolute; inset: 0; translate: -120% 0;
+    background: linear-gradient(100deg, transparent 30%, oklch(0.85 0.1 200 / 0.55) 50%, transparent 70%);
+    animation: pm-btn-shine 3.6s ease-in-out infinite;
+  }
+  /* 「お客様の声」の矢印は、表示後にゆっくり脈打つ */
+  .pm-voice-arrow.is-in { animation: pm-pulse 2s 1.2s ease-in-out infinite; }
+}
+@keyframes pm-rise { from { opacity: 0; translate: 0 22px; } to { opacity: 1; translate: 0 0; } }
+@keyframes pm-pop { from { opacity: 0; scale: 0.6; } to { opacity: 1; scale: 1; } }
+@keyframes pm-photo-in { from { translate: 0 60px; scale: 0.92; } to { translate: 0 0; scale: 1; } }
+@keyframes pm-shine-text { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@keyframes pm-btn-shine { 0%, 55% { translate: -120% 0; } 100% { translate: 120% 0; } }
+@keyframes pm-pulse { 0%, 100% { scale: 1; } 50% { scale: 1.15; } }
+
+/* 実績の数字（カウントアップ＋下のバーが伸びる） */
+.pm-stat-bar { display: block; height: 6px; width: 64px; margin: 4px auto 12px; border-radius: 100px; background: var(--pm-brand-grad); transform-origin: left; transition: scale 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) 0.3s; }
+.pm-motion .pm-stat:not(.is-in) .pm-stat-bar { scale: 0 1; }
+
+/* 料金の比較グラフ（スタジオ相場とPhotoMatch） */
+.pm-price-chart { max-width: 620px; margin: 0 auto; background: #fff; border: 1px solid var(--pm-border); border-radius: 18px; padding: clamp(16px, 4vw, 22px) clamp(16px, 4vw, 26px); text-align: left; display: grid; gap: 14px; }
+.pm-price-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 12px; row-gap: 6px; }
+.pm-price-label { grid-column: 1 / -1; font: 700 12px var(--pm-font-body); color: var(--pm-text-3); }
+.pm-price-track { height: 16px; border-radius: 100px; background: var(--pm-bg-soft); overflow: hidden; }
+.pm-price-bar { display: block; height: 100%; width: var(--w); border-radius: 100px; transition: clip-path 1.3s cubic-bezier(0.2, 0.7, 0.2, 1); clip-path: inset(0 0 0 0 round 100px); }
+.pm-price-bar.is-studio { background: linear-gradient(90deg, oklch(0.72 0.02 240) 0 var(--solid), transparent var(--solid)), repeating-linear-gradient(135deg, oklch(0.8 0.02 240) 0 5px, oklch(0.88 0.015 240) 5px 10px); }
+.pm-price-row.is-ours .pm-price-bar { background: var(--pm-brand-grad); transition-delay: 0.5s; }
+.pm-motion .pm-price-chart:not(.is-in) .pm-price-bar { clip-path: inset(0 100% 0 0 round 100px); }
+.pm-price-val { font: 700 15px var(--pm-font-num); color: var(--pm-text-3); white-space: nowrap; }
+.pm-price-row.is-ours .pm-price-label { color: oklch(0.42 0.14 215); }
+.pm-price-row.is-ours .pm-price-val { font-size: 22px; font-weight: 800; color: oklch(0.42 0.14 215); }
+.pm-price-row.is-ours .pm-price-val small { font: 700 12px var(--pm-font-body); margin-left: 2px; }
+
+/* 当日の流れのタイムライン（線が左から伸び、番号が順番に出る） */
+.pm-flow { list-style: none; margin: 0 auto 32px; padding: 0; max-width: 760px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); position: relative; }
+.pm-flow::before { content: ''; position: absolute; top: 22px; left: 16.7%; right: 16.7%; height: 4px; border-radius: 100px; background: var(--pm-brand-grad); transform-origin: left; transition: scale 1.4s cubic-bezier(0.45, 0, 0.2, 1) 0.2s; }
+.pm-motion .pm-flow:not(.is-in)::before { scale: 0 1; }
+.pm-flow li { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 0 4px; }
+.pm-flow-num { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--pm-brand-grad); color: #fff; font: 800 16px var(--pm-font-num); box-shadow: 0 0 0 5px var(--pm-bg), 0 8px 18px oklch(0.55 0.14 220 / 0.3); transition: scale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.pm-flow li:nth-child(2) .pm-flow-num { transition-delay: 0.7s; }
+.pm-flow li:nth-child(3) .pm-flow-num { transition-delay: 1.3s; }
+.pm-flow li:nth-child(1) .pm-flow-num { transition-delay: 0.1s; }
+.pm-motion .pm-flow:not(.is-in) .pm-flow-num { scale: 0; }
+.pm-flow-label { display: flex; flex-direction: column; gap: 2px; font: 700 clamp(14px, 3.8vw, 16px)/1.4 var(--pm-font-body); color: oklch(0.3 0.02 240); transition: opacity 0.6s ease; }
+.pm-flow-label small { font: 500 clamp(11px, 3vw, 12px)/1.5 var(--pm-font-body); color: var(--pm-text-3); }
+.pm-flow li:nth-child(2) .pm-flow-label { transition-delay: 0.8s; }
+.pm-flow li:nth-child(3) .pm-flow-label { transition-delay: 1.4s; }
+.pm-flow li:nth-child(1) .pm-flow-label { transition-delay: 0.2s; }
+.pm-motion .pm-flow:not(.is-in) .pm-flow-label { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .pm-btn-primary::after { animation: none; } }
+
+/* ===== UI のマイクロインタラクション（js/motion.js の initInteractions） ===== */
+/* ボタン・チップ：触れると少し浮き、押すと沈む。押した場所から波紋が広がる（.pm-ripple） */
+.pm-btn, .pm-btn-outline, .pm-btn-danger-outline, .pm-chip, .pm-tile, .pm-lang-toggle, .pm-menu-btn {
+  transition: transform 0.2s ease, box-shadow 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+@media (hover: hover) {
+  .pm-btn:not([disabled]):hover { transform: translateY(-2px); }
+  .pm-btn-primary:not([disabled]):hover { box-shadow: 0 14px 30px oklch(0.72 0.14 210 / 0.42); }
+  .pm-btn-outline:hover, .pm-chip:hover, .pm-tile:hover { border-color: oklch(0.7 0.11 215); }
+  /* リンクになっているカードは、触れると浮く */
+  a.pm-card:hover, .pm-loc-card:hover { transform: translateY(-4px); box-shadow: var(--pm-shadow-card); }
+  .pm-hero2-chips li:hover { transform: translateY(-2px); box-shadow: 0 8px 18px oklch(0.6 0.08 220 / 0.14); }
+  /* PC のメニュー：下線が左から伸びる */
+  .pm-nav-desktop nav .pm-nav-link { background: linear-gradient(var(--pm-brand-2), var(--pm-brand-2)) left bottom / 0 2px no-repeat; padding-bottom: 4px; transition: background-size 0.3s ease, color 0.2s ease; }
+  .pm-nav-desktop nav .pm-nav-link:hover { background-size: 100% 2px; color: oklch(0.42 0.14 215); }
+}
+a.pm-card, .pm-hero2-chips li { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.pm-btn:not([disabled]):active, .pm-btn-outline:active, .pm-chip:active, .pm-tile:active, .pm-loc-tab:active { transform: scale(0.96); transition-duration: 0.08s; }
+a.pm-card:active { transform: scale(0.985); }
+.pm-ripple { position: absolute; border-radius: 50%; pointer-events: none; width: 16px; height: 16px; margin: -8px 0 0 -8px; background: oklch(1 0 0 / 0.5); animation: pm-ripple 0.65s ease-out forwards; }
+.pm-btn-outline .pm-ripple, .pm-btn[style*="background:#fff"] .pm-ripple { background: oklch(0.7 0.12 215 / 0.3); }
+@keyframes pm-ripple { from { scale: 0; opacity: 1; } to { scale: 22; opacity: 0; } }
+
+/* 入力欄：フォーカスでふちが色づき、外側にやわらかい光 */
+.pm-input, .pm-textarea, .pm-select { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.pm-input:focus, .pm-textarea:focus, .pm-select:focus { outline: none; border-color: oklch(0.66 0.13 220); box-shadow: 0 0 0 4px oklch(0.78 0.11 210 / 0.25); }
+
+/* ヘッダー：スクロールすると少し低くなり、影が付く（PC） */
+.pm-header { transition: box-shadow 0.3s ease, background-color 0.3s ease; }
+.pm-header-inner { transition: height 0.3s ease; }
+.pm-header.is-scrolled { box-shadow: 0 6px 24px oklch(0.4 0.05 230 / 0.1); background: oklch(0.99 0.006 220 / 0.93); }
+@media (min-width: 861px) { .pm-header.is-scrolled .pm-header-inner { height: 56px; } }
+
+/* スマホのメニュー：三本線が × に変わり、中身が上からすべり出る */
+.pm-menu-btn span { transition: transform 0.3s ease, opacity 0.2s ease; }
+.pm-menu-btn[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.pm-menu-btn[aria-expanded="true"] span:nth-child(2) { opacity: 0; transform: scaleX(0.3); }
+.pm-menu-btn[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* スクロールの進み具合のバー（公開ページの最上部） */
+.pm-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; background: var(--pm-brand-grad); transform-origin: left; transform: scaleX(0); pointer-events: none; }
+
+/* ページの先頭へ戻るボタン（PC、少しスクロールしたら出てくる） */
+.pm-to-top { position: fixed; right: 24px; bottom: 24px; z-index: 45; width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--pm-border); background: #fff; color: oklch(0.42 0.14 215); font: 800 18px var(--pm-font-num); cursor: pointer; box-shadow: var(--pm-shadow-card); opacity: 0; translate: 0 16px; pointer-events: none; transition: opacity 0.3s ease, translate 0.3s ease, transform 0.2s ease; }
+.pm-to-top.is-on { opacity: 1; translate: 0 0; pointer-events: auto; }
+.pm-to-top:hover { transform: translateY(-3px); }
+@media (max-width: 860px) { .pm-to-top { display: none; } }
+
+/* スマホ下の予約バー：出し入れを、下からすべらせる */
+#pm-mobile-cta { transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.35s ease; }
+#pm-mobile-cta.is-off { transform: translateY(110%); opacity: 0; pointer-events: none; }
+
+/* 遅れて読み込む写真は、読み込めたらふわっと表示 */
+img.pm-img-fade { opacity: 0; transition: opacity 0.6s ease; }
+img.pm-img-fade.is-loaded { opacity: 1; }
+
+/* 「いいねUP！」のステッカーは、タップするとハートが飛ぶ */
+.pm-like-badge { cursor: pointer; user-select: none; -webkit-user-select: none; }
+.pm-heart { position: absolute; left: 50%; top: 50%; pointer-events: none; font-size: 24px; line-height: 1; animation: pm-heart 1.1s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@keyframes pm-heart {
+  0% { opacity: 0; translate: -50% -50%; scale: 0.4; }
+  15% { opacity: 1; }
+  65% { opacity: 1; }
+  100% { opacity: 0; translate: calc(-50% + var(--dx)) calc(-50% + var(--dy)); scale: 1.4; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* よくある質問などの開閉を、高さのアニメーションでなめらかに（対応ブラウザのみ） */
+  :root { interpolate-size: allow-keywords; }
+  .pm-faq-item::details-content, .pm-note-details::details-content { height: 0; overflow: clip; transition: height 0.35s ease, content-visibility 0.35s allow-discrete; }
+  .pm-faq-item[open]::details-content, .pm-note-details[open]::details-content { height: auto; }
+  /* ページの移動を、ふわっと切り替える（対応ブラウザのみ） */
+  @view-transition { navigation: auto; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.28s; }
+  .pm-header { view-transition-name: pm-header; }
+  .pm-mobile-panel:not([hidden]) { animation: pm-panel-in 0.3s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .pm-mobile-panel:not([hidden]) > * { animation: pm-rise 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .pm-mobile-panel:not([hidden]) > :nth-child(2) { animation-delay: 0.04s; }
+  .pm-mobile-panel:not([hidden]) > :nth-child(3) { animation-delay: 0.08s; }
+  .pm-mobile-panel:not([hidden]) > :nth-child(4) { animation-delay: 0.12s; }
+  .pm-mobile-panel:not([hidden]) > :nth-child(5) { animation-delay: 0.16s; }
+  .pm-mobile-panel:not([hidden]) > :nth-child(6) { animation-delay: 0.2s; }
+  /* ヒーローの写真：マウスの位置に合わせて立体的に傾く（js が --rx / --ry を入れる） */
+  .pm-hero2-photos img { transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--hs, 1)); transition: transform 0.4s ease; }
+  .pm-hero2-photos figure:hover img { --hs: 1.04; transition-duration: 0.15s; }
+  .pm-like-badge:hover { animation-play-state: paused; }
+}
+@keyframes pm-panel-in { from { opacity: 0; translate: 0 -10px; } to { opacity: 1; translate: 0 0; } }
+/* FAQ の＋は、開くと回って×になる */
+.pm-faq-icon { display: inline-block; transition: transform 0.3s ease; }
+.pm-faq-icon::after { content: '＋'; }
+.pm-faq-item[open] .pm-faq-icon { transform: rotate(45deg); }
+.pm-faq-item[open] .pm-faq-icon::after { content: '＋'; }
+.pm-faq-q { transition: background-color 0.2s ease; }
+@media (hover: hover) { .pm-faq-q:hover { background: var(--pm-bg-soft); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .pm-btn, .pm-btn-outline, .pm-chip, .pm-tile, a.pm-card, .pm-loc-card, .pm-hero2-chips li { transform: none !important; }
+  .pm-ripple, .pm-heart { display: none; }
+  #pm-mobile-cta, .pm-to-top, .pm-loc-tab-ind, img.pm-img-fade { transition: none; }
+}
