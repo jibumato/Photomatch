@@ -6,7 +6,7 @@ import {
 } from '../data.js';
 import { getLang, L, t, tf, discountLabelText } from '../i18n.js';
 import { escapeHtml } from '../util.js';
-import { observeReveal } from '../motion.js';
+import { observeReveal, slideTabIndicator } from '../motion.js';
 
 mountLayout();
 
@@ -126,6 +126,7 @@ document.getElementById('pm-safety').innerHTML = SAFETY_POINTS.map((s) => `
       b.setAttribute('aria-selected', String(on));
       b.tabIndex = on ? 0 : -1;
     });
+    slideTabIndicator(tabsEl);
     gridEl.setAttribute('aria-labelledby', `pm-loc-tab-${area.key}`);
     gridEl.innerHTML = area.spots.map(spotHtml).join('');
     const areaLink = document.getElementById('pm-loc-area-link');
@@ -184,7 +185,10 @@ faqEl.innerHTML = FAQS.map((f) => `
   if (bar && heroCta && finalCta && 'IntersectionObserver' in window) {
     const heroVisible = new Set();
     const finalVisible = new Set();
-    const update = () => { bar.style.display = heroVisible.size || finalVisible.size ? 'none' : ''; };
+    // 出し入れは .is-off で下へすべらせる（css/components.css）
+    bar.classList.add('is-off');
+    bar.style.display = '';
+    const update = () => { bar.classList.toggle('is-off', Boolean(heroVisible.size || finalVisible.size)); };
     new IntersectionObserver(([e]) => { e.isIntersecting ? heroVisible.add(1) : heroVisible.delete(1); update(); }).observe(heroCta);
     new IntersectionObserver(([e]) => { e.isIntersecting ? finalVisible.add(1) : finalVisible.delete(1); update(); }).observe(finalCta);
   }

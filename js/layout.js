@@ -1,7 +1,7 @@
 import { initAnalytics } from './analytics.js';
 import { getSession, signOut } from './auth.js';
 import { getLang, setLang, applyI18n, t } from './i18n.js';
-import { observeReveal } from './motion.js';
+import { observeReveal, initInteractions } from './motion.js';
 
 const NAV_LINKS = [
   { key: 'nav.search', href: 'search.html' },
@@ -106,6 +106,7 @@ export async function mountLayout() {
   applyI18n();
   // 公開ページの見出し・カードを、スクロールで表示するアニメーションの対象にする（js/motion.js）。
   observeReveal();
+  initInteractions();
 }
 
 export { signOut };

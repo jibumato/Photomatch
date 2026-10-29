@@ -104,3 +104,126 @@ export function observeReveal(root = document) {
 
   root.querySelectorAll('[data-reveal], [data-count]').forEach(watch);
 }
+
+// ---- UI のマイクロインタラクション（layout.js の mountLayout() から全ページで1回呼ぶ） ----
+// 押したボタンの波紋・ヘッダーの影・スクロール進捗バー・先頭へ戻るボタン・写真のふわっと表示・
+// ヒーロー写真の傾き・「いいねUP！」のハート。見た目は css/components.css の「マイクロインタラクション」。
+let interactionsStarted = false;
+
+export function initInteractions() {
+  if (interactionsStarted) return;
+  interactionsStarted = true;
+  const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isPublic = PUBLIC_PAGES.test(currentPage());
+
+  // ボタンを押した場所から波紋
+  if (!calm) {
+    document.addEventListener('pointerdown', (e) => {
+      const btn = e.target.closest('.pm-btn');
+      if (!btn || btn.disabled) return;
+      const r = btn.getBoundingClientRect();
+      const dot = document.createElement('span');
+      dot.className = 'pm-ripple';
+      dot.setAttribute('aria-hidden', 'true');
+      dot.style.left = `${e.clientX - r.left}px`;
+      dot.style.top = `${e.clientY - r.top}px`;
+      btn.appendChild(dot);
+      dot.addEventListener('animationend', () => dot.remove());
+    });
+  }
+
+  // スクロールに合わせて：ヘッダーの影・進捗バー・先頭へ戻るボタン
+  const header = document.getElementById('pm-header');
+  const bar = isPublic ? document.body.appendChild(Object.assign(document.createElement('div'), { className: 'pm-progress' })) : null;
+  let toTop = null;
+  if (isPublic) {
+    toTop = document.createElement('button');
+    toTop.type = 'button';
+    toTop.className = 'pm-to-top';
+    toTop.textContent = '↑';
+    toTop.setAttribute('aria-label', document.documentElement.lang === 'en' ? 'Back to top' : 'ページの先頭へ');
+    toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: calm ? 'auto' : 'smooth' }));
+    document.body.appendChild(toTop);
+  }
+  if (bar) bar.setAttribute('aria-hidden', 'true');
+  let queued = false;
+  const onScroll = () => {
+    queued = false;
+    const y = window.scrollY;
+    header?.classList.toggle('is-scrolled', y > 8);
+    if (bar) {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = `scaleX(${max > 0 ? Math.min(y / max, 1) : 0})`;
+    }
+    toTop?.classList.toggle('is-on', y > window.innerHeight * 1.2);
+  };
+  window.addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(onScroll); } }, { passive: true });
+  onScroll();
+
+  if (calm) return;
+
+  // 遅れて読み込む写真は、読み込めたらふわっと表示（公開ページ）
+  if (isPublic) {
+    document.querySelectorAll('img[loading="lazy"]').forEach((img) => {
+      if (img.complete) return;
+      img.classList.add('pm-img-fade');
+      const done = () => img.classList.add('is-loaded');
+      img.addEventListener('load', done, { once: true });
+      img.addEventListener('error', done, { once: true });
+    });
+  }
+
+  // ヒーロー写真：マウスの位置に合わせて傾ける（マウス操作の端末だけ）
+  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    document.querySelectorAll('.pm-hero2-photos figure').forEach((fig) => {
+      fig.addEventListener('pointermove', (e) => {
+        const r = fig.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5;
+        const y = (e.clientY - r.top) / r.height - 0.5;
+        fig.style.setProperty('--ry', `${(x * 10).toFixed(2)}deg`);
+        fig.style.setProperty('--rx', `${(-y * 10).toFixed(2)}deg`);
+      });
+      fig.addEventListener('pointerleave', () => { fig.style.removeProperty('--rx'); fig.style.removeProperty('--ry'); });
+    });
+  }
+
+  // 「いいねUP！」をタップするとハートが飛ぶ
+  document.addEventListener('click', (e) => {
+    const badge = e.target.closest('.pm-like-badge');
+    if (!badge) return;
+    for (let i = 0; i < 7; i += 1) {
+      const h = document.createElement('span');
+      h.className = 'pm-heart';
+      h.setAttribute('aria-hidden', 'true');
+      h.textContent = i % 3 === 0 ? '💗' : '❤️';
+      const angle = (-150 + i * 20) * (Math.PI / 180);
+      const dist = 80 + Math.random() * 50;
+      h.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
+      h.style.setProperty('--dy', `${Math.sin(angle) * dist}px`);
+      h.style.animationDelay = `${i * 30}ms`;
+      badge.appendChild(h);
+      h.addEventListener('animationend', () => h.remove());
+    }
+  });
+}
+
+// 名古屋／岐阜のようなタブの、選んだタブの下へつまみをすべらせる。タブを切り替えるたびに呼ぶ。
+// 文字の読み込みや画面幅の変化でタブの幅が変わったときも、つまみを合わせ直す。
+export function slideTabIndicator(tabsEl) {
+  let ind = tabsEl.querySelector('.pm-loc-tab-ind');
+  const place = () => {
+    const on = tabsEl.querySelector('[aria-selected="true"]');
+    if (!on) return;
+    ind.style.width = `${on.offsetWidth}px`;
+    ind.style.translate = `${on.offsetLeft}px 0`;
+  };
+  if (!ind) {
+    ind = document.createElement('span');
+    ind.className = 'pm-loc-tab-ind';
+    ind.setAttribute('aria-hidden', 'true');
+    tabsEl.prepend(ind);
+    tabsEl.classList.add('has-ind');
+    if ('ResizeObserver' in window) new ResizeObserver(place).observe(tabsEl);
+  }
+  place();
+}
