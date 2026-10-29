@@ -32,7 +32,8 @@ export const STATS = [
 // 実在のお客様の声だけを入れる。空の間は、トップの「お客様の声」欄ごと
 // 非表示になる（以前入っていた3件はダミーだったため削除した）。形式:
 // { comment, commentEn, name?, nameEn?, starsLabel?: '★★★★★',
-//   before?: { src, alt, altEn }, after?: { src, alt, altEn } }
+//   before?: { src, alt, altEn }, after?: { src, alt, altEn },
+//   badge?, badgeEn? }  ← badge はアフター写真の右下に貼るステッカー（例：「いいねUP！👍」）
 // name・starsLabel は、お客様からいただいたものがある場合だけ入れる（作らない）。
 // before/after の写真は、お客様に掲載の許可をいただいたものだけを使う。
 export const TESTIMONIALS = [
@@ -41,6 +42,8 @@ export const TESTIMONIALS = [
     after: { src: 'assets/voice-01-after.jpg', alt: '撮影後：カフェで撮影したプロフィール写真', altEn: 'After: a profile photo shot at a café' },
     comment: '自分では気づかなかった魅力を引き出してもらえました！プロフィール写真を変える良いきっかけになりました。',
     commentEn: 'They brought out a side of me I had never noticed myself! It was a great push to finally update my profile photos.',
+    badge: 'いいねUP！👍',
+    badgeEn: 'More likes! 👍',
   },
 ];
 
@@ -268,6 +271,8 @@ export const SEASONS = [
 export function seasonForMonth(month) {
   return SEASONS.find((s) => s.months.includes(month)) || SEASONS[0];
 }
+// img（任意）：実際に撮ったロケーションの写真（assets/location-<エリア>-<季節>.jpg、1200×800）。
+// 無いスポットは写真なしのカードになる。
 export const SEASONAL_LOCATIONS = [
   {
     key: 'nagoya', label: '名古屋', labelEn: 'Nagoya',
@@ -275,19 +280,23 @@ export const SEASONAL_LOCATIONS = [
       { season: 'spring', name: '庄内緑地公園周辺', nameEn: 'Shonai Ryokuchi Park',
         catch: '季節の彩りと、開放感を一枚に。', catchEn: 'Seasonal color and open space, in one shot.',
         desc: '広い芝生と季節の花々。春の桜や新緑を背景に、明るい写真を。', descEn: 'Wide lawns and seasonal flowers. Bright photos framed by spring cherry blossoms and fresh greenery.',
-        mapUrl: 'https://maps.app.goo.gl/v2TLAb2xZ2wrv88u6' },
+        mapUrl: 'https://maps.app.goo.gl/v2TLAb2xZ2wrv88u6',
+        img: 'assets/location-nagoya-spring.jpg', imgAlt: '庄内緑地公園の芝生広場と赤いモニュメント', imgAltEn: 'The lawn and red monument at Shonai Ryokuchi Park' },
       { season: 'summer', name: 'ガーデンふ頭臨港緑園', nameEn: 'Garden Pier Rinko Ryokuen',
         catch: '海と空が広がる、爽やかなロケーション。', catchEn: 'A refreshing spot where the sea meets the sky.',
         desc: '水辺と広場の緑を背景に、港ならではの開放感を写真に。', descEn: 'The waterfront and green plazas bring the open feel of the harbor into your photos.',
-        mapUrl: 'https://maps.app.goo.gl/TY7FRXSZe7WJiHZq9' },
+        mapUrl: 'https://maps.app.goo.gl/TY7FRXSZe7WJiHZq9',
+        img: 'assets/location-nagoya-summer.jpg', imgAlt: 'ガーデンふ頭の芝生広場と南極観測船ふじ', imgAltEn: 'The lawn at Garden Pier, with the Antarctic research ship Fuji' },
       { season: 'autumn', name: '名城公園', nameEn: 'Meijo Park',
         catch: '緑と水辺に、季節を映して。', catchEn: 'The season, reflected in greenery and water.',
         desc: '木々や芝生、おふけ池を背景に、落ち着きと自然の奥行きを感じる一枚を。', descEn: 'Trees, lawns, and Ofuke Pond create calm photos with natural depth.',
-        mapUrl: 'https://maps.app.goo.gl/e3Q5GFvrvEU4iBfc9' },
+        mapUrl: 'https://maps.app.goo.gl/e3Q5GFvrvEU4iBfc9',
+        img: 'assets/location-nagoya-autumn.jpg', imgAlt: '名城公園のおふけ池と、木々の向こうに見える名古屋城', imgAltEn: 'Ofuke Pond at Meijo Park, with Nagoya Castle beyond the trees' },
       { season: 'winter', name: '栄駅周辺', nameEn: 'Around Sakae Station', note: '都会的な街並みが魅力', noteEn: 'Stylish city streets',
         catch: '街の明かりで、都会的な一枚を。', catchEn: 'City lights for an urban look.',
         desc: '街並みや店舗の明かりを背景に、都会ならではの雰囲気を写真に。', descEn: 'Streetscapes and shop lights give your photos a distinctly urban atmosphere.',
-        mapUrl: 'https://maps.app.goo.gl/NYJhfg4vKjhtz7J28' },
+        mapUrl: 'https://maps.app.goo.gl/NYJhfg4vKjhtz7J28',
+        img: 'assets/location-nagoya-winter.jpg', imgAlt: 'オアシス21の水の宇宙船から見た中部電力 MIRAI TOWER と栄の街並み', imgAltEn: 'Chubu Electric Power MIRAI TOWER and the Sakae skyline, seen from Oasis 21' },
     ],
   },
   {

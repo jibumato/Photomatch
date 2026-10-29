@@ -282,6 +282,9 @@
 .pm-loc-tab:focus-visible { outline: 2px solid oklch(0.55 0.14 210); outline-offset: 2px; }
 .pm-loc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
 .pm-loc-card { display: flex; flex-direction: column; padding: 22px 20px; border-top: 4px solid var(--pm-loc-accent); }
+/* 写真はカードの左右・上端いっぱいに（カードの padding 22px 20px を打ち消す） */
+.pm-loc-photo { display: block; width: calc(100% + 40px); max-width: none; height: auto; aspect-ratio: 3 / 2; object-fit: cover; margin: -22px -20px 16px; }
+.pm-loc-card { overflow: hidden; }
 .pm-loc-card.is-now { box-shadow: 0 0 0 2px var(--pm-loc-accent), var(--pm-shadow-card); }
 .pm-loc-season { display: inline-flex; align-items: center; gap: 6px; font: 700 12px var(--pm-font-body); color: var(--pm-loc-ink); background: var(--pm-loc-soft); border-radius: 100px; padding: 4px 10px; }
 .pm-loc-now { font: 700 11px var(--pm-font-body); color: #fff; background: var(--pm-loc-ink); border-radius: 100px; padding: 3px 9px; }
@@ -306,3 +309,20 @@
 .pm-agree { display: flex; align-items: flex-start; gap: 10px; font: 13px/1.7 var(--pm-font-body); color: var(--pm-text-2); cursor: pointer; }
 .pm-agree input { width: 18px; height: 18px; margin: 2px 0 0; flex-shrink: 0; accent-color: oklch(0.55 0.14 210); cursor: pointer; }
 .pm-agree a { color: oklch(0.45 0.14 210); text-decoration: underline; }
+
+/* 「お客様の声」アフター写真の右下に貼るステッカー（いいねUP！など） */
+.pm-like-badge {
+  position: absolute; right: -10px; bottom: 18px;
+  padding: 10px 16px; border-radius: 100px;
+  background: linear-gradient(135deg, oklch(0.68 0.21 10), oklch(0.62 0.22 350));
+  color: #fff; font: 800 clamp(14px, 3.6vw, 18px)/1.2 var(--pm-font-body); white-space: nowrap;
+  box-shadow: 0 0 0 3px #fff, 0 10px 24px oklch(0.55 0.2 0 / 0.4);
+  transform: rotate(-6deg);
+  animation: pm-like-pop 2.4s ease-in-out infinite;
+}
+@keyframes pm-like-pop {
+  0%, 70%, 100% { transform: rotate(-6deg) scale(1); }
+  78% { transform: rotate(-6deg) scale(1.12); }
+  86% { transform: rotate(-6deg) scale(0.97); }
+}
+@media (prefers-reduced-motion: reduce) { .pm-like-badge { animation: none; } }
