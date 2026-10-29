@@ -70,6 +70,7 @@ export const SUPPORTED_APPS_EN = { 'タップル': 'Tapple', '東カレデート
 export const HOW_IT_WORKS = [
   {
     step: '01',
+    flow: '予約', flowEn: 'Book', flowSub: '空き枠をタップ', flowSubEn: 'Tap a free slot', // トップのタイムライン用の短い言葉
     title: '空き枠を選んで予約', titleEn: 'Pick a Time & Book',
     desc: 'カメラマンとプランを選び、カレンダーから希望の時間をタップするだけ。決済まで完了してその場で予約が確定します。',
     descEn: 'Choose a photographer and plan, then tap a time on the calendar. Pay on the spot and your booking is confirmed instantly.',
@@ -79,6 +80,7 @@ export const HOW_IT_WORKS = [
   },
   {
     step: '02',
+    flow: '撮影', flowEn: 'Shoot', flowSub: '45分・手ぶらでOK', flowSubEn: '45 min, empty-handed', // トップのタイムライン用の短い言葉
     title: '当日は手ぶらで集合', titleEn: 'Show Up Empty-Handed',
     desc: '集合場所でご挨拶と撮影イメージの確認をしたら、そのまま撮影へ。ポーズや表情はカメラマンがリードするので、緊張していても大丈夫です。',
     descEn: "Say hello at the meeting point, confirm the look you're going for, and start shooting. The photographer leads your pose and expression, so nerves are no problem.",
@@ -88,6 +90,7 @@ export const HOW_IT_WORKS = [
   },
   {
     step: '03',
+    flow: '納品', flowEn: 'Delivery', flowSub: '3営業日以内', flowSubEn: 'Within 3 business days', // トップのタイムライン用の短い言葉
     title: '3営業日以内にお届け', titleEn: 'Delivered Within 3 Business Days',
     desc: '撮影後は解散。通常3営業日以内に、撮影のデータをメールでお届けします。',
     descEn: "That's it for the day — your photos arrive by email, usually within 3 business days.",

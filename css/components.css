@@ -326,3 +326,101 @@
   86% { transform: rotate(-6deg) scale(0.97); }
 }
 @media (prefers-reduced-motion: reduce) { .pm-like-badge { animation: none; } }
+
+/* ===== モーション（js/motion.js）=====
+   .pm-motion は、動きを減らす設定でないときだけ js/motion.js が <html> に付ける。
+   付いていなければ全部そのまま表示される。transform ではなく translate / scale を使うので、
+   要素がもともと持っている transform（傾き・位置ずらし）とぶつからない。 */
+.pm-motion [data-reveal] {
+  opacity: 0; translate: 0 26px;
+  transition: opacity 0.7s ease, translate 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), scale 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.25s ease;
+  transition-delay: calc(var(--i, 0) * 90ms), calc(var(--i, 0) * 90ms), calc(var(--i, 0) * 90ms), 0s;
+}
+.pm-motion [data-reveal="left"] { translate: -40px 0; }
+.pm-motion [data-reveal="right"] { translate: 40px 0; }
+.pm-motion [data-reveal="zoom"] { translate: 0 16px; scale: 0.9; }
+.pm-motion [data-reveal="pop"] { translate: none; scale: 0.4; transition-timing-function: ease, cubic-bezier(0.34, 1.56, 0.64, 1), cubic-bezier(0.34, 1.56, 0.64, 1), ease; }
+.pm-motion [data-reveal].is-in { opacity: 1; translate: 0 0; scale: 1; }
+@media print { .pm-motion [data-reveal] { opacity: 1 !important; translate: none !important; scale: none !important; } }
+
+/* カードは触れると影が付く（料金・ロケーション）。影の transition は .pm-motion [data-reveal] 側に含めてある */
+#pm-pricing .pm-card:hover, .pm-loc-card:hover { box-shadow: var(--pm-shadow-card); }
+.pm-loc-photo { transition: scale 0.6s ease; }
+.pm-loc-card:hover .pm-loc-photo { scale: 1.04; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ヒーロー：読み込み時に、上から順番にふわっと（JS を待たないよう CSS だけで動かす）。
+     写真は LCP を遅らせないよう、透明にはせず位置と大きさだけ動かす。 */
+  .pm-hero2-badge, .pm-hero2-title, .pm-hero2-lead, .pm-hero2-chips li, .pm-hero2-ctas, .pm-hero2-proof {
+    animation: pm-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .pm-hero2-title { animation-delay: 0.08s; }
+  .pm-hero2-lead { animation-delay: 0.18s; }
+  .pm-hero2-chips li { animation-name: pm-pop; animation-duration: 0.6s; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .pm-hero2-chips li:nth-child(1) { animation-delay: 0.35s; }
+  .pm-hero2-chips li:nth-child(2) { animation-delay: 0.45s; }
+  .pm-hero2-chips li:nth-child(3) { animation-delay: 0.55s; }
+  .pm-hero2-chips li:nth-child(4) { animation-delay: 0.65s; }
+  .pm-hero2-ctas { animation-delay: 0.75s; }
+  .pm-hero2-proof { animation-delay: 0.85s; }
+  .pm-hero2-photos figure { animation: pm-photo-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .pm-hero2-photos figure:nth-child(2) { animation-delay: 0.1s; }
+  .pm-hero2-photos figure:nth-child(3) { animation-delay: 0.2s; }
+  .pm-hero2-photos figure:nth-child(4) { animation-delay: 0.3s; }
+  /* 見出しの「“選ばれる一枚”を。」に、光が一度だけ流れる */
+  .pm-hero2-hl {
+    background-image: linear-gradient(110deg, oklch(0.64 0.15 200) 0%, oklch(0.56 0.16 245) 40%, oklch(0.85 0.1 200) 50%, oklch(0.56 0.16 245) 60%, oklch(0.64 0.15 200) 100%);
+    background-size: 250% 100%; animation: pm-shine-text 2.4s 0.6s ease-in-out both;
+  }
+  /* 最後の予約ボタンに、ときどき光が走る */
+  #final-cta-section .pm-btn { position: relative; overflow: hidden; }
+  #final-cta-section .pm-btn::after {
+    content: ''; position: absolute; inset: 0; translate: -120% 0;
+    background: linear-gradient(100deg, transparent 30%, oklch(0.85 0.1 200 / 0.55) 50%, transparent 70%);
+    animation: pm-btn-shine 3.6s ease-in-out infinite;
+  }
+  /* 「お客様の声」の矢印は、表示後にゆっくり脈打つ */
+  .pm-voice-arrow.is-in { animation: pm-pulse 2s 1.2s ease-in-out infinite; }
+}
+@keyframes pm-rise { from { opacity: 0; translate: 0 22px; } to { opacity: 1; translate: 0 0; } }
+@keyframes pm-pop { from { opacity: 0; scale: 0.6; } to { opacity: 1; scale: 1; } }
+@keyframes pm-photo-in { from { translate: 0 60px; scale: 0.92; } to { translate: 0 0; scale: 1; } }
+@keyframes pm-shine-text { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@keyframes pm-btn-shine { 0%, 55% { translate: -120% 0; } 100% { translate: 120% 0; } }
+@keyframes pm-pulse { 0%, 100% { scale: 1; } 50% { scale: 1.15; } }
+
+/* 実績の数字（カウントアップ＋下のバーが伸びる） */
+.pm-stat-bar { display: block; height: 6px; width: 64px; margin: 4px auto 12px; border-radius: 100px; background: var(--pm-brand-grad); transform-origin: left; transition: scale 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) 0.3s; }
+.pm-motion .pm-stat:not(.is-in) .pm-stat-bar { scale: 0 1; }
+
+/* 料金の比較グラフ（スタジオ相場とPhotoMatch） */
+.pm-price-chart { max-width: 620px; margin: 0 auto; background: #fff; border: 1px solid var(--pm-border); border-radius: 18px; padding: clamp(16px, 4vw, 22px) clamp(16px, 4vw, 26px); text-align: left; display: grid; gap: 14px; }
+.pm-price-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 12px; row-gap: 6px; }
+.pm-price-label { grid-column: 1 / -1; font: 700 12px var(--pm-font-body); color: var(--pm-text-3); }
+.pm-price-track { height: 16px; border-radius: 100px; background: var(--pm-bg-soft); overflow: hidden; }
+.pm-price-bar { display: block; height: 100%; width: var(--w); border-radius: 100px; transition: clip-path 1.3s cubic-bezier(0.2, 0.7, 0.2, 1); clip-path: inset(0 0 0 0 round 100px); }
+.pm-price-bar.is-studio { background: linear-gradient(90deg, oklch(0.72 0.02 240) 0 var(--solid), transparent var(--solid)), repeating-linear-gradient(135deg, oklch(0.8 0.02 240) 0 5px, oklch(0.88 0.015 240) 5px 10px); }
+.pm-price-row.is-ours .pm-price-bar { background: var(--pm-brand-grad); transition-delay: 0.5s; }
+.pm-motion .pm-price-chart:not(.is-in) .pm-price-bar { clip-path: inset(0 100% 0 0 round 100px); }
+.pm-price-val { font: 700 15px var(--pm-font-num); color: var(--pm-text-3); white-space: nowrap; }
+.pm-price-row.is-ours .pm-price-label { color: oklch(0.42 0.14 215); }
+.pm-price-row.is-ours .pm-price-val { font-size: 22px; font-weight: 800; color: oklch(0.42 0.14 215); }
+.pm-price-row.is-ours .pm-price-val small { font: 700 12px var(--pm-font-body); margin-left: 2px; }
+
+/* 当日の流れのタイムライン（線が左から伸び、番号が順番に出る） */
+.pm-flow { list-style: none; margin: 0 auto 32px; padding: 0; max-width: 760px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); position: relative; }
+.pm-flow::before { content: ''; position: absolute; top: 22px; left: 16.7%; right: 16.7%; height: 4px; border-radius: 100px; background: var(--pm-brand-grad); transform-origin: left; transition: scale 1.4s cubic-bezier(0.45, 0, 0.2, 1) 0.2s; }
+.pm-motion .pm-flow:not(.is-in)::before { scale: 0 1; }
+.pm-flow li { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 0 4px; }
+.pm-flow-num { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--pm-brand-grad); color: #fff; font: 800 16px var(--pm-font-num); box-shadow: 0 0 0 5px var(--pm-bg), 0 8px 18px oklch(0.55 0.14 220 / 0.3); transition: scale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.pm-flow li:nth-child(2) .pm-flow-num { transition-delay: 0.7s; }
+.pm-flow li:nth-child(3) .pm-flow-num { transition-delay: 1.3s; }
+.pm-flow li:nth-child(1) .pm-flow-num { transition-delay: 0.1s; }
+.pm-motion .pm-flow:not(.is-in) .pm-flow-num { scale: 0; }
+.pm-flow-label { display: flex; flex-direction: column; gap: 2px; font: 700 clamp(14px, 3.8vw, 16px)/1.4 var(--pm-font-body); color: oklch(0.3 0.02 240); transition: opacity 0.6s ease; }
+.pm-flow-label small { font: 500 clamp(11px, 3vw, 12px)/1.5 var(--pm-font-body); color: var(--pm-text-3); }
+.pm-flow li:nth-child(2) .pm-flow-label { transition-delay: 0.8s; }
+.pm-flow li:nth-child(3) .pm-flow-label { transition-delay: 1.4s; }
+.pm-flow li:nth-child(1) .pm-flow-label { transition-delay: 0.2s; }
+.pm-motion .pm-flow:not(.is-in) .pm-flow-label { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .pm-btn-primary::after { animation: none; } }
