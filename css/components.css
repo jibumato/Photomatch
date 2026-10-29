@@ -306,3 +306,20 @@
 .pm-agree { display: flex; align-items: flex-start; gap: 10px; font: 13px/1.7 var(--pm-font-body); color: var(--pm-text-2); cursor: pointer; }
 .pm-agree input { width: 18px; height: 18px; margin: 2px 0 0; flex-shrink: 0; accent-color: oklch(0.55 0.14 210); cursor: pointer; }
 .pm-agree a { color: oklch(0.45 0.14 210); text-decoration: underline; }
+
+/* 「お客様の声」アフター写真の右下に貼るステッカー（いいねUP！など） */
+.pm-like-badge {
+  position: absolute; right: -10px; bottom: 18px;
+  padding: 10px 16px; border-radius: 100px;
+  background: linear-gradient(135deg, oklch(0.68 0.21 10), oklch(0.62 0.22 350));
+  color: #fff; font: 800 clamp(14px, 3.6vw, 18px)/1.2 var(--pm-font-body); white-space: nowrap;
+  box-shadow: 0 0 0 3px #fff, 0 10px 24px oklch(0.55 0.2 0 / 0.4);
+  transform: rotate(-6deg);
+  animation: pm-like-pop 2.4s ease-in-out infinite;
+}
+@keyframes pm-like-pop {
+  0%, 70%, 100% { transform: rotate(-6deg) scale(1); }
+  78% { transform: rotate(-6deg) scale(1.12); }
+  86% { transform: rotate(-6deg) scale(0.97); }
+}
+@media (prefers-reduced-motion: reduce) { .pm-like-badge { animation: none; } }

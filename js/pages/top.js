@@ -33,7 +33,7 @@ document.getElementById('pm-apps').innerHTML = SUPPORTED_APPS.map((a) => `
 
 // No testimonials yet -> drop the whole お客様の声 block instead of showing an empty heading.
 // Before is shown small and After large, so the change reads at a glance.
-const voiceBeforeAfter = (before, after) => `
+const voiceBeforeAfter = (before, after, badge) => `
   <div style="display:grid;grid-template-columns:minmax(0,0.5fr) minmax(0,1fr);align-items:end;gap:clamp(14px,4vw,28px);margin-bottom:22px">
     <figure style="margin:0 0 clamp(8px,3vw,20px)">
       <div style="font:800 10px/1 var(--pm-font-num);letter-spacing:0.14em;color:var(--pm-text-muted);margin-bottom:8px">BEFORE</div>
@@ -42,13 +42,14 @@ const voiceBeforeAfter = (before, after) => `
     <figure style="margin:0;position:relative">
       <img src="${after.src}" alt="${L(after, 'alt')}" width="720" height="960" loading="lazy" style="display:block;width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;border-radius:16px;box-shadow:0 0 0 3px #fff,0 0 0 6px oklch(0.7 0.13 205),0 18px 40px oklch(0.55 0.15 220 / 0.35)">
       <figcaption style="position:absolute;left:12px;top:12px;padding:6px 14px;border-radius:100px;background:var(--pm-brand-grad);color:#fff;font:800 13px/1.3 var(--pm-font-num);letter-spacing:0.12em;box-shadow:0 4px 12px oklch(0.5 0.15 220 / 0.35)">AFTER</figcaption>
+      ${badge ? `<span class="pm-like-badge">${badge}</span>` : ''}
       <span aria-hidden="true" style="position:absolute;left:0;top:50%;transform:translate(-62%,-50%);display:flex;align-items:center;justify-content:center;width:clamp(34px,9vw,46px);height:clamp(34px,9vw,46px);border-radius:50%;background:var(--pm-brand-grad);color:#fff;font:800 clamp(16px,4vw,20px)/1 var(--pm-font-num);box-shadow:0 0 0 4px #fff,0 6px 16px oklch(0.5 0.15 220 / 0.35)">→</span>
     </figure>
   </div>`;
 if (TESTIMONIALS.length) {
   document.getElementById('pm-testimonials').innerHTML = TESTIMONIALS.map((item) => `
   <div class="pm-card" style="padding:clamp(18px,4vw,28px)">
-    ${item.before && item.after ? voiceBeforeAfter(item.before, item.after) : ''}
+    ${item.before && item.after ? voiceBeforeAfter(item.before, item.after, L(item, 'badge')) : ''}
     ${item.starsLabel ? `<div style="font:13px var(--pm-font-body);color:var(--pm-star);margin-bottom:10px">${item.starsLabel}</div>` : ''}
     <blockquote style="margin:0;font:14px/1.9 var(--pm-font-body);color:oklch(0.35 0.02 235)">“${L(item, 'comment')}”</blockquote>
     ${item.name ? `<div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3);margin-top:16px">${L(item, 'name')}</div>` : ''}

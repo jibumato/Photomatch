@@ -32,7 +32,8 @@ export const STATS = [
 // 実在のお客様の声だけを入れる。空の間は、トップの「お客様の声」欄ごと
 // 非表示になる（以前入っていた3件はダミーだったため削除した）。形式:
 // { comment, commentEn, name?, nameEn?, starsLabel?: '★★★★★',
-//   before?: { src, alt, altEn }, after?: { src, alt, altEn } }
+//   before?: { src, alt, altEn }, after?: { src, alt, altEn },
+//   badge?, badgeEn? }  ← badge はアフター写真の右下に貼るステッカー（例：「いいねUP！👍」）
 // name・starsLabel は、お客様からいただいたものがある場合だけ入れる（作らない）。
 // before/after の写真は、お客様に掲載の許可をいただいたものだけを使う。
 export const TESTIMONIALS = [
@@ -41,6 +42,8 @@ export const TESTIMONIALS = [
     after: { src: 'assets/voice-01-after.jpg', alt: '撮影後：カフェで撮影したプロフィール写真', altEn: 'After: a profile photo shot at a café' },
     comment: '自分では気づかなかった魅力を引き出してもらえました！プロフィール写真を変える良いきっかけになりました。',
     commentEn: 'They brought out a side of me I had never noticed myself! It was a great push to finally update my profile photos.',
+    badge: 'いいねUP！👍',
+    badgeEn: 'More likes! 👍',
   },
 ];
 
