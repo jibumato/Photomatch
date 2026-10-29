@@ -325,11 +325,11 @@ export const SEASONAL_LOCATIONS = [
         img: 'assets/location-gifu-autumn.jpg', imgAlt: '清水緑地の、緑と花に囲まれた木の遊歩道', imgAltEn: 'A wooden boardwalk among greenery and flowers at Shimizu Ryokuchi' },
       { season: 'winter', name: '岐阜駅周辺', nameEn: 'Around Gifu Station', note: '天候に左右されない', noteEn: 'Rain or shine',
         catch: '天候に左右されず、街の一枚を。', catchEn: 'City shots, whatever the weather.',
-        desc: '室内撮影はアクティブG、夜はイルミネーションの夜景。カフェや街並みでの撮影も、緑地へも徒歩5分。', descEn: 'Indoor shots at Active G, illuminated night views after dark, cafés and streets — and greenery just 5 min away on foot.',
+        desc: '室内撮影はアクティブ、夜はイルミネーションの夜景。カフェや街並みでの撮影も、緑地へも徒歩5分。', descEn: 'Indoor shots at Active, illuminated night views after dark, cafés and streets — and greenery just 5 min away on foot.',
         access: '岐阜駅すぐ', accessEn: 'Right by Gifu Station',
         // 共有リンクの指定がないため、Google マップの「岐阜駅」の検索結果を開く。
         mapUrl: 'https://www.google.com/maps/search/?api=1&query=%E5%B2%90%E9%98%9C%E9%A7%85',
-        img: 'assets/location-gifu-winter.jpg', imgAlt: '岐阜駅周辺の、水辺の飛び石と緑の広場', imgAltEn: 'Stepping stones and greenery near Gifu Station' },
+        img: 'assets/location-gifu-winter-station.jpg', imgAlt: '岐阜駅周辺の、ビルと緑が見える駅前のデッキ', imgAltEn: 'The deck by Gifu Station, with buildings and greenery' },
     ],
   },
 ];
