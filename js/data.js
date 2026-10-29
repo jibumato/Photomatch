@@ -274,7 +274,7 @@ export const SEASONS = [
 export function seasonForMonth(month) {
   return SEASONS.find((s) => s.months.includes(month)) || SEASONS[0];
 }
-// img（任意）：実際に撮ったロケーションの写真（assets/location-<エリア>-<季節>.jpg、1200×800）。
+// img（任意）：実際に撮ったロケーションの写真（assets/location-<エリア>-<季節>.jpg、横長3:2・最大1200×800）。
 // 無いスポットは写真なしのカードになる。
 export const SEASONAL_LOCATIONS = [
   {
@@ -325,7 +325,8 @@ export const SEASONAL_LOCATIONS = [
         desc: '室内撮影はアクティブG、夜はイルミネーションの夜景。カフェや街並みでの撮影も、緑地へも徒歩5分。', descEn: 'Indoor shots at Active G, illuminated night views after dark, cafés and streets — and greenery just 5 min away on foot.',
         access: '岐阜駅すぐ', accessEn: 'Right by Gifu Station',
         // 共有リンクの指定がないため、Google マップの「岐阜駅」の検索結果を開く。
-        mapUrl: 'https://www.google.com/maps/search/?api=1&query=%E5%B2%90%E9%98%9C%E9%A7%85' },
+        mapUrl: 'https://www.google.com/maps/search/?api=1&query=%E5%B2%90%E9%98%9C%E9%A7%85',
+        img: 'assets/location-gifu-winter.jpg', imgAlt: '岐阜駅周辺の、水辺の飛び石と緑の広場', imgAltEn: 'Stepping stones and greenery near Gifu Station' },
     ],
   },
 ];
