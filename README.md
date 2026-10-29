@@ -1,5 +1,9 @@
 # Photomatch
 
+## Supabase の移行
+
+別のアカウント・プロジェクトへ移すときは [`supabase/MIGRATION.md`](supabase/MIGRATION.md) の手順で行う（データ・会員アカウント・写真をすべて移し、`js/config.js` と Cloudflare の `SUPABASE_SERVICE_ROLE_KEY` を切り替える）。
+
 ## アカウント運用
 
 ログインアカウントの権限（`profiles.role`）は1アカウントにつき1つで、`client`（お客様）/ `photographer`（カメラマン）/ `ops`（運営）のいずれか。1つのアカウントを複数の権限で兼ねることはできない。

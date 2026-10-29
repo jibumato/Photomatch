@@ -29,10 +29,20 @@ export const STATS = [
   { value: '350+', label: '名古屋エリア撮影実績', labelEn: 'Nagoya-area shoots completed' },
 ];
 
-// 実在のお客様の口コミだけを入れる。空の間は、トップの「利用者の口コミ」欄ごと
+// 実在のお客様の声だけを入れる。空の間は、トップの「お客様の声」欄ごと
 // 非表示になる（以前入っていた3件はダミーだったため削除した）。形式:
-// { name, nameEn, starsLabel: '★★★★★', comment, commentEn }
-export const TESTIMONIALS = [];
+// { comment, commentEn, name?, nameEn?, starsLabel?: '★★★★★',
+//   before?: { src, alt, altEn }, after?: { src, alt, altEn } }
+// name・starsLabel は、お客様からいただいたものがある場合だけ入れる（作らない）。
+// before/after の写真は、お客様に掲載の許可をいただいたものだけを使う。
+export const TESTIMONIALS = [
+  {
+    before: { src: 'assets/voice-01-before.jpg', alt: '撮影前：ご自身で撮った自撮り写真', altEn: 'Before: a selfie taken by the customer' },
+    after: { src: 'assets/voice-01-after.jpg', alt: '撮影後：カフェで撮影したプロフィール写真', altEn: 'After: a profile photo shot at a café' },
+    comment: '自分では気づかなかった魅力を引き出してもらえました！プロフィール写真を変える良いきっかけになりました。',
+    commentEn: 'They brought out a side of me I had never noticed myself! It was a great push to finally update my profile photos.',
+  },
+];
 
 export const TARGET_PAINS = [
   'いいねは来るのに、マッチしてもすぐ途切れる',
