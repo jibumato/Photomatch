@@ -329,7 +329,7 @@ export const SEASONAL_LOCATIONS = [
         access: '岐阜駅すぐ', accessEn: 'Right by Gifu Station',
         // 共有リンクの指定がないため、Google マップの「岐阜駅」の検索結果を開く。
         mapUrl: 'https://www.google.com/maps/search/?api=1&query=%E5%B2%90%E9%98%9C%E9%A7%85',
-        img: 'assets/location-gifu-winter.jpg', imgAlt: '岐阜駅周辺の、水辺の飛び石と緑の広場', imgAltEn: 'Stepping stones and greenery near Gifu Station' },
+        img: 'assets/location-gifu-winter-station.jpg', imgAlt: '岐阜駅周辺の、ビルと緑が見える駅前のデッキ', imgAltEn: 'The deck by Gifu Station, with buildings and greenery' },
     ],
   },
 ];
