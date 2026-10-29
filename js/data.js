@@ -271,6 +271,8 @@ export const SEASONS = [
 export function seasonForMonth(month) {
   return SEASONS.find((s) => s.months.includes(month)) || SEASONS[0];
 }
+// img（任意）：実際に撮ったロケーションの写真（assets/location-<エリア>-<季節>.jpg、1200×800）。
+// 無いスポットは写真なしのカードになる。
 export const SEASONAL_LOCATIONS = [
   {
     key: 'nagoya', label: '名古屋', labelEn: 'Nagoya',
@@ -278,7 +280,8 @@ export const SEASONAL_LOCATIONS = [
       { season: 'spring', name: '庄内緑地公園周辺', nameEn: 'Shonai Ryokuchi Park',
         catch: '季節の彩りと、開放感を一枚に。', catchEn: 'Seasonal color and open space, in one shot.',
         desc: '広い芝生と季節の花々。春の桜や新緑を背景に、明るい写真を。', descEn: 'Wide lawns and seasonal flowers. Bright photos framed by spring cherry blossoms and fresh greenery.',
-        mapUrl: 'https://maps.app.goo.gl/v2TLAb2xZ2wrv88u6' },
+        mapUrl: 'https://maps.app.goo.gl/v2TLAb2xZ2wrv88u6',
+        img: 'assets/location-nagoya-spring.jpg', imgAlt: '庄内緑地公園の芝生広場と赤いモニュメント', imgAltEn: 'The lawn and red monument at Shonai Ryokuchi Park' },
       { season: 'summer', name: 'ガーデンふ頭臨港緑園', nameEn: 'Garden Pier Rinko Ryokuen',
         catch: '海と空が広がる、爽やかなロケーション。', catchEn: 'A refreshing spot where the sea meets the sky.',
         desc: '水辺と広場の緑を背景に、港ならではの開放感を写真に。', descEn: 'The waterfront and green plazas bring the open feel of the harbor into your photos.',

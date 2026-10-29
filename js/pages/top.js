@@ -100,6 +100,7 @@ document.getElementById('pm-safety').innerHTML = SAFETY_POINTS.map((s) => `
     const name = L(spot, 'name');
     return `
     <div class="pm-card pm-loc-card${now ? ' is-now' : ''}" data-season="${spot.season}">
+      ${spot.img ? `<img class="pm-loc-photo" src="${escapeHtml(spot.img)}" alt="${escapeHtml(L(spot, 'imgAlt'))}" width="1200" height="800" loading="lazy">` : ''}
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
         <span class="pm-loc-season"><span aria-hidden="true">${season.icon}</span>${L(season, 'label')}　${L(season, 'range')}</span>
         ${now ? `<span class="pm-loc-now">${t('top.locations.now')}</span>` : ''}

@@ -282,6 +282,9 @@
 .pm-loc-tab:focus-visible { outline: 2px solid oklch(0.55 0.14 210); outline-offset: 2px; }
 .pm-loc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
 .pm-loc-card { display: flex; flex-direction: column; padding: 22px 20px; border-top: 4px solid var(--pm-loc-accent); }
+/* 写真はカードの左右・上端いっぱいに（カードの padding 22px 20px を打ち消す） */
+.pm-loc-photo { display: block; width: calc(100% + 40px); max-width: none; height: auto; aspect-ratio: 3 / 2; object-fit: cover; margin: -22px -20px 16px; }
+.pm-loc-card { overflow: hidden; }
 .pm-loc-card.is-now { box-shadow: 0 0 0 2px var(--pm-loc-accent), var(--pm-shadow-card); }
 .pm-loc-season { display: inline-flex; align-items: center; gap: 6px; font: 700 12px var(--pm-font-body); color: var(--pm-loc-ink); background: var(--pm-loc-soft); border-radius: 100px; padding: 4px 10px; }
 .pm-loc-now { font: 700 11px var(--pm-font-body); color: #fff; background: var(--pm-loc-ink); border-radius: 100px; padding: 3px 9px; }

@@ -24,6 +24,7 @@ export const areaPageFor = (key) => `${key}.html`;
 function spotCard(spot) {
   const season = SEASONS.find((s) => s.key === spot.season);
   return `      <div class="pm-card pm-loc-card" data-season="${spot.season}">
+        ${spot.img ? `<img class="pm-loc-photo" src="${esc(spot.img)}" alt="${esc(spot.imgAlt)}" width="1200" height="800" loading="lazy">` : ''}
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
           <span class="pm-loc-season"><span aria-hidden="true">${season.icon}</span>${esc(season.label)}　${esc(season.range)}</span>
         </div>
