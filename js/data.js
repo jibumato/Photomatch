@@ -325,7 +325,7 @@ export const SEASONAL_LOCATIONS = [
         img: 'assets/location-gifu-autumn-hq.jpg', imgAlt: '清水緑地の、緑と花に囲まれた木の遊歩道', imgAltEn: 'A wooden boardwalk among greenery and flowers at Shimizu Ryokuchi' },
       { season: 'winter', name: '岐阜駅周辺', nameEn: 'Around Gifu Station', note: '天候に左右されない', noteEn: 'Rain or shine',
         catch: '天候に左右されず、街の一枚を。', catchEn: 'City shots, whatever the weather.',
-        desc: '室内撮影はアクティブ、夜はイルミネーションの夜景。カフェや街並みでの撮影も、緑地へも徒歩5分。', descEn: 'Indoor shots at Active, illuminated night views after dark, cafés and streets — and greenery just 5 min away on foot.',
+        desc: '室内撮影は複合商業施設「ACTIVE G」、夜はイルミネーションの夜景。カフェや街並みでの撮影も、緑地へも徒歩5分。', descEn: 'Indoor shots at the ACTIVE G shopping complex, illuminated night views after dark, cafés and streets — and greenery just 5 min away on foot.',
         access: '岐阜駅すぐ', accessEn: 'Right by Gifu Station',
         // 共有リンクの指定がないため、Google マップの「岐阜駅」の検索結果を開く。
         mapUrl: 'https://www.google.com/maps/search/?api=1&query=%E5%B2%90%E9%98%9C%E9%A7%85',
@@ -467,7 +467,7 @@ export const COLUMN_ARTICLES = [
       { h: '岐阜は“落ち着いた自然体”が撮りやすい街', b: '岐阜駅周辺は名古屋の繁華街に比べて人の流れがゆったりしていて、周りの目を気にせず撮影に集中しやすいのが特長です。古い町並み、緑地、駅前の街並みと、背景のバリエーションも十分。都会的すぎない、やわらかい雰囲気の写真は「話しかけやすそう」という印象につながり、マッチングアプリのメイン写真にぴったりです。' },
       { h: '春：川原町広場周辺', b: '川原町の古い町並み、日中友好庭園、岐阜公園などが集まるエリアです。格子戸の町家や庭園の緑を背景にすると、落ち着きのある、やわらかな雰囲気の一枚になります。春は新緑や花が加わり、季節感のある写真が撮れます。岐阜駅からバスで約15分（250円）です。' },
       { h: '夏：岐阜市役所・メディアコスモス周辺', b: '木陰が多く、暑い日でも涼めるテラスやカフェがあるエリアです。夏の撮影は汗や日差しで表情が硬くなりがちですが、日陰でこまめに休みながら撮れるので、爽やかな表情を保てます。緑の中の自然光は肌をきれいに見せてくれます。岐阜駅からバスで約15分（250円）です。' },
-      { h: '秋：清水緑地／冬：岐阜駅周辺', b: '清水緑地は岐阜駅から徒歩約5分、川沿いに続く緑地です。木々と水辺を背景に、秋らしい落ち着いた写真が撮れます。冬や天気が心配な日は岐阜駅周辺へ。アクティブでの屋内撮影、夜はイルミネーションの夜景、カフェや街並みでの撮影もでき、天候に左右されません。' },
+      { h: '秋：清水緑地／冬：岐阜駅周辺', b: '清水緑地は岐阜駅から徒歩約5分、川沿いに続く緑地です。木々と水辺を背景に、秋らしい落ち着いた写真が撮れます。冬や天気が心配な日は岐阜駅周辺へ。複合商業施設「ACTIVE G」での屋内撮影、夜はイルミネーションの夜景、カフェや街並みでの撮影もでき、天候に左右されません。' },
       { h: '集合は岐阜駅、撮影は45分', b: 'PhotoMatchの岐阜エリアは、JR岐阜駅のアスティ岐阜（ドトールコーヒーショップ前）に集合し、撮影日の季節に合わせた上記のスポットで撮影します。撮影は45分、料金は¥6,800〜（税込）、写真は通常3営業日以内にお届けします。', link: { href: 'gifu.html', text: '岐阜エリアの撮影について詳しく見る' } },
     ],
   },
