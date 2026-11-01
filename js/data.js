@@ -538,9 +538,9 @@ export const COLUMN_ARTICLES = [
 // js/i18n.js translate the same wording where it's echoed back from the DB.
 export const PRICING_PLANS = [
   { name: 'スマホプラン', nameEn: 'Smartphone Plan', price: '6,800', originalPrice: '7,800', discountLabel: '1,000円OFF', desc: '45分・20枚納品・スマホ撮影', descEn: '45 min · 20 photos delivered · shot on smartphone' },
-  { name: 'スタンダード', nameEn: 'Standard', price: '8,800', originalPrice: '9,800', discountLabel: '1,000円OFF', desc: '45分・20枚納品', descEn: '45 min · 20 photos delivered' },
-  { name: 'スタンダードプラス', nameEn: 'Standard Plus', price: '10,800', originalPrice: '11,800', discountLabel: '1,000円OFF', desc: '45分・20枚納品＋スマホ用5枚', descEn: '45 min · 20 photos delivered + 5 smartphone crops' },
-  { name: '結婚相談所', nameEn: 'Matchmaking Agency', price: '8,800', originalPrice: '9,800', discountLabel: '1,000円OFF', desc: '45分・10枚納品', descEn: '45 min · 10 photos delivered' },
+  { name: 'スタンダード', nameEn: 'Standard', price: '8,800', originalPrice: '9,800', discountLabel: '1,000円OFF', desc: '45分・一眼20枚納品', descEn: '45 min · 20 photos delivered · shot on a pro camera' },
+  { name: 'スタンダードプラス', nameEn: 'Standard Plus', price: '10,800', originalPrice: '11,800', discountLabel: '1,000円OFF', desc: '45分・一眼20枚納品＋スマホ用5枚', descEn: '45 min · 20 photos delivered · shot on a pro camera + 5 smartphone crops' },
+  { name: '結婚相談所', nameEn: 'Matchmaking Agency', price: '8,800', originalPrice: '9,800', discountLabel: '1,000円OFF', desc: '45分・一眼10枚納品', descEn: '45 min · 10 photos delivered · shot on a pro camera' },
 ];
 
 // labelEn/descEn are additive display-only translations for the English
@@ -777,7 +777,7 @@ export function deliveryDueDate(booking) {
   return { date: addBusinessDays(booking.booking_date, speed ? 1 : 3), speed };
 }
 // 予約のプラン内容（確定メールで、お客様・カメラマンが内容を確認できるように）。
-// プランの説明（例「45分・20枚納品＋スマホ用5枚」）は予約時に bookings.plan_description に
+// プランの説明（例「45分・一眼20枚納品＋スマホ用5枚」）は予約時に bookings.plan_description に
 // 保存したものを使い、古い予約は標準プラン（PRICING_PLANS）の説明で補う。
 // 返り値は [{ k: '撮影時間', v: '45分' }, …]。
 export function planDetailItems(b) {
@@ -790,6 +790,7 @@ export function planDetailItems(b) {
   if (count) items.push({ k: '納品枚数', v: `${count[1]}枚${count[2] ? `（${count[2].replace(/^[＋+]/, '＋')}）` : ''}${optionKeys.includes('fullData') ? '　※全データ納品オプションで、撮影した全カットもお渡しします' : ''}` });
   else if (desc) items.push({ k: 'プラン内容', v: desc });
   if (desc.includes('スマホ撮影')) items.push({ k: '撮影機材', v: 'スマートフォン' });
+  else if (desc.includes('一眼')) items.push({ k: '撮影機材', v: '一眼カメラ' });
   if (b && b.booking_date) {
     const due = deliveryDueDate(b);
     const [, m, d] = due.date.split('-').map(Number);

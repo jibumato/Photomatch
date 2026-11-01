@@ -473,6 +473,10 @@ const PLAN_DESC_EN = {
   '45分・20枚納品': '45 min · 20 photos delivered',
   '45分・20枚納品＋スマホ用5枚': '45 min · 20 photos delivered + 5 smartphone crops',
   '45分・10枚納品': '45 min · 10 photos delivered',
+  // 「一眼」を明記した説明（2026年11月〜）。上の旧い説明は、それ以前の予約・DBの行のために残す。
+  '45分・一眼20枚納品': '45 min · 20 photos delivered · shot on a pro camera',
+  '45分・一眼20枚納品＋スマホ用5枚': '45 min · 20 photos delivered · shot on a pro camera + 5 smartphone crops',
+  '45分・一眼10枚納品': '45 min · 10 photos delivered · shot on a pro camera',
 };
 
 // Translates a fixed-vocabulary string via the given map when English is
