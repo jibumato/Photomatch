@@ -6,6 +6,7 @@
 import {
   AREAS, SLOT_TIMES, MONITOR_PLAN_NAMES, monitorPriceFor, monitorBookingCounts, areasFor, HIDDEN_AREAS,
   EXTRA_OPTIONS, CHECKOUT_EXPIRES_MIN, isValidCustomerGender, needsGenderForOptions,
+  splitCustomerContact, isValidPhone,
 } from '../../../js/data.js';
 import { verifyUser, restSelect, restInsert, restUpdate } from '../../_lib/supabaseAdmin.js';
 import { bookingWindowError, checkSlot } from '../../_lib/slots.js';
@@ -45,6 +46,10 @@ export async function onRequestPost({ request, env }) {
 
   if (!photographerId || !planName || !bookingDate || !startTime || !customerName || !customerContact) {
     return jsonResponse({ error: '入力内容をご確認ください。' }, 400);
+  }
+  // 電話番号は必須（当日の緊急連絡用）。customer_contact は「メール / 電話番号」。
+  if (!isValidPhone(splitCustomerContact(customerContact).phone)) {
+    return jsonResponse({ error: '電話番号を正しくご入力ください（当日の緊急連絡に使います）。' }, 400);
   }
   if (!SLOT_TIMES.includes(startTime)) return jsonResponse({ error: '時間帯が不正です。' }, 400);
   const areaLabel = (AREAS.find((a) => a.key === area) || {}).label;

@@ -212,7 +212,9 @@ const DICT = {
   'booking.contact.passwordHint': { ja: '初めての方はこのまま会員登録、登録済みの方はログインします（別ページへの移動はありません）。マイページでの予約確認・カメラマンとのメッセージに使います。', en: "First time here? This creates your account. Already registered? This logs you in — no separate page needed. You'll use it to check your booking and message the photographer." },
   'booking.contact.phone': { ja: '電話番号', en: 'Phone Number' },
   'booking.contact.optional': { ja: '任意', en: 'optional' },
-  'booking.contact.phonePlaceholder': { ja: '当日の緊急連絡用（例）090-1234-5678', en: 'For day-of contact, e.g. 090-1234-5678' },
+  'booking.contact.phonePlaceholder': { ja: '例）090-1234-5678', en: 'e.g. 090-1234-5678' },
+  'booking.contact.phoneHint': { ja: '当日、集合場所で会えないときなどの緊急連絡に使います。', en: "Used only to reach you on the day, e.g. if you can't find each other at the meeting point." },
+  'booking.contact.phoneError': { ja: '電話番号を正しくご記入ください（例：090-1234-5678）', en: 'Please enter a valid phone number (e.g. 090-1234-5678).' },
   'booking.contact.options': { ja: 'オプション（追加料金・任意）', en: 'Add-ons (extra charge, optional)' },
   'booking.contact.dayOfTitle': { ja: '撮影当日について', en: 'On the Day of Your Shoot' },
   'booking.contact.changeTitle': { ja: 'お着替えについて', en: 'Changing outfits' },
@@ -473,6 +475,10 @@ const PLAN_DESC_EN = {
   '45分・20枚納品': '45 min · 20 photos delivered',
   '45分・20枚納品＋スマホ用5枚': '45 min · 20 photos delivered + 5 smartphone crops',
   '45分・10枚納品': '45 min · 10 photos delivered',
+  // 「一眼」を明記した説明（2026年11月〜）。上の旧い説明は、それ以前の予約・DBの行のために残す。
+  '45分・一眼20枚納品': '45 min · 20 photos delivered · shot on a pro camera',
+  '45分・一眼20枚納品＋スマホ用5枚': '45 min · 20 photos delivered · shot on a pro camera + 5 smartphone crops',
+  '45分・一眼10枚納品': '45 min · 10 photos delivered · shot on a pro camera',
 };
 
 // Translates a fixed-vocabulary string via the given map when English is

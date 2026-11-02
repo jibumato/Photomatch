@@ -583,9 +583,9 @@ select p.id, v.name, v.price, v.original_price, v.discount_label, v.description,
 from photographers p
 cross join (values
   ('スマホプラン', 6800, 7800, '1,000円OFF', '45分・20枚納品・スマホ撮影', 45, 0),
-  ('スタンダード', 8800, 9800, '1,000円OFF', '45分・20枚納品', 45, 1),
-  ('スタンダードプラス', 10800, 11800, '1,000円OFF', '45分・20枚納品＋スマホ用5枚', 45, 2),
-  ('結婚相談所', 8800, 9800, '1,000円OFF', '45分・10枚納品', 45, 3)
+  ('スタンダード', 8800, 9800, '1,000円OFF', '45分・一眼20枚納品', 45, 1),
+  ('スタンダードプラス', 10800, 11800, '1,000円OFF', '45分・一眼20枚納品＋スマホ用5枚', 45, 2),
+  ('結婚相談所', 8800, 9800, '1,000円OFF', '45分・一眼10枚納品', 45, 3)
 ) as v(name, price, original_price, discount_label, description, duration_min, sort_order)
 where p.id in ('p1','p2','p3','p4','p5','p6')
   -- plans has no unique key besides id, so on conflict can't dedupe; check
@@ -1196,3 +1196,13 @@ alter table bookings add column if not exists payout_tax_deduction int not null 
 -- 予約時に、利用規約・プライバシーポリシー・キャンセルポリシーへの同意にチェックした日時
 -- （/api/checkout/create-session が記録する。同意がないと決済に進めない）。
 alter table bookings add column if not exists terms_agreed_at timestamptz;
+
+-- プランの説明に「一眼」を明記（2026年11月）。標準の説明のままの行だけを書き換えるので、
+-- カメラマンが独自に変えた説明には触れず、何度実行しても安全。
+-- 過去の予約（bookings.plan_description）は、予約時の内容のまま残す。
+update plans set description = '45分・一眼20枚納品'
+  where name = 'スタンダード' and description = '45分・20枚納品';
+update plans set description = '45分・一眼20枚納品＋スマホ用5枚'
+  where name = 'スタンダードプラス' and description = '45分・20枚納品＋スマホ用5枚';
+update plans set description = '45分・一眼10枚納品'
+  where name = '結婚相談所' and description = '45分・10枚納品';

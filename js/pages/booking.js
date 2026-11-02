@@ -9,7 +9,7 @@ import { escapeHtml } from '../util.js';
 import {
   AREAS, EXTRA_OPTIONS, bookingOptionItems, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
   MONITOR_PLAN_NAMES, monitorPriceFor, areasFor, meetingPointForArea, mapUrlFor,
-  CUSTOMER_GENDERS, needsGenderForOptions,
+  CUSTOMER_GENDERS, needsGenderForOptions, normalizePhone, isValidPhone,
 } from '../data.js';
 import { t, tf, L, getLang, areaText, weekdayText, planNameText, planDescText, discountLabelText, taxIncludedSuffix } from '../i18n.js';
 
@@ -376,11 +376,12 @@ document.getElementById('contact-submit').addEventListener('click', async () => 
   const btn = document.getElementById('contact-submit');
   const name = document.getElementById('f-name').value.trim();
   const email = document.getElementById('f-email').value.trim();
-  const phone = document.getElementById('f-phone').value.trim();
+  const phone = normalizePhone(document.getElementById('f-phone').value);
   const passwordEl = document.getElementById('f-password');
   const passwordErr = document.getElementById('err-password');
   document.getElementById('err-name').style.display = name ? 'none' : 'block';
   document.getElementById('err-email').style.display = isValidEmail(email) ? 'none' : 'block';
+  document.getElementById('err-phone').style.display = isValidPhone(phone) ? 'none' : 'block';
   passwordErr.style.display = 'none';
   showAuthNotice('');
   // The submit button is now a fixed bar at the bottom of the screen, so a
@@ -388,6 +389,7 @@ document.getElementById('contact-submit').addEventListener('click', async () => 
   // into view rather than relying on the button and the error being adjacent.
   if (!name) { document.getElementById('f-name').scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
   if (!isValidEmail(email)) { document.getElementById('f-email').scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+  if (!isValidPhone(phone)) { document.getElementById('f-phone').scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
   state.name = name; state.email = email; state.phone = phone;
 
   const session = await getSession();
@@ -534,9 +536,10 @@ document.getElementById('payment-submit').addEventListener('click', async () => 
       start_time: s.startTime,
       area: state.selectedArea,
       customer_name: state.name,
-      // Photographers see this in their booking list, so include the phone
-      // number when one was given — the email alone otherwise.
-      customer_contact: state.phone ? `${state.email} / ${state.phone}` : state.email,
+      // Photographers see this in their booking list (and need the phone
+      // number for day-of contact), so it is "email / phone". The phone is
+      // required; the server rejects a booking without a valid one.
+      customer_contact: `${state.email} / ${state.phone}`,
       option_keys: state.options,
       customer_gender: state.gender || undefined,
       terms_agreed: agreeBox.checked,
