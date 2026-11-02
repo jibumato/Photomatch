@@ -569,10 +569,23 @@ export function bookingOptionItems(b) {
     .filter(Boolean);
 }
 
-// bookings.customer_contact は「メール / 電話番号」（電話は任意）。表示用に分ける。
+// bookings.customer_contact は「メール / 電話番号」。表示用に分ける。
+// 電話番号は2026年11月から予約時の必須項目（当日の緊急連絡用）。それより前の予約には無いことがある。
 export function splitCustomerContact(contact) {
   const [email, ...rest] = String(contact || '').split(' / ');
   return { email: email.trim(), phone: rest.join(' / ').trim() };
+}
+
+// 電話番号の表記をそろえる（全角の数字・記号を半角に。長音「ー」などもハイフンに）。
+export function normalizePhone(phone) {
+  return String(phone || '').normalize('NFKC').replace(/[ー―‐−–—]/g, '-').trim();
+}
+
+// 国内の番号（0 から始まる10〜11桁）か、+ から始まる国際番号（10〜15桁）なら OK。
+// ハイフン・空白・かっこは数えない。
+export function isValidPhone(phone) {
+  const digits = normalizePhone(phone).replace(/[\s\-()]/g, '');
+  return /^0\d{9,10}$/.test(digits) || /^\+\d{10,15}$/.test(digits);
 }
 
 export const COUNSELING_QUESTIONS = [
