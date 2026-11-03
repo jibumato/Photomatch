@@ -168,9 +168,6 @@ document.getElementById('pm-safety').innerHTML = SAFETY_POINTS.map((s) => `
     gridEl.setAttribute('aria-labelledby', `pm-loc-tab-${area.key}`);
     gridEl.innerHTML = area.spots.map(spotHtml).join('');
     timeEl.innerHTML = timeHtml(area);
-    const areaLink = document.getElementById('pm-loc-area-link');
-    areaLink.href = `${area.key}.html`;
-    areaLink.textContent = tf('top.locations.areaLink', { area: L(area, 'label') });
     observeReveal(gridEl.parentElement);
   };
   tabsEl.innerHTML = SEASONAL_LOCATIONS.map((a) => `
