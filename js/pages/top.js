@@ -2,7 +2,7 @@ import { mountLayout } from '../layout.js';
 import {
   STATS, TARGET_PAINS, TARGET_PAINS_EN, SUPPORTED_APPS, SUPPORTED_APPS_EN,
   TESTIMONIALS, PRICING_PLANS, SAFETY_POINTS, FAQS, HOW_IT_WORKS,
-  SEASONS, SEASONAL_LOCATIONS, seasonForMonth, jstDateIso,
+  SEASONS, SEASONAL_LOCATIONS, seasonForMonth, jstDateIso, SLOT_TIMES, EVENING_START_TIME,
 } from '../data.js';
 import { getLang, L, t, tf, discountLabelText } from '../i18n.js';
 import { escapeHtml } from '../util.js';
@@ -99,6 +99,44 @@ document.getElementById('pm-safety').innerHTML = SAFETY_POINTS.map((s) => `
 {
   const tabsEl = document.getElementById('pm-location-tabs');
   const gridEl = document.getElementById('pm-locations');
+  // 開始時刻で撮影場所が変わることを示す時間帯バー（昼＝季節のスポット／17時以降＝固定エリア）。
+  const timeEl = document.getElementById('pm-loc-time');
+  const hm = (s) => s.replace(/^0/, '');
+  const firstStart = SLOT_TIMES[0];
+  const lastDayStart = SLOT_TIMES[SLOT_TIMES.indexOf(EVENING_START_TIME) - 1];
+  const dayEnd = '22:00';
+  const toMin = (s) => Number(s.slice(0, 2)) * 60 + Number(s.slice(3, 5));
+  const nightShare = (toMin(dayEnd) - toMin(EVENING_START_TIME)) / (toMin(dayEnd) - toMin(firstStart));
+  const timeHtml = (area) => {
+    const nowSpot = area.spots.find((s) => s.season === seasonForMonth(Number(jstDateIso().slice(5, 7))).key);
+    const ev = area.evening;
+    return `
+    <div class="pm-loc-time-label">${t('top.locations.time.label')}</div>
+    <div class="pm-loc-time-bar" aria-hidden="true" style="--night:${(nightShare * 100).toFixed(2)}%">
+      <span class="is-day"></span><span class="is-night"></span>
+    </div>
+    <div class="pm-loc-time-axis" aria-hidden="true" style="--night:${(nightShare * 100).toFixed(2)}%">
+      <span>${hm(firstStart)}</span><span class="is-split">${hm(EVENING_START_TIME)}</span><span>${hm(dayEnd)}</span>
+    </div>
+    <div class="pm-loc-time-cards">
+      <div class="pm-loc-time-card is-day">
+        <span class="pm-loc-time-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span>
+        <div>
+          <div class="pm-loc-time-title">${tf('top.locations.time.dayTitle', { from: hm(firstStart), to: hm(lastDayStart) })}</div>
+          <div class="pm-loc-time-text">${t('top.locations.time.dayText')}</div>
+          ${nowSpot ? `<div class="pm-loc-time-sub">${tf('top.locations.time.dayNow', { spot: escapeHtml(L(nowSpot, 'name')) })}</div>` : ''}
+        </div>
+      </div>
+      <div class="pm-loc-time-card is-night">
+        <span class="pm-loc-time-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg></span>
+        <div>
+          <div class="pm-loc-time-title">${tf('top.locations.time.nightTitle', { from: hm(EVENING_START_TIME) })}</div>
+          <div class="pm-loc-time-text">${tf('top.locations.time.nightText', { place: escapeHtml(L(ev, 'place')) })}</div>
+          <div class="pm-loc-time-sub">${tf('top.locations.time.nightMeet', { meet: escapeHtml(L(ev, 'meet')) })}</div>
+        </div>
+      </div>
+    </div>`;
+  };
   const nowSeason = seasonForMonth(Number(jstDateIso().slice(5, 7))).key;
   const spotHtml = (spot) => {
     const season = SEASONS.find((s) => s.key === spot.season);
@@ -129,6 +167,7 @@ document.getElementById('pm-safety').innerHTML = SAFETY_POINTS.map((s) => `
     slideTabIndicator(tabsEl);
     gridEl.setAttribute('aria-labelledby', `pm-loc-tab-${area.key}`);
     gridEl.innerHTML = area.spots.map(spotHtml).join('');
+    timeEl.innerHTML = timeHtml(area);
     const areaLink = document.getElementById('pm-loc-area-link');
     areaLink.href = `${area.key}.html`;
     areaLink.textContent = tf('top.locations.areaLink', { area: L(area, 'label') });

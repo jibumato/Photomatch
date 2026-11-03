@@ -294,6 +294,8 @@ export function seasonForMonth(month) {
 export const SEASONAL_LOCATIONS = [
   {
     key: 'nagoya', label: '名古屋', labelEn: 'Nagoya',
+    // 17時以降（EVENING_START_TIME）に始まる撮影の、固定の撮影場所と集合場所（時間帯バーの表示用）。
+    evening: { place: '栄エリア', placeEn: 'in the Sakae area', meet: 'オアシス21前', meetEn: 'in front of Oasis 21' },
     spots: [
       { season: 'spring', name: '庄内緑地公園周辺', nameEn: 'Shonai Ryokuchi Park',
         catch: '季節の彩りと、開放感を一枚に。', catchEn: 'Seasonal color and open space, in one shot.',
@@ -319,6 +321,7 @@ export const SEASONAL_LOCATIONS = [
   },
   {
     key: 'gifu', label: '岐阜', labelEn: 'Gifu',
+    evening: { place: '岐阜駅周辺', placeEn: 'around Gifu Station', meet: '岐阜駅 南口', meetEn: 'Gifu Station South Exit' },
     spots: [
       { season: 'spring', name: '川原町広場周辺', nameEn: 'Around Kawaramachi Hiroba',
         catch: '古い町並みと、春の彩りを。', catchEn: 'Old streets and the colors of spring.',
