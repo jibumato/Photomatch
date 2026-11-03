@@ -208,7 +208,7 @@ function bookingCardHtml(b, meta) {
   const statusLabel = displayStatus(b);
   const canceled = b.status === 'canceled';
   const options = (b.options || []).map((o) => EXTRA_OPTIONS.find((x) => x.key === o.key)).filter(Boolean);
-  const mp = meetingPointForArea(b.area);
+  const mp = meetingPointForArea(b.area, b.booking_date, b.start_time);
   const due = deliveryDueDate(b);
   const overdue = !canceled && !b.delivered_at && jstDateIso() > due.date;
   const lines = [

@@ -13,6 +13,7 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   AREAS, AREA_PAGES, PRICING_PLANS, SEASONS, SEASONAL_LOCATIONS, MEETING_POINTS, HOW_IT_WORKS, FAQS, COLUMN_ARTICLES,
+  seasonalMeetingList,
 } from '../js/data.js';
 
 const esc = (s) => String(s)
@@ -155,10 +156,13 @@ ${PRICING_PLANS.map((p) => `      <a href="search.html?area=${encodeURIComponent
     <div class="pm-card" style="overflow:hidden;margin-top:20px">
       <div style="padding:20px 24px 16px">
         <h3 style="font:700 16px var(--pm-font-body);margin:0 0 6px">${esc(mp.label)}エリアの集合場所</h3>
-        <p style="font:14px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0">${esc(mp.detail)}</p>
+        ${mp.seasonal ? `<p style="font:14px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 6px">撮影日の季節によって、集合場所が変わります。</p>
+        <ul style="margin:0;padding-left:1.2em;font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2)">
+${seasonalMeetingList(mp).map((s) => `          <li><b>${esc(s.label)}（${esc(s.range)}）</b>：${esc(s.detail)}　<a href="https://www.google.com/maps?q=${encodeURIComponent(s.mapQuery)}" target="_blank" rel="noopener noreferrer" style="font:700 12px var(--pm-font-body);color:oklch(0.45 0.14 210);white-space:nowrap">地図 ↗</a></li>`).join('\n')}
+        </ul>` : `<p style="font:14px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0">${esc(mp.detail)}</p>`}
         <p style="font:700 13px/1.8 var(--pm-font-body);color:oklch(0.4 0.1 215);margin:8px 0 0">${esc(mp.evening)}</p>
       </div>
-      <iframe title="${esc(mp.label)}エリアの集合場所の地図" src="https://www.google.com/maps?q=${encodeURIComponent(mp.mapQuery)}&amp;output=embed" width="100%" height="240" style="border:0;display:block" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      ${mp.seasonal ? '' : `<iframe title="${esc(mp.label)}エリアの集合場所の地図" src="https://www.google.com/maps?q=${encodeURIComponent(mp.mapQuery)}&amp;output=embed" width="100%" height="240" style="border:0;display:block" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`}
     </div>
     <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:12px 0 0">当日の流れ・持ち物・服装は<a href="meeting-points.html" style="color:oklch(0.45 0.14 210);text-decoration:underline">集合場所・撮影当日の案内</a>をご覧ください。</p>
   </section>

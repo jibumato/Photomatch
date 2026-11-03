@@ -100,6 +100,9 @@ registerDict({
     en: 'Clean, neat everyday clothes are best. Light solid colors such as white, navy, or beige photograph well. Avoiding busy patterns and dark colors gives a better result.',
   },
   'meeting.areaTitle': { ja: '{label}エリア', en: '{label} Area' },
+  'meeting.seasonalLead': { ja: '撮影日の季節によって、集合場所が変わります。', en: 'The meeting point changes with the season of your shoot date.' },
+  'meeting.now': { ja: '今の季節', en: 'Now' },
+  'meeting.map': { ja: '地図', en: 'Map' },
 
   // -- terms.html (legal pages) --
   'legal.courtesy': {

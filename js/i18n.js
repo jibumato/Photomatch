@@ -182,6 +182,7 @@ const DICT = {
   'booking.slot.areaHeading': { ja: '撮影希望エリアを選ぶ', en: 'Choose a Shoot Area' },
   'booking.slot.areaInfoTitle': { ja: '{area}での撮影です', en: 'This shoot takes place in the {area}' },
   'booking.slot.meetingPoint': { ja: '集合場所：', en: 'Meeting point: ' },
+  'booking.slot.meetingSeasonal': { ja: '撮影日の季節によって変わります（日時を選ぶと、お支払い前の確認画面に表示されます）。', en: 'It depends on the season of your shoot date (shown on the review screen before payment once you pick a time).' },
   'booking.slot.meetingMap': { ja: 'Googleマップで見る', en: 'Open in Google Maps' },
   'booking.slot.meetingMore': { ja: '集合場所の案内', en: 'Meeting point guide' },
   'booking.slot.meetingNote': { ja: '当日はこの集合場所に直接お越しください。エリアをお間違えのないよう、ご確認ください。', en: 'Please come directly to this meeting point on the day. Double-check that this is the area you meant.' },

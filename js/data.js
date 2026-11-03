@@ -259,7 +259,15 @@ export const MEETING_POINTS = [
   // mapQuery は緯度経度で固定（同名店舗が他にもあり得るテキスト検索より確実なため）。
   // 出典: https://www.google.com/maps/place/.../@35.1719812,136.909068,...
   { key: 'nagoya', label: '名古屋', labelEn: 'Nagoya', detail: 'ファミリーマート オアシス21前店 前（〒461-0005 愛知県名古屋市東区東桜1丁目10-33）', detailEn: 'In front of FamilyMart Oasis 21 Mae store (1-10-33 Higashisakura, Higashi-ku, Nagoya, Aichi 461-0005)', evening: '18時以降の撮影は、栄エリアのみとなります。', eveningEn: 'Shoots that start at 6:00 pm or later are held in the Sakae area only.', mapQuery: '35.1719812,136.909068' },
-  { key: 'gifu1', label: '岐阜', labelEn: 'Gifu', detail: 'ドトールコーヒーショップ アスティ岐阜店 前', detailEn: 'In front of Doutor Coffee Shop Asty Gifu store', evening: '18時以降の撮影は、岐阜駅周辺のみとなります。', eveningEn: 'Shoots that start at 6:00 pm or later are held around Gifu Station only.', mapQuery: 'ドトールコーヒーショップ アスティ岐阜店' },
+  // 岐阜は、撮影日の季節（SEASONS）で集合場所が変わる（seasonal）。18時以降の撮影は岐阜駅周辺のみなので、
+  // 集合は季節にかかわらず岐阜駅（detail）。どの集合場所になるかは meetingPointForArea で決める。
+  { key: 'gifu1', label: '岐阜', labelEn: 'Gifu', detail: '岐阜駅 南口 ドトールコーヒーショップ アスティ岐阜店 付近', detailEn: 'Near Doutor Coffee Shop (Asty Gifu), Gifu Station South Exit', evening: '18時以降の撮影は、岐阜駅周辺のみとなります（集合は、季節にかかわらず岐阜駅 南口のドトール付近）。', eveningEn: 'Shoots that start at 6:00 pm or later are held around Gifu Station only (meet near Doutor at the South Exit, whatever the season).', mapQuery: 'ドトールコーヒーショップ アスティ岐阜店',
+    seasonal: {
+      spring: { detail: '川原町広場 トイレ付近', detailEn: 'Near the restrooms at Kawaramachi Hiroba', mapQuery: '川原町広場 岐阜市' },
+      summer: { detail: 'メディアコスモス内 エントランスのエスカレーター付近', detailEn: 'Inside Media Cosmos, by the escalator at the entrance', mapQuery: 'みんなの森 ぎふメディアコスモス' },
+      autumn: { detail: '清水緑地 トイレ付近', detailEn: 'Near the restrooms at Shimizu Ryokuchi', mapQuery: '清水緑地 岐阜市' },
+      winter: { detail: '岐阜駅 南口 ドトールコーヒーショップ アスティ岐阜店 付近', detailEn: 'Near Doutor Coffee Shop (Asty Gifu), Gifu Station South Exit', mapQuery: 'ドトールコーヒーショップ アスティ岐阜店' },
+    } },
 ];
 
 // 季節ごとのおすすめ撮影ロケーション（トップページ）。season は SEASONS の key。
@@ -350,17 +358,31 @@ export const AREA_PAGES = [
   {
     key: 'gifu', name: '岐阜', city: '岐阜市', eyebrow: 'GIFU', columnTag: '岐阜ローカル', eveningPlace: '岐阜駅周辺',
     title: '岐阜のマッチングアプリ写真撮影｜プロが45分で出張撮影 ¥6,800〜 | PhotoMatch',
-    description: '岐阜駅（アスティ岐阜）集合で、マッチングアプリ用プロフィール写真の出張撮影を予約できます。川原町・清水緑地など季節のスポットで、審査済みのプロカメラマンが45分で撮影。¥6,800〜（税込）。',
+    description: '岐阜で、マッチングアプリ用プロフィール写真の出張撮影を予約できます。川原町・清水緑地など季節のスポットに集合して、審査済みのプロカメラマンが45分で撮影。¥6,800〜（税込）。',
     h1: '岐阜でマッチングアプリの写真撮影',
-    lead: 'JR岐阜駅のアスティ岐阜に集合して、45分で撮影。川原町の古い町並みや駅近くの緑地を背景に、審査済みのプロカメラマンが、アプリ映えする自然な一枚を撮影します。表情やポーズはカメラマンがリードするので、撮られ慣れていない方も安心です。',
+    lead: '季節ごとのスポットに集合して、45分で撮影。川原町の古い町並みや駅近くの緑地を背景に、審査済みのプロカメラマンが、アプリ映えする自然な一枚を撮影します。表情やポーズはカメラマンがリードするので、撮られ慣れていない方も安心です。',
     spotsLead: '川原町・メディアコスモス・清水緑地・岐阜駅周辺。季節ごとに、いちばん映えるスポットで撮影できます。',
     ctaTitle: '岐阜で、次のマッチングにつながる一枚を。',
   },
 ];
 
 // 撮影エリア（AREAS の label、例「名古屋エリア」）に対応する集合場所。
-export function meetingPointForArea(areaLabel) {
-  return MEETING_POINTS.find((mp) => String(areaLabel || '').startsWith(mp.label)) || null;
+// 撮影日（'YYYY-MM-DD'）を渡すと、季節で変わるエリア（岐阜）はその季節の集合場所を返す。
+// 18時以降の撮影（startTime 'HH:MM'）は、季節にかかわらず基本の集合場所（岐阜駅）。
+// 撮影日を渡さないとき（日付を選ぶ前など）は、基本の集合場所（seasonal つき）を返す。
+export const EVENING_START_TIME = '18:00';
+export function meetingPointForArea(areaLabel, bookingDate, startTime) {
+  const mp = MEETING_POINTS.find((m) => String(areaLabel || '').startsWith(m.label)) || null;
+  if (!mp || !mp.seasonal || !bookingDate) return mp;
+  if (startTime && String(startTime).slice(0, 5) >= EVENING_START_TIME) return mp;
+  const season = seasonForMonth(Number(String(bookingDate).slice(5, 7))).key;
+  return { ...mp, ...mp.seasonal[season], season };
+}
+
+// 季節で集合場所が変わるエリアの一覧（表示用）：[{ season, label, labelEn, range, rangeEn, detail, detailEn, mapQuery }]。
+export function seasonalMeetingList(mp) {
+  if (!mp || !mp.seasonal) return [];
+  return SEASONS.map((s) => ({ season: s.key, label: s.label, labelEn: s.labelEn, range: s.range, rangeEn: s.rangeEn, ...mp.seasonal[s.key] }));
 }
 
 export const mapUrlFor = (mp) => `https://www.google.com/maps?q=${encodeURIComponent(mp.mapQuery)}`;
@@ -468,7 +490,7 @@ export const COLUMN_ARTICLES = [
       { h: '春：川原町広場周辺', b: '川原町の古い町並み、日中友好庭園、岐阜公園などが集まるエリアです。格子戸の町家や庭園の緑を背景にすると、落ち着きのある、やわらかな雰囲気の一枚になります。春は新緑や花が加わり、季節感のある写真が撮れます。岐阜駅からバスで約15分（250円）です。' },
       { h: '夏：岐阜市役所・メディアコスモス周辺', b: '木陰が多く、暑い日でも涼めるテラスやカフェがあるエリアです。夏の撮影は汗や日差しで表情が硬くなりがちですが、日陰でこまめに休みながら撮れるので、爽やかな表情を保てます。緑の中の自然光は肌をきれいに見せてくれます。岐阜駅からバスで約15分（250円）です。' },
       { h: '秋：清水緑地／冬：岐阜駅周辺', b: '清水緑地は岐阜駅から徒歩約5分、川沿いに続く緑地です。木々と水辺を背景に、秋らしい落ち着いた写真が撮れます。冬や天気が心配な日は岐阜駅周辺へ。複合商業施設「ACTIVE G」での屋内撮影、夜はイルミネーションの夜景、カフェや街並みでの撮影もでき、天候に左右されません。' },
-      { h: '集合は岐阜駅、撮影は45分', b: 'PhotoMatchの岐阜エリアは、JR岐阜駅のアスティ岐阜（ドトールコーヒーショップ前）に集合し、撮影日の季節に合わせた上記のスポットで撮影します。撮影は45分、料金は¥6,800〜（税込）、写真は通常3営業日以内にお届けします。', link: { href: 'gifu.html', text: '岐阜エリアの撮影について詳しく見る' } },
+      { h: '集合場所も季節ごと、撮影は45分', b: 'PhotoMatchの岐阜エリアは、撮影日の季節に合わせた上記のスポットに集合して撮影します（集合は、春は川原町広場、夏はメディアコスモス、秋は清水緑地、冬は岐阜駅南口。18時以降の撮影は岐阜駅南口）。撮影は45分、料金は¥6,800〜（税込）、写真は通常3営業日以内にお届けします。', link: { href: 'gifu.html', text: '岐阜エリアの撮影について詳しく見る' } },
     ],
   },
   {

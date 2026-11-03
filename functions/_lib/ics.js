@@ -37,7 +37,7 @@ function utcStamp(dateIso, time) {
 // method: 'PUBLISH' (new / changed booking) or 'CANCEL' (canceled booking).
 // audience: 'customer' | 'photographer' (changes the title and the link).
 export function bookingIcs(b, { photographerName, audience, method = 'PUBLISH', origin }) {
-  const meeting = meetingPointForArea(b.area);
+  const meeting = meetingPointForArea(b.area, b.booking_date, b.start_time);
   const summary = audience === 'photographer'
     ? `【PhotoMatch】撮影：${b.customer_name || '依頼者'} 様`
     : `【PhotoMatch】撮影（${photographerName}）`;
