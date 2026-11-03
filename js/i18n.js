@@ -377,7 +377,10 @@ export function t(key) {
   const entry = DICT[key];
   if (!entry) return key;
   const lang = getLang();
-  return entry[lang] || entry.ja || key;
+  if (entry[lang]) return entry[lang];
+  // An intentionally empty Japanese string (e.g. a note shown only in English)
+  // stays empty instead of falling back to the raw key.
+  return typeof entry.ja === 'string' ? entry.ja : key;
 }
 
 // Lets a page (or a big feature module) keep its own strings in a separate
