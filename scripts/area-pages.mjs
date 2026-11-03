@@ -157,9 +157,16 @@ ${PRICING_PLANS.map((p) => `      <a href="search.html?area=${encodeURIComponent
       <div style="padding:20px 24px 16px">
         <h3 style="font:700 16px var(--pm-font-body);margin:0 0 6px">${esc(mp.label)}エリアの集合場所</h3>
         ${mp.seasonal ? `<p style="font:14px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 6px">撮影日の季節によって、集合場所が変わります。</p>
-        <ul style="margin:0;padding-left:1.2em;font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2)">
-${seasonalMeetingList(mp).map((s) => `          <li><b>${esc(s.label)}（${esc(s.range)}）</b>：${esc(s.detail)}　<a href="https://www.google.com/maps?q=${encodeURIComponent(s.mapQuery)}" target="_blank" rel="noopener noreferrer" style="font:700 12px var(--pm-font-body);color:oklch(0.45 0.14 210);white-space:nowrap">地図 ↗</a></li>`).join('\n')}
-        </ul>` : `<p style="font:14px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0">${esc(mp.detail)}</p>`}
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">
+${seasonalMeetingList(mp).map((s) => `          <div style="border:1px solid var(--pm-border);border-radius:14px;overflow:hidden;background:#fff">
+            <div style="padding:12px 14px">
+              <div style="font:700 14px/1.6 var(--pm-font-body);color:var(--pm-text-2)">${esc(s.label)}（${esc(s.range)}）</div>
+              <div style="font:14px/1.7 var(--pm-font-body);color:var(--pm-text-2)">${esc(s.detail)}</div>
+              <a href="https://www.google.com/maps?q=${encodeURIComponent(s.mapQuery)}" target="_blank" rel="noopener noreferrer" style="font:700 12px var(--pm-font-body);color:oklch(0.45 0.14 210);white-space:nowrap">Googleマップで開く ↗</a>
+            </div>
+            <iframe title="${esc(s.label)}の集合場所の地図" src="https://www.google.com/maps?q=${encodeURIComponent(s.mapQuery)}&amp;output=embed" width="100%" height="180" style="border:0;display:block" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>`).join('\n')}
+        </div>` : `<p style="font:14px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0">${esc(mp.detail)}</p>`}
         <p style="font:700 13px/1.8 var(--pm-font-body);color:oklch(0.4 0.1 215);margin:8px 0 0">${esc(mp.evening)}</p>
       </div>
       ${mp.seasonal ? '' : `<iframe title="${esc(mp.label)}エリアの集合場所の地図" src="https://www.google.com/maps?q=${encodeURIComponent(mp.mapQuery)}&amp;output=embed" width="100%" height="240" style="border:0;display:block" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`}

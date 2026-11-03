@@ -98,22 +98,22 @@
     "/js/availability.js": "/js/availability.js?v=6c98651534",
     "/js/chat.js": "/js/chat.js?v=99ccb7ab0d",
     "/js/config.js": "/js/config.js?v=e841133368",
-    "/js/data.js": "/js/data.js?v=384b422940",
-    "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=1963e89bda",
+    "/js/data.js": "/js/data.js?v=f86edb3dd4",
+    "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=bf25b0e6c4",
     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
     "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=1554b26024",
-    "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=9feb9052f6",
+    "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=10419d410c",
     "/js/i18n.js": "/js/i18n.js?v=ca8d993cf8",
     "/js/layout.js": "/js/layout.js?v=9e6c288584",
     "/js/motion.js": "/js/motion.js?v=8be1993f71",
     "/js/pages/admin.js": "/js/pages/admin.js?v=03d98effdb",
     "/js/pages/area.js": "/js/pages/area.js?v=624ce26b18",
-    "/js/pages/booking.js": "/js/pages/booking.js?v=ef9876f686",
+    "/js/pages/booking.js": "/js/pages/booking.js?v=3adcc73edb",
     "/js/pages/column-article.js": "/js/pages/column-article.js?v=fe51a4373c",
     "/js/pages/column.js": "/js/pages/column.js?v=a1da790ad6",
     "/js/pages/email-confirmed.js": "/js/pages/email-confirmed.js?v=2b519bae27",
     "/js/pages/login.js": "/js/pages/login.js?v=27b43e27ba",
-    "/js/pages/meeting-points.js": "/js/pages/meeting-points.js?v=7eea668c10",
+    "/js/pages/meeting-points.js": "/js/pages/meeting-points.js?v=a20acc3878",
     "/js/pages/monitor.js": "/js/pages/monitor.js?v=9bb5e5dfba",
     "/js/pages/mypage.js": "/js/pages/mypage.js?v=8c24d3831b",
     "/js/pages/ops-login.js": "/js/pages/ops-login.js?v=91fbd27662",
@@ -261,12 +261,40 @@
       <div style="padding:20px 24px 16px">
         <h3 style="font:700 16px var(--pm-font-body);margin:0 0 6px">岐阜エリアの集合場所</h3>
         <p style="font:14px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 6px">撮影日の季節によって、集合場所が変わります。</p>
-        <ul style="margin:0;padding-left:1.2em;font:14px/1.9 var(--pm-font-body);color:var(--pm-text-2)">
-          <li><b>春（3〜5月）</b>：川原町広場 トイレ付近　<a href="https://www.google.com/maps?q=%E5%B7%9D%E5%8E%9F%E7%94%BA%E5%BA%83%E5%A0%B4%20%E5%B2%90%E9%98%9C%E5%B8%82" target="_blank" rel="noopener noreferrer" style="font:700 12px var(--pm-font-body);color:oklch(0.45 0.14 210);white-space:nowrap">地図 ↗</a></li>
-          <li><b>夏（6〜8月）</b>：メディアコスモス内 エントランスのエスカレーター付近　<a href="https://www.google.com/maps?q=%E3%81%BF%E3%82%93%E3%81%AA%E3%81%AE%E6%A3%AE%20%E3%81%8E%E3%81%B5%E3%83%A1%E3%83%87%E3%82%A3%E3%82%A2%E3%82%B3%E3%82%B9%E3%83%A2%E3%82%B9" target="_blank" rel="noopener noreferrer" style="font:700 12px var(--pm-font-body);color:oklch(0.45 0.14 210);white-space:nowrap">地図 ↗</a></li>
-          <li><b>秋（9〜11月）</b>：清水緑地 トイレ付近　<a href="https://www.google.com/maps?q=%E6%B8%85%E6%B0%B4%E7%B7%91%E5%9C%B0%20%E5%B2%90%E9%98%9C%E5%B8%82" target="_blank" rel="noopener noreferrer" style="font:700 12px var(--pm-font-body);color:oklch(0.45 0.14 210);white-space:nowrap">地図 ↗</a></li>
-          <li><b>冬（12〜2月）</b>：岐阜駅 南口 ドトールコーヒーショップ アスティ岐阜店 付近　<a href="https://www.google.com/maps?q=%E3%83%89%E3%83%88%E3%83%BC%E3%83%AB%E3%82%B3%E3%83%BC%E3%83%92%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%83%E3%83%97%20%E3%82%A2%E3%82%B9%E3%83%86%E3%82%A3%E5%B2%90%E9%98%9C%E5%BA%97" target="_blank" rel="noopener noreferrer" style="font:700 12px var(--pm-font-body);color:oklch(0.45 0.14 210);white-space:nowrap">地図 ↗</a></li>
-        </ul>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">
+          <div style="border:1px solid var(--pm-border);border-radius:14px;overflow:hidden;background:#fff">
+            <div style="padding:12px 14px">
+              <div style="font:700 14px/1.6 var(--pm-font-body);color:var(--pm-text-2)">春（3〜5月）</div>
+              <div style="font:14px/1.7 var(--pm-font-body);color:var(--pm-text-2)">川原町広場 トイレ付近</div>
+              <a href="https://www.google.com/maps?q=%E5%B7%9D%E5%8E%9F%E7%94%BA%E5%BA%83%E5%A0%B4%20%E5%B2%90%E9%98%9C%E5%B8%82" target="_blank" rel="noopener noreferrer" style="font:700 12px var(--pm-font-body);color:oklch(0.45 0.14 210);white-space:nowrap">Googleマップで開く ↗</a>
+            </div>
+            <iframe title="春の集合場所の地図" src="https://www.google.com/maps?q=%E5%B7%9D%E5%8E%9F%E7%94%BA%E5%BA%83%E5%A0%B4%20%E5%B2%90%E9%98%9C%E5%B8%82&amp;output=embed" width="100%" height="180" style="border:0;display:block" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+          <div style="border:1px solid var(--pm-border);border-radius:14px;overflow:hidden;background:#fff">
+            <div style="padding:12px 14px">
+              <div style="font:700 14px/1.6 var(--pm-font-body);color:var(--pm-text-2)">夏（6〜8月）</div>
+              <div style="font:14px/1.7 var(--pm-font-body);color:var(--pm-text-2)">メディアコスモス内 エントランスのエスカレーター付近</div>
+              <a href="https://www.google.com/maps?q=%E3%81%BF%E3%82%93%E3%81%AA%E3%81%AE%E6%A3%AE%20%E3%81%8E%E3%81%B5%E3%83%A1%E3%83%87%E3%82%A3%E3%82%A2%E3%82%B3%E3%82%B9%E3%83%A2%E3%82%B9" target="_blank" rel="noopener noreferrer" style="font:700 12px var(--pm-font-body);color:oklch(0.45 0.14 210);white-space:nowrap">Googleマップで開く ↗</a>
+            </div>
+            <iframe title="夏の集合場所の地図" src="https://www.google.com/maps?q=%E3%81%BF%E3%82%93%E3%81%AA%E3%81%AE%E6%A3%AE%20%E3%81%8E%E3%81%B5%E3%83%A1%E3%83%87%E3%82%A3%E3%82%A2%E3%82%B3%E3%82%B9%E3%83%A2%E3%82%B9&amp;output=embed" width="100%" height="180" style="border:0;display:block" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+          <div style="border:1px solid var(--pm-border);border-radius:14px;overflow:hidden;background:#fff">
+            <div style="padding:12px 14px">
+              <div style="font:700 14px/1.6 var(--pm-font-body);color:var(--pm-text-2)">秋（9〜11月）</div>
+              <div style="font:14px/1.7 var(--pm-font-body);color:var(--pm-text-2)">清水緑地 トイレ付近</div>
+              <a href="https://www.google.com/maps?q=%E6%B8%85%E6%B0%B4%E7%B7%91%E5%9C%B0%20%E5%B2%90%E9%98%9C%E5%B8%82" target="_blank" rel="noopener noreferrer" style="font:700 12px var(--pm-font-body);color:oklch(0.45 0.14 210);white-space:nowrap">Googleマップで開く ↗</a>
+            </div>
+            <iframe title="秋の集合場所の地図" src="https://www.google.com/maps?q=%E6%B8%85%E6%B0%B4%E7%B7%91%E5%9C%B0%20%E5%B2%90%E9%98%9C%E5%B8%82&amp;output=embed" width="100%" height="180" style="border:0;display:block" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+          <div style="border:1px solid var(--pm-border);border-radius:14px;overflow:hidden;background:#fff">
+            <div style="padding:12px 14px">
+              <div style="font:700 14px/1.6 var(--pm-font-body);color:var(--pm-text-2)">冬（12〜2月）</div>
+              <div style="font:14px/1.7 var(--pm-font-body);color:var(--pm-text-2)">岐阜駅 南口 ドトールコーヒーショップ アスティ岐阜店 付近</div>
+              <a href="https://www.google.com/maps?q=%E3%83%89%E3%83%88%E3%83%BC%E3%83%AB%E3%82%B3%E3%83%BC%E3%83%92%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%83%E3%83%97%20%E3%82%A2%E3%82%B9%E3%83%86%E3%82%A3%E5%B2%90%E9%98%9C%E5%BA%97" target="_blank" rel="noopener noreferrer" style="font:700 12px var(--pm-font-body);color:oklch(0.45 0.14 210);white-space:nowrap">Googleマップで開く ↗</a>
+            </div>
+            <iframe title="冬の集合場所の地図" src="https://www.google.com/maps?q=%E3%83%89%E3%83%88%E3%83%BC%E3%83%AB%E3%82%B3%E3%83%BC%E3%83%92%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%83%E3%83%97%20%E3%82%A2%E3%82%B9%E3%83%86%E3%82%A3%E5%B2%90%E9%98%9C%E5%BA%97&amp;output=embed" width="100%" height="180" style="border:0;display:block" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+        </div>
         <p style="font:700 13px/1.8 var(--pm-font-body);color:oklch(0.4 0.1 215);margin:8px 0 0">18時以降の撮影は、岐阜駅周辺のみとなります（集合は、季節にかかわらず岐阜駅 南口のドトール付近）。</p>
       </div>
       

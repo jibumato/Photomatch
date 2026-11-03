@@ -242,7 +242,7 @@ function renderAreaInfo() {
     <div style="font:12px/1.7 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:6px">${L(area, 'desc')}</div>
     ${mp.seasonal
     ? `<div style="font:13px/1.7 var(--pm-font-body);color:oklch(0.3 0.02 235)"><b>${t('booking.slot.meetingPoint')}</b>${t('booking.slot.meetingSeasonal')}</div>
-      <ul style="margin:4px 0 0;padding-left:1.2em;font:12px/1.8 var(--pm-font-body);color:oklch(0.3 0.02 235)">${seasonalMeetingList(mp).map((s) => `<li>${escapeHtml(L(s, 'label'))}（${escapeHtml(L(s, 'range'))}）：${escapeHtml(L(s, 'detail'))}</li>`).join('')}</ul>`
+      <ul style="margin:4px 0 0;padding-left:1.2em;font:12px/1.8 var(--pm-font-body);color:oklch(0.3 0.02 235)">${seasonalMeetingList(mp).map((s) => `<li>${escapeHtml(L(s, 'label'))}（${escapeHtml(L(s, 'range'))}）：${escapeHtml(L(s, 'detail'))} <a href="${mapUrlFor(s)}" target="_blank" rel="noopener noreferrer" style="color:oklch(0.45 0.14 210);font-weight:700;white-space:nowrap">${t('booking.slot.meetingMap')} ↗</a></li>`).join('')}</ul>`
     : `<div style="font:13px/1.7 var(--pm-font-body);color:oklch(0.3 0.02 235)"><b>${t('booking.slot.meetingPoint')}</b>${escapeHtml(L(mp, 'detail'))}</div>`}
     ${mp.evening ? `<div style="font:700 12px/1.7 var(--pm-font-body);color:oklch(0.4 0.1 215);margin-top:4px">${escapeHtml(L(mp, 'evening'))}</div>` : ''}
     <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font:700 12px var(--pm-font-body)">

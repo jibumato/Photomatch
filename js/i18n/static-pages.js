@@ -103,6 +103,7 @@ registerDict({
   'meeting.seasonalLead': { ja: '撮影日の季節によって、集合場所が変わります。', en: 'The meeting point changes with the season of your shoot date.' },
   'meeting.now': { ja: '今の季節', en: 'Now' },
   'meeting.map': { ja: '地図', en: 'Map' },
+  'meeting.openMap': { ja: 'Googleマップで開く', en: 'Open in Google Maps' },
 
   // -- terms.html (legal pages) --
   'legal.courtesy': {
