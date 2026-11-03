@@ -237,9 +237,9 @@ export const FAQS = [
   { q: '撮影中に着替えることはできますか？', qEn: 'Can I change outfits during the shoot?',
     a: '着替えもできます（1〜2着が目安です）。撮影中に着替える場合は、お着替えの服を現地にご持参ください。なお、着替えのお時間も撮影時間（45分）に含まれます。上に羽織るだけ・重ね着を脱ぐだけなど、すぐに替えられる服を選ぶと、撮影の時間をたっぷり使えます。',
     aEn: "Yes — one or two outfits is a good guide. If you'd like to change during the shoot, please bring your change of clothes with you. Note that the time it takes to change is included in the shoot time (45 minutes), so clothes that are quick to switch — like a jacket you can put on or a layer you can take off — leave you more time for photos." },
-  { q: '夜（18時以降）の撮影はできますか？', qEn: 'Can I book a shoot in the evening (6:00 pm or later)?',
-    a: 'はい、18時以降の撮影も承っています。ただし、18時以降の撮影場所は、名古屋エリアは栄エリアのみ、岐阜エリアは岐阜駅周辺のみとなります。夜の街の明かりを背景にした撮影も可能です。',
-    aEn: "Yes, we also take shoots that start at 6:00 pm or later. For these evening shoots, the location is limited to the Sakae area in the Nagoya area, and to the area around Gifu Station in the Gifu area. You can also shoot with the lights of the city at night as your backdrop." },
+  { q: '夕方・夜（17時以降）の撮影はできますか？', qEn: 'Can I book a shoot in the evening (5:00 pm or later)?',
+    a: 'はい、17時以降の撮影も承っています。ただし、17時以降は日の入りで暗くなるため、撮影場所は、名古屋エリアは栄エリアのみ、岐阜エリアは岐阜駅周辺のみとなります（集合場所も、名古屋はオアシス21前、岐阜は岐阜駅南口です）。街の明かりを背景にした撮影も可能です。',
+    aEn: "Yes, we also take shoots that start at 5:00 pm or later. Because it gets dark after sunset, these shoots take place only in the Sakae area in the Nagoya area, and only around Gifu Station in the Gifu area (meeting in front of Oasis 21 in Nagoya and at Gifu Station South Exit in Gifu). You can also shoot with the city lights as your backdrop." },
   { q: 'カフェで撮影することはできますか？', qEn: 'Can we shoot in a cafe?',
     a: '撮影は、公園や街なか、アーケードなどの公共の場所が基本です。お店の中での撮影には、お店ごとの許可が必要なため、お客様ご自身でお店に撮影の許可をとっていただいた場合に限り、カメラマンと相談のうえで対応します。その場合も、集合場所からお店までの移動時間や待ち時間は45分の撮影時間に含まれ、飲食代はお客様のご負担です。待ち時間を減らすため、テイクアウトの飲み物をお持ちいただくのがおすすめです。',
     aEn: "Shoots are mainly in public places like parks, streets and arcades. Shooting inside a shop needs that shop's permission, so we can only do it — after checking with your photographer — if you have asked the shop and received permission yourself. Even then, travel from the meeting point and any waiting time count toward the 45-minute shoot, and food and drinks are at your own cost. Bringing a takeout drink is a good way to save time." },
@@ -258,17 +258,17 @@ export const FAQS = [
 export const MEETING_POINTS = [
   // mapQuery は緯度経度で固定（同名店舗が他にもあり得るテキスト検索より確実なため）。
   // 出典: https://www.google.com/maps/place/.../@35.1719812,136.909068,...
-  // 名古屋も、撮影日の季節で集合場所が変わる（秋・冬は栄のオアシス21前）。18時以降は栄エリアのみなので、オアシス21前。
-  { key: 'nagoya', label: '名古屋', labelEn: 'Nagoya', detail: 'ファミリーマート オアシス21前店 前（〒461-0005 愛知県名古屋市東区東桜1丁目10-33）', detailEn: 'In front of FamilyMart Oasis 21 Mae store (1-10-33 Higashisakura, Higashi-ku, Nagoya, Aichi 461-0005)', evening: '18時以降の撮影は、栄エリアのみとなります（集合は、季節にかかわらずオアシス21前のファミリーマート）。', eveningEn: 'Shoots that start at 6:00 pm or later are held in the Sakae area only (meet at the FamilyMart in front of Oasis 21, whatever the season).', mapQuery: '35.1719812,136.909068',
+  // 名古屋も、撮影日の季節で集合場所が変わる（秋・冬は栄のオアシス21前）。17時以降は（暗くなるため）栄エリアのみなので、オアシス21前。
+  { key: 'nagoya', label: '名古屋', labelEn: 'Nagoya', detail: 'ファミリーマート オアシス21前店 前（〒461-0005 愛知県名古屋市東区東桜1丁目10-33）', detailEn: 'In front of FamilyMart Oasis 21 Mae store (1-10-33 Higashisakura, Higashi-ku, Nagoya, Aichi 461-0005)', evening: '17時以降の撮影は、暗くなるため栄エリアのみとなります（集合は、季節にかかわらずオアシス21前のファミリーマート）。', eveningEn: 'Because it gets dark, shoots that start at 5:00 pm or later are held in the Sakae area only (meet at the FamilyMart in front of Oasis 21, whatever the season).', mapQuery: '35.1719812,136.909068',
     seasonal: {
       spring: { detail: '庄内緑地公園 グリーンプラザ入口前', detailEn: 'In front of the Green Plaza entrance, Shonai Ryokuchi Park', mapQuery: '庄内緑地 グリーンプラザ' },
       summer: { detail: 'ファミリーマート 名古屋港店 前', detailEn: 'In front of FamilyMart Nagoya-ko store', mapQuery: 'ファミリーマート 名古屋港店' },
       autumn: { detail: 'ファミリーマート オアシス21前店 前（〒461-0005 愛知県名古屋市東区東桜1丁目10-33）', detailEn: 'In front of FamilyMart Oasis 21 Mae store (1-10-33 Higashisakura, Higashi-ku, Nagoya, Aichi 461-0005)', mapQuery: '35.1719812,136.909068' },
       winter: { detail: 'ファミリーマート オアシス21前店 前（〒461-0005 愛知県名古屋市東区東桜1丁目10-33）', detailEn: 'In front of FamilyMart Oasis 21 Mae store (1-10-33 Higashisakura, Higashi-ku, Nagoya, Aichi 461-0005)', mapQuery: '35.1719812,136.909068' },
     } },
-  // 岐阜は、撮影日の季節（SEASONS）で集合場所が変わる（seasonal）。18時以降の撮影は岐阜駅周辺のみなので、
+  // 岐阜は、撮影日の季節（SEASONS）で集合場所が変わる（seasonal）。17時以降の撮影は（暗くなるため）岐阜駅周辺のみなので、
   // 集合は季節にかかわらず岐阜駅（detail）。どの集合場所になるかは meetingPointForArea で決める。
-  { key: 'gifu1', label: '岐阜', labelEn: 'Gifu', detail: '岐阜駅 南口 ドトールコーヒーショップ アスティ岐阜店 付近', detailEn: 'Near Doutor Coffee Shop (Asty Gifu), Gifu Station South Exit', evening: '18時以降の撮影は、岐阜駅周辺のみとなります（集合は、季節にかかわらず岐阜駅 南口のドトール付近）。', eveningEn: 'Shoots that start at 6:00 pm or later are held around Gifu Station only (meet near Doutor at the South Exit, whatever the season).', mapQuery: 'ドトールコーヒーショップ アスティ岐阜店',
+  { key: 'gifu1', label: '岐阜', labelEn: 'Gifu', detail: '岐阜駅 南口 ドトールコーヒーショップ アスティ岐阜店 付近', detailEn: 'Near Doutor Coffee Shop (Asty Gifu), Gifu Station South Exit', evening: '17時以降の撮影は、暗くなるため岐阜駅周辺のみとなります（集合は、季節にかかわらず岐阜駅 南口のドトール付近）。', eveningEn: 'Because it gets dark, shoots that start at 5:00 pm or later are held around Gifu Station only (meet near Doutor at the South Exit, whatever the season).', mapQuery: 'ドトールコーヒーショップ アスティ岐阜店',
     seasonal: {
       spring: { detail: '川原町広場 トイレ付近', detailEn: 'Near the restrooms at Kawaramachi Hiroba', mapQuery: '川原町広場 岐阜市' },
       summer: { detail: 'メディアコスモス内 エントランスのエスカレーター付近', detailEn: 'Inside Media Cosmos, by the escalator at the entrance', mapQuery: 'みんなの森 ぎふメディアコスモス' },
@@ -375,9 +375,9 @@ export const AREA_PAGES = [
 
 // 撮影エリア（AREAS の label、例「名古屋エリア」）に対応する集合場所。
 // 撮影日（'YYYY-MM-DD'）を渡すと、季節で変わるエリア（岐阜）はその季節の集合場所を返す。
-// 18時以降の撮影（startTime 'HH:MM'）は、季節にかかわらず基本の集合場所（岐阜駅）。
+// 17時以降に始まる撮影（startTime 'HH:MM'）は、季節にかかわらず基本の集合場所（名古屋はオアシス21前、岐阜は岐阜駅）。
 // 撮影日を渡さないとき（日付を選ぶ前など）は、基本の集合場所（seasonal つき）を返す。
-export const EVENING_START_TIME = '18:00';
+export const EVENING_START_TIME = '17:00';
 export function meetingPointForArea(areaLabel, bookingDate, startTime) {
   const mp = MEETING_POINTS.find((m) => String(areaLabel || '').startsWith(m.label)) || null;
   if (!mp || !mp.seasonal || !bookingDate) return mp;
@@ -497,7 +497,7 @@ export const COLUMN_ARTICLES = [
       { h: '春：川原町広場周辺', b: '川原町の古い町並み、日中友好庭園、岐阜公園などが集まるエリアです。格子戸の町家や庭園の緑を背景にすると、落ち着きのある、やわらかな雰囲気の一枚になります。春は新緑や花が加わり、季節感のある写真が撮れます。岐阜駅からバスで約15分（250円）です。' },
       { h: '夏：岐阜市役所・メディアコスモス周辺', b: '木陰が多く、暑い日でも涼めるテラスやカフェがあるエリアです。夏の撮影は汗や日差しで表情が硬くなりがちですが、日陰でこまめに休みながら撮れるので、爽やかな表情を保てます。緑の中の自然光は肌をきれいに見せてくれます。岐阜駅からバスで約15分（250円）です。' },
       { h: '秋：清水緑地／冬：岐阜駅周辺', b: '清水緑地は岐阜駅から徒歩約5分、川沿いに続く緑地です。木々と水辺を背景に、秋らしい落ち着いた写真が撮れます。冬や天気が心配な日は岐阜駅周辺へ。複合商業施設「ACTIVE G」での屋内撮影、夜はイルミネーションの夜景、カフェや街並みでの撮影もでき、天候に左右されません。' },
-      { h: '集合場所も季節ごと、撮影は45分', b: 'PhotoMatchの岐阜エリアは、撮影日の季節に合わせた上記のスポットに集合して撮影します（集合は、春は川原町広場、夏はメディアコスモス、秋は清水緑地、冬は岐阜駅南口。18時以降の撮影は岐阜駅南口）。撮影は45分、料金は¥6,800〜（税込）、写真は通常3営業日以内にお届けします。', link: { href: 'gifu.html', text: '岐阜エリアの撮影について詳しく見る' } },
+      { h: '集合場所も季節ごと、撮影は45分', b: 'PhotoMatchの岐阜エリアは、撮影日の季節に合わせた上記のスポットに集合して撮影します（集合は、春は川原町広場、夏はメディアコスモス、秋は清水緑地、冬は岐阜駅南口。17時以降の撮影は岐阜駅南口）。撮影は45分、料金は¥6,800〜（税込）、写真は通常3営業日以内にお届けします。', link: { href: 'gifu.html', text: '岐阜エリアの撮影について詳しく見る' } },
     ],
   },
   {
@@ -509,7 +509,7 @@ export const COLUMN_ARTICLES = [
       { h: '春：庄内緑地公園周辺', b: '広い芝生と季節の花々が広がる公園です。春は桜や新緑を背景に、明るく開放感のある写真が撮れます。芝生の上での全身カットや、木陰でのやわらかい表情のカットなど、メイン写真とサブ写真をまとめて撮りやすいスポットです。' },
       { h: '夏：ガーデンふ頭臨港緑園', b: '海と空が広がる、港ならではの開放感が魅力です。水辺と広場の緑を背景にすると、爽やかで健康的な印象の写真になります。夏の強い日差しは、時間帯を選ぶことで、まぶしさを抑えた自然な表情を撮れます。' },
       { h: '秋：名城公園／冬：栄駅周辺', b: '名城公園は、木々や芝生、おふけ池を背景に、落ち着きと自然の奥行きを感じる写真が撮れるスポットです。秋の色づきは、大人っぽく穏やかな雰囲気を後押しします。冬は栄駅周辺へ。昼は青空とテレビ塔、夜は街や店舗の明かりを背景にした写真が撮れ、どちらも都会的で洗練された印象になります。夜の街スナップは、サブ写真にも向いています。' },
-      { h: '撮影場所は季節ごとに1か所', b: 'PhotoMatchの名古屋エリアは、撮影日の季節に合わせたスポットで撮影します（春は庄内緑地公園周辺、夏はガーデンふ頭臨港緑園、秋は名城公園、冬は栄駅周辺）。集合場所も季節ごとで、春は庄内緑地公園のグリーンプラザ入口前、夏はファミリーマート名古屋港店前、秋・冬と18時以降の撮影は栄のオアシス21前です。「爽やかに見せたい」「落ち着いた雰囲気にしたい」など、なりたいイメージは、予約後のカウンセリングシートで事前にお伝えください。', link: { href: 'nagoya.html', text: '名古屋エリアの撮影について詳しく見る' } },
+      { h: '撮影場所は季節ごとに1か所', b: 'PhotoMatchの名古屋エリアは、撮影日の季節に合わせたスポットで撮影します（春は庄内緑地公園周辺、夏はガーデンふ頭臨港緑園、秋は名城公園、冬は栄駅周辺）。集合場所も季節ごとで、春は庄内緑地公園のグリーンプラザ入口前、夏はファミリーマート名古屋港店前、秋・冬と17時以降の撮影は栄のオアシス21前です。「爽やかに見せたい」「落ち着いた雰囲気にしたい」など、なりたいイメージは、予約後のカウンセリングシートで事前にお伝えください。', link: { href: 'nagoya.html', text: '名古屋エリアの撮影について詳しく見る' } },
     ],
   },
   {
