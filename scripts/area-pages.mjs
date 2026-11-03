@@ -13,7 +13,7 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   AREAS, AREA_PAGES, PRICING_PLANS, SEASONS, SEASONAL_LOCATIONS, MEETING_POINTS, HOW_IT_WORKS, FAQS, COLUMN_ARTICLES,
-  seasonalMeetingList,
+  seasonalMeetingList, SLOT_TIMES, EVENING_START_TIME,
 } from '../js/data.js';
 
 const esc = (s) => String(s)
@@ -21,6 +21,24 @@ const esc = (s) => String(s)
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
 export const areaPageFor = (key) => `${key}.html`;
+
+// 開始時刻で撮影場所が変わることを示す時間帯バー（トップの季節のロケーションと同じ見た目）。
+function eveningTimeHtml(ev) {
+  const hm = (t) => t.replace(/^0/, '');
+  const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+  const first = SLOT_TIMES[0];
+  const lastDay = SLOT_TIMES[SLOT_TIMES.indexOf(EVENING_START_TIME) - 1];
+  const night = (((toMin('22:00') - toMin(EVENING_START_TIME)) / (toMin('22:00') - toMin(first))) * 100).toFixed(2);
+  return `    <div class="pm-loc-time" data-reveal>
+      <div class="pm-loc-time-label">撮影の開始時刻で、撮影場所が変わります</div>
+      <div class="pm-loc-time-bar" aria-hidden="true" style="--night:${night}%"><span class="is-day"></span><span class="is-night"></span></div>
+      <div class="pm-loc-time-axis" aria-hidden="true" style="--night:${night}%"><span>${hm(first)}</span><span class="is-split">${hm(EVENING_START_TIME)}</span><span>22:00</span></div>
+      <div class="pm-loc-time-cards">
+        <div class="pm-loc-time-card is-day"><span class="pm-loc-time-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><div><div class="pm-loc-time-title">${hm(first)}〜${hm(lastDay)} 開始</div><div class="pm-loc-time-text">季節のおすすめロケーションで撮影</div></div></div>
+        <div class="pm-loc-time-card is-night"><span class="pm-loc-time-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg></span><div><div class="pm-loc-time-title">${hm(EVENING_START_TIME)}〜 開始</div><div class="pm-loc-time-text">暗くなるため、${esc(ev.place)}のみで撮影</div><div class="pm-loc-time-sub">集合：${esc(ev.meet)}</div></div></div>
+      </div>
+    </div>`;
+}
 
 function spotCard(spot) {
   const season = SEASONS.find((s) => s.key === spot.season);
@@ -132,6 +150,7 @@ ${jsonLd.map((ld) => `<script type="application/ld+json">\n${JSON.stringify(ld, 
   <section class="pm-wrap" style="padding:clamp(40px,8vw,56px) clamp(20px,5vw,32px) 0">
     <h2 class="pm-section-title">${esc(page.name)}の季節のおすすめロケーション</h2>
     <p class="pm-section-sub" style="margin-bottom:24px">${esc(page.spotsLead)}</p>
+${eveningTimeHtml(SEASONAL_LOCATIONS.find((l) => l.key === page.key).evening)}
     <div class="pm-loc-grid">
 ${spots.map(spotCard).join('\n')}
     </div>
