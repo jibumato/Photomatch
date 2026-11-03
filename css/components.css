@@ -499,10 +499,6 @@ img.pm-img-fade.is-loaded { opacity: 1; }
   :root { interpolate-size: allow-keywords; }
   .pm-faq-item::details-content, .pm-note-details::details-content { height: 0; overflow: clip; transition: height 0.35s ease, content-visibility 0.35s allow-discrete; }
   .pm-faq-item[open]::details-content, .pm-note-details[open]::details-content { height: auto; }
-  /* ページの移動を、ふわっと切り替える（対応ブラウザのみ） */
-  @view-transition { navigation: auto; }
-  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.28s; }
-  .pm-header { view-transition-name: pm-header; }
   .pm-mobile-panel:not([hidden]) { animation: pm-panel-in 0.3s cubic-bezier(0.2, 0.7, 0.2, 1); }
   .pm-mobile-panel:not([hidden]) > * { animation: pm-rise 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
   .pm-mobile-panel:not([hidden]) > :nth-child(2) { animation-delay: 0.04s; }

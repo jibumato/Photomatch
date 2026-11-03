@@ -27,7 +27,7 @@ const orderLine = (b) => (b.order_number ? `注文番号：${b.order_number}` : 
 
 function bookingLines(b, photographerName, { forCustomer }) {
   const options = bookingOptionItems(b).map((o) => o.label);
-  const meeting = meetingPointForArea(b.area);
+  const meeting = meetingPointForArea(b.area, b.booking_date, b.start_time);
   return [
     orderLine(b),
     forCustomer ? `カメラマン：${photographerName}` : null,
@@ -61,7 +61,7 @@ function messages(kind, b, photographerName, origin, customerEmail) {
   const when = `${shortDate(b.booking_date)} ${b.start_time.slice(0, 5)}〜`;
   if (kind === 'confirmed') {
     const { phone } = splitCustomerContact(b.customer_contact);
-    const meeting = meetingPointForArea(b.area);
+    const meeting = meetingPointForArea(b.area, b.booking_date, b.start_time);
     const options = bookingOptionItems(b);
     const received = b.created_at ? new Date(b.created_at).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
     const schedule = [
@@ -206,7 +206,7 @@ function ackButtons(b, origin, lead) {
 function lineBookingMessages(kind, b, origin) {
   const when = (date, start, end) => `${formatDate(date)} ${String(start).slice(0, 5)}〜${end ? String(end).slice(0, 5) : ''}`;
   const options = bookingOptionItems(b).map((o) => o.label);
-  const meeting = meetingPointForArea(b.area);
+  const meeting = meetingPointForArea(b.area, b.booking_date, b.start_time);
   const detail = [
     ...(b.order_number ? [`注文番号：${b.order_number}`] : []),
     when(b.booking_date, b.start_time, b.end_time),

@@ -8,7 +8,7 @@ import { takenIntervalsFrom, openSetFrom, isSlotTaken, canStartAt } from '../ava
 import { escapeHtml } from '../util.js';
 import {
   AREAS, EXTRA_OPTIONS, bookingOptionItems, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
-  MONITOR_PLAN_NAMES, monitorPriceFor, areasFor, meetingPointForArea, mapUrlFor,
+  MONITOR_PLAN_NAMES, monitorPriceFor, areasFor, meetingPointForArea, mapUrlFor, seasonalMeetingList,
   CUSTOMER_GENDERS, needsGenderForOptions, normalizePhone, isValidPhone,
 } from '../data.js';
 import { t, tf, L, getLang, areaText, weekdayText, planNameText, planDescText, discountLabelText, taxIncludedSuffix } from '../i18n.js';
@@ -240,10 +240,13 @@ function renderAreaInfo() {
   el.innerHTML = `
     <span class="pm-note-title">${tf('booking.slot.areaInfoTitle', { area: areaText(area.label) })}</span>
     <div style="font:12px/1.7 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:6px">${L(area, 'desc')}</div>
-    <div style="font:13px/1.7 var(--pm-font-body);color:oklch(0.3 0.02 235)"><b>${t('booking.slot.meetingPoint')}</b>${escapeHtml(L(mp, 'detail'))}</div>
+    ${mp.seasonal
+    ? `<div style="font:13px/1.7 var(--pm-font-body);color:oklch(0.3 0.02 235)"><b>${t('booking.slot.meetingPoint')}</b>${t('booking.slot.meetingSeasonal')}</div>
+      <ul style="margin:4px 0 0;padding-left:1.2em;font:12px/1.8 var(--pm-font-body);color:oklch(0.3 0.02 235)">${seasonalMeetingList(mp).map((s) => `<li>${escapeHtml(L(s, 'label'))}（${escapeHtml(L(s, 'range'))}）：${escapeHtml(L(s, 'detail'))} <a href="${mapUrlFor(s)}" target="_blank" rel="noopener noreferrer" style="color:oklch(0.45 0.14 210);font-weight:700;white-space:nowrap">${t('booking.slot.meetingMap')} ↗</a></li>`).join('')}</ul>`
+    : `<div style="font:13px/1.7 var(--pm-font-body);color:oklch(0.3 0.02 235)"><b>${t('booking.slot.meetingPoint')}</b>${escapeHtml(L(mp, 'detail'))}</div>`}
     ${mp.evening ? `<div style="font:700 12px/1.7 var(--pm-font-body);color:oklch(0.4 0.1 215);margin-top:4px">${escapeHtml(L(mp, 'evening'))}</div>` : ''}
     <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font:700 12px var(--pm-font-body)">
-      <a href="${mapUrlFor(mp)}" target="_blank" rel="noopener noreferrer" style="color:oklch(0.45 0.14 210)">${t('booking.slot.meetingMap')} ↗</a>
+      ${mp.seasonal ? '' : `<a href="${mapUrlFor(mp)}" target="_blank" rel="noopener noreferrer" style="color:oklch(0.45 0.14 210)">${t('booking.slot.meetingMap')} ↗</a>`}
       <a href="meeting-points.html" target="_blank" rel="noopener" style="color:oklch(0.45 0.14 210)">${t('booking.slot.meetingMore')} ↗</a>
     </div>
     <div style="font:11px/1.7 var(--pm-font-body);color:var(--pm-text-muted);margin-top:6px">${t('booking.slot.meetingNote')}</div>`;
@@ -311,7 +314,9 @@ function currentSummary() {
   const monitor = state.hasMonitorPrice && MONITOR_PLAN_NAMES.includes(plan.name);
   const planPrice = monitor ? monitorPriceFor(plan.price) : plan.price;
   const grandTotal = planPrice + optionsTotal;
-  return { plan, d, startTime, endTime, areaLabel, selectedOptions, optionsTotal, grandTotal, monitor, planPrice };
+  // 岐阜は撮影日の季節（と18時以降かどうか）で集合場所が変わる。
+  const meeting = meetingPointForArea(areaLabel, d && d.iso, startTime);
+  return { plan, d, startTime, endTime, areaLabel, selectedOptions, optionsTotal, grandTotal, monitor, planPrice, meeting };
 }
 
 function updateContactStickyTotal() {
@@ -488,7 +493,7 @@ function renderPaymentSummary() {
       <span style="font:700 13px var(--pm-font-body);color:oklch(0.35 0.03 220)">${t('booking.contact.total')}</span>
       <span style="font:700 22px var(--pm-font-num);color:oklch(0.3 0.03 240)">¥${s.grandTotal.toLocaleString()}</span>
     </div>
-    ${meetingPointForArea(s.areaLabel) ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:4px">${tf('booking.payment.meetingLine', { detail: escapeHtml(L(meetingPointForArea(s.areaLabel), 'detail')) })}</div>` : ''}
+    ${s.meeting ? `<div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:4px">${tf('booking.payment.meetingLine', { detail: escapeHtml(L(s.meeting, 'detail')) })} <a href="${mapUrlFor(s.meeting)}" target="_blank" rel="noopener noreferrer" style="color:oklch(0.45 0.14 210);font-weight:700">${t('booking.slot.meetingMap')} ↗</a></div>` : ''}
     <div style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${tf('booking.payment.locationLine', { name: escapeHtml(state.photographer.name), area: areaText(s.areaLabel), date: s.d.dateLabel, day: weekdayText(s.d.label), start: s.startTime, end: s.endTime })}</div>`;
   document.getElementById('payment-submit-label').textContent = tf('booking.payment.submitLabel', { total: `¥${s.grandTotal.toLocaleString()}` });
 }
