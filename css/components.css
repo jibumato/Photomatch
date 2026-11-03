@@ -551,3 +551,6 @@ img.pm-img-fade.is-loaded { opacity: 1; }
 .pm-loc-time-text { font: 700 13px/1.6 var(--pm-font-body); }
 .pm-loc-time-sub { font: 12px/1.6 var(--pm-font-body); opacity: 0.85; margin-top: 2px; }
 .pm-loc-time-card.is-day .pm-loc-time-sub { color: oklch(0.45 0.03 235); opacity: 1; }
+
+/* 予約のご連絡先：フォームの最後の「お支払いへ進む」（画面下の固定バーと同じボタン） */
+.pm-contact-inline-submit { display: flex; flex-direction: column; align-items: stretch; gap: 10px; margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--pm-border-soft); text-align: center; }

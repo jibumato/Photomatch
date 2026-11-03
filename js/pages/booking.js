@@ -320,7 +320,9 @@ function currentSummary() {
 }
 
 function updateContactStickyTotal() {
-  document.getElementById('contact-sticky-total').textContent = `¥${currentSummary().grandTotal.toLocaleString()}`;
+  const total = `¥${currentSummary().grandTotal.toLocaleString()}`;
+  document.getElementById('contact-sticky-total').textContent = total;
+  document.getElementById('contact-inline-total').textContent = total;
 }
 
 function goContactStep() {
@@ -376,6 +378,9 @@ function renderOptionTiles() {
 function confirmRedirectUrl() {
   return `${location.origin}${location.pathname}?id=${encodeURIComponent(photographerId)}`;
 }
+
+// フォームの最後のボタンも、画面下の固定バーのボタンと同じ処理にする。
+document.getElementById('contact-submit-inline').addEventListener('click', () => document.getElementById('contact-submit').click());
 
 document.getElementById('contact-submit').addEventListener('click', async () => {
   const btn = document.getElementById('contact-submit');
