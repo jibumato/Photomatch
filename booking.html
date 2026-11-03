@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/photomatch-icon-transparent.png">
 <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
 <link rel="stylesheet" href="css/base.css?v=4a95132642">
-<link rel="stylesheet" href="css/components.css?v=b956b3b9a4">
+<link rel="stylesheet" href="css/components.css?v=98d14c71df">
 <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
 <script type="importmap">
 {
@@ -18,17 +18,17 @@
     "/js/availability.js": "/js/availability.js?v=6c98651534",
     "/js/chat.js": "/js/chat.js?v=99ccb7ab0d",
     "/js/config.js": "/js/config.js?v=e841133368",
-    "/js/data.js": "/js/data.js?v=49ecb772c4",
+    "/js/data.js": "/js/data.js?v=7ccb0e56de",
     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
     "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=1554b26024",
     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=10419d410c",
-    "/js/i18n.js": "/js/i18n.js?v=faa454e514",
+    "/js/i18n.js": "/js/i18n.js?v=c1c1144ca3",
     "/js/layout.js": "/js/layout.js?v=9e6c288584",
     "/js/motion.js": "/js/motion.js?v=8be1993f71",
     "/js/pages/admin.js": "/js/pages/admin.js?v=03d98effdb",
     "/js/pages/area.js": "/js/pages/area.js?v=624ce26b18",
-    "/js/pages/booking.js": "/js/pages/booking.js?v=f006b06f1f",
+    "/js/pages/booking.js": "/js/pages/booking.js?v=af7f22d750",
     "/js/pages/column-article.js": "/js/pages/column-article.js?v=fe51a4373c",
     "/js/pages/column.js": "/js/pages/column.js?v=a1da790ad6",
     "/js/pages/email-confirmed.js": "/js/pages/email-confirmed.js?v=2b519bae27",
@@ -197,6 +197,8 @@
     <div style="font:700 14px var(--pm-font-body);margin-bottom:14px" data-i18n="booking.confirm.detailsTitle">予約内容</div>
     <div id="confirm-details" style="display:flex;flex-direction:column;gap:10px;font:13px/1.6 var(--pm-font-body);color:oklch(0.35 0.02 235)"></div>
   </div>
+  <!-- 撮影場所（季節のスポットの写真）と集合場所（写真があれば写真、なければ地図）。js/pages/booking.js が描画 -->
+  <div id="confirm-place" class="pm-card pm-confirm-place" style="display:none"></div>
   <div style="margin-top:20px;border:1.5px solid oklch(0.85 0.06 210);border-radius:16px;padding:22px 24px;text-align:left;background:linear-gradient(180deg, oklch(0.98 0.02 205), #fff)">
     <div style="font:700 15px var(--pm-font-body);margin-bottom:6px;color:oklch(0.3 0.04 235)" data-i18n="booking.confirm.sheetTitle">📋 事前カウンセリングシート</div>
     <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 16px" data-i18n="booking.confirm.sheetBody">当日をスムーズに、そして理想の1枚に近づけるために、撮影のご希望をお聞かせください（全問任意・わかる範囲でOK）。</p>
@@ -210,6 +212,6 @@
 <div id="pm-sheet-mount"></div>
 <footer class="pm-footer" id="pm-footer"></footer>
 
-<script type="module" src="js/pages/booking.js?v=f006b06f1f"></script>
+<script type="module" src="js/pages/booking.js?v=af7f22d750"></script>
 </body>
 </html>

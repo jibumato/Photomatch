@@ -8,7 +8,7 @@ import { takenIntervalsFrom, openSetFrom, isSlotTaken, canStartAt } from '../ava
 import { escapeHtml } from '../util.js';
 import {
   AREAS, EXTRA_OPTIONS, bookingOptionItems, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
-  MONITOR_PLAN_NAMES, monitorPriceFor, areasFor, meetingPointForArea, mapUrlFor, seasonalMeetingList,
+  MONITOR_PLAN_NAMES, monitorPriceFor, areasFor, meetingPointForArea, mapUrlFor, seasonalMeetingList, shootingSpotFor,
   CUSTOMER_GENDERS, needsGenderForOptions, normalizePhone, isValidPhone,
 } from '../data.js';
 import { t, tf, L, getLang, areaText, weekdayText, planNameText, planDescText, discountLabelText, taxIncludedSuffix } from '../i18n.js';
@@ -592,9 +592,46 @@ function showConfirmForBooking(booking) {
     <div>${t('booking.confirm.paidVia')}</div>
     <div>${tf('booking.confirm.customerName', { name: booking.customer_name })}</div>
     <div>${tf('booking.confirm.customerContact', { contact: booking.customer_contact })}</div>`;
+  renderConfirmPlace(booking);
   document.getElementById('confirm-sheet-btn').onclick = () => {
     sheetModal.open(booking.id, tf('booking.confirm.sheetOpenTitle', { date: dateLabel, start: booking.start_time.slice(0, 5), name: state.photographer.name }));
   };
+}
+
+// 予約完了ページの「撮影場所・集合場所」：撮影日の季節（17時以降は固定エリア）のスポットの写真と、
+// 集合場所の写真（無ければ地図）。どちらも撮影日・開始時刻から決める（確定メールと同じ判定）。
+function renderConfirmPlace(booking) {
+  const el = document.getElementById('confirm-place');
+  const spot = shootingSpotFor(booking.area, booking.booking_date, booking.start_time);
+  const mp = meetingPointForArea(booking.area, booking.booking_date, booking.start_time);
+  if (!spot && !mp) { el.style.display = 'none'; return; }
+  const mapLink = (href) => `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" class="pm-confirm-place-map">${t('booking.slot.meetingMap')} ↗</a>`;
+  const spotHtml = spot ? `
+    <figure class="pm-confirm-place-item">
+      ${spot.img ? `<img src="${escapeHtml(spot.img)}" alt="${escapeHtml(L(spot, 'imgAlt') || L(spot, 'name'))}" width="1200" height="800" loading="lazy">` : ''}
+      <figcaption>
+        <span class="pm-confirm-place-kind">${t('booking.confirm.spotLabel')}</span>
+        <b>${escapeHtml(L(spot, 'name'))}</b>
+        ${spot.evening ? `<span class="pm-confirm-place-note">${tf('booking.confirm.eveningNote', { place: escapeHtml(L(spot, 'eveningPlace')) })}</span>` : ''}
+        ${spot.mapUrl ? mapLink(spot.mapUrl) : ''}
+      </figcaption>
+    </figure>` : '';
+  const meetHtml = mp ? `
+    <figure class="pm-confirm-place-item">
+      ${mp.img
+    ? `<img src="${escapeHtml(mp.img)}" alt="${escapeHtml(L(mp, 'detail'))}" width="1200" height="800" loading="lazy">`
+    : `<iframe title="${escapeHtml(L(mp, 'detail'))}" src="https://www.google.com/maps?q=${encodeURIComponent(mp.mapQuery)}&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`}
+      <figcaption>
+        <span class="pm-confirm-place-kind">${t('booking.confirm.meetLabel')}</span>
+        <b>${escapeHtml(L(mp, 'detail'))}</b>
+        <span class="pm-confirm-place-note">${t('booking.confirm.meetNote')}</span>
+        ${mapLink(mapUrlFor(mp))}
+      </figcaption>
+    </figure>` : '';
+  el.innerHTML = `
+    <div style="font:700 14px var(--pm-font-body);margin-bottom:14px">${t('booking.confirm.placeTitle')}</div>
+    <div class="pm-confirm-place-grid">${spotHtml}${meetHtml}</div>`;
+  el.style.display = '';
 }
 
 // ---------- init ----------

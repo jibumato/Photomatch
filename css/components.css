@@ -554,3 +554,15 @@ img.pm-img-fade.is-loaded { opacity: 1; }
 
 /* 予約のご連絡先：フォームの最後の「お支払いへ進む」（画面下の固定バーと同じボタン） */
 .pm-contact-inline-submit { display: flex; flex-direction: column; align-items: stretch; gap: 10px; margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--pm-border-soft); text-align: center; }
+
+/* 予約完了ページ：撮影場所（スポットの写真）と集合場所（写真または地図） */
+.pm-confirm-place { margin-top: 20px; padding: 24px; text-align: left; }
+.pm-confirm-place-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 520px) { .pm-confirm-place-grid { grid-template-columns: minmax(0, 1fr); } }
+.pm-confirm-place-item { margin: 0; border: 1px solid var(--pm-border); border-radius: 14px; overflow: hidden; background: #fff; display: flex; flex-direction: column; }
+.pm-confirm-place-item img, .pm-confirm-place-item iframe { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border: 0; background: var(--pm-bg-mint); }
+.pm-confirm-place-item figcaption { display: flex; flex-direction: column; gap: 3px; padding: 12px 14px 14px; font: 13px/1.6 var(--pm-font-body); color: oklch(0.35 0.02 235); }
+.pm-confirm-place-item figcaption b { font: 700 14px/1.5 var(--pm-font-body); color: oklch(0.28 0.02 240); }
+.pm-confirm-place-kind { align-self: flex-start; font: 700 11px var(--pm-font-body); color: oklch(0.4 0.14 200); background: var(--pm-badge-bg); padding: 2px 8px; border-radius: 100px; }
+.pm-confirm-place-note { font: 12px/1.6 var(--pm-font-body); color: var(--pm-text-3); }
+.pm-confirm-place-map { margin-top: 2px; font: 700 12px var(--pm-font-body); color: oklch(0.45 0.14 210); text-decoration: underline; }
