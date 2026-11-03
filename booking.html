@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/photomatch-icon-transparent.png">
 <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
 <link rel="stylesheet" href="css/base.css?v=4a95132642">
-<link rel="stylesheet" href="css/components.css?v=7aa4689c5f">
+<link rel="stylesheet" href="css/components.css?v=b956b3b9a4">
 <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
 <script type="importmap">
 {
@@ -28,7 +28,7 @@
     "/js/motion.js": "/js/motion.js?v=8be1993f71",
     "/js/pages/admin.js": "/js/pages/admin.js?v=03d98effdb",
     "/js/pages/area.js": "/js/pages/area.js?v=624ce26b18",
-    "/js/pages/booking.js": "/js/pages/booking.js?v=b8f33d4818",
+    "/js/pages/booking.js": "/js/pages/booking.js?v=f006b06f1f",
     "/js/pages/column-article.js": "/js/pages/column-article.js?v=fe51a4373c",
     "/js/pages/column.js": "/js/pages/column.js?v=a1da790ad6",
     "/js/pages/email-confirmed.js": "/js/pages/email-confirmed.js?v=2b519bae27",
@@ -149,6 +149,11 @@
     <details class="pm-note-details"><summary data-i18n="booking.contact.dayOfTitle">撮影当日について</summary><span data-i18n-html="booking.contact.dayOfBody">当日の流れ：集合場所でご挨拶・撮影イメージの確認 → 撮影 → その場で解散(データは後日メール)。<br>持ち物：特別なものは不要です。着替える場合は、お着替えの服（1〜2着）を現地にご持参ください（着替えの時間も撮影時間に含まれます）。<br>服装：白・ネイビー・ベージュなど明るめの無地がおすすめです。</span></details>
     <details class="pm-note-details"><summary data-i18n="booking.contact.cancelTitle">キャンセルポリシー</summary><span data-i18n-html="booking.contact.cancelBody">撮影日の3日前まで：無料 ／ 2日前：プラン料金の50% ／ 前日・当日：プラン料金の100%（オプション料金は全額返金）<br>集合時間に15分以上遅れた場合、キャンセル扱いとなることがあり、その際の返金はできません。</span></details>
     <details class="pm-note-details"><summary data-i18n="booking.contact.rescheduleTitle">日程振替について</summary><span data-i18n-html="booking.contact.rescheduleBody">撮影日の3日前までは、マイページからいつでも無料で日程を変更できます。撮影日の2日前から撮影開始前までは、「あんしん振替プラン」（+¥4,800）にご加入の場合に限り、1回まで無料で日程を変更できます（当日の急な体調不良・急用にも対応）。未加入の場合、2日前以降の日程変更はできず、キャンセル（上記のキャンセル規定）となります。</span></details>
+    <!-- 画面下の固定バーを見落とした人のために、フォームの最後にも同じボタンを置く（押すと固定バーのボタンと同じ処理） -->
+    <div class="pm-contact-inline-submit">
+      <div style="font:13px var(--pm-font-body);color:var(--pm-text-3)"><span data-i18n="booking.contact.total">合計（税込）</span> <b id="contact-inline-total" style="font:800 20px var(--pm-font-num);color:oklch(0.3 0.03 240)"></b></div>
+      <button type="button" class="pm-btn pm-btn-primary pm-btn-lg pm-btn-block" id="contact-submit-inline" data-i18n="booking.contact.submit">お支払いへ進む</button>
+    </div>
   </div>
 </section>
 
@@ -205,6 +210,6 @@
 <div id="pm-sheet-mount"></div>
 <footer class="pm-footer" id="pm-footer"></footer>
 
-<script type="module" src="js/pages/booking.js?v=b8f33d4818"></script>
+<script type="module" src="js/pages/booking.js?v=f006b06f1f"></script>
 </body>
 </html>
