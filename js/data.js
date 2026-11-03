@@ -295,7 +295,7 @@ export const SEASONAL_LOCATIONS = [
   {
     key: 'nagoya', label: '名古屋', labelEn: 'Nagoya',
     // 17時以降（EVENING_START_TIME）に始まる撮影の、固定の撮影場所と集合場所（時間帯バーの表示用）。
-    evening: { place: '栄エリア', placeEn: 'in the Sakae area', meet: 'オアシス21前', meetEn: 'in front of Oasis 21' },
+    evening: { place: '栄エリア', placeEn: 'in the Sakae area', meet: 'オアシス21前', meetEn: 'in front of Oasis 21', spotSeason: 'winter' },
     spots: [
       { season: 'spring', name: '庄内緑地公園周辺', nameEn: 'Shonai Ryokuchi Park',
         catch: '季節の彩りと、開放感を一枚に。', catchEn: 'Seasonal color and open space, in one shot.',
@@ -321,7 +321,7 @@ export const SEASONAL_LOCATIONS = [
   },
   {
     key: 'gifu', label: '岐阜', labelEn: 'Gifu',
-    evening: { place: '岐阜駅周辺', placeEn: 'around Gifu Station', meet: '岐阜駅 南口', meetEn: 'Gifu Station South Exit' },
+    evening: { place: '岐阜駅周辺', placeEn: 'around Gifu Station', meet: '岐阜駅 南口', meetEn: 'Gifu Station South Exit', spotSeason: 'winter' },
     spots: [
       { season: 'spring', name: '川原町広場周辺', nameEn: 'Around Kawaramachi Hiroba',
         catch: '古い町並みと、春の彩りを。', catchEn: 'Old streets and the colors of spring.',
@@ -387,6 +387,20 @@ export function meetingPointForArea(areaLabel, bookingDate, startTime) {
   if (startTime && String(startTime).slice(0, 5) >= EVENING_START_TIME) return mp;
   const season = seasonForMonth(Number(String(bookingDate).slice(5, 7))).key;
   return { ...mp, ...mp.seasonal[season], season };
+}
+
+// 予約の撮影場所（SEASONAL_LOCATIONS のスポット）。撮影日の季節で決まり、17時以降に始まる撮影は
+// 暗くなるため固定エリアのスポット（evening.spotSeason、栄駅周辺／岐阜駅周辺）。evening: true を付けて返す。
+export function shootingSpotFor(areaLabel, bookingDate, startTime) {
+  const area = AREAS.find((a) => a.label === areaLabel);
+  const loc = area && SEASONAL_LOCATIONS.find((l) => l.key === area.key);
+  if (!loc || !bookingDate) return null;
+  if (startTime && String(startTime).slice(0, 5) >= EVENING_START_TIME && loc.evening) {
+    const spot = loc.spots.find((s) => s.season === loc.evening.spotSeason);
+    return spot ? { ...spot, evening: true, eveningPlace: loc.evening.place, eveningPlaceEn: loc.evening.placeEn } : null;
+  }
+  const season = seasonForMonth(Number(String(bookingDate).slice(5, 7))).key;
+  return loc.spots.find((s) => s.season === season) || null;
 }
 
 // 季節で集合場所が変わるエリアの一覧（表示用）：[{ season, label, labelEn, range, rangeEn, detail, detailEn, mapQuery }]。
