@@ -314,7 +314,7 @@ function currentSummary() {
   const monitor = state.hasMonitorPrice && MONITOR_PLAN_NAMES.includes(plan.name);
   const planPrice = monitor ? monitorPriceFor(plan.price) : plan.price;
   const grandTotal = planPrice + optionsTotal;
-  // 岐阜は撮影日の季節（と18時以降かどうか）で集合場所が変わる。
+  // 岐阜は撮影日の季節（と17時以降かどうか）で集合場所が変わる。
   const meeting = meetingPointForArea(areaLabel, d && d.iso, startTime);
   return { plan, d, startTime, endTime, areaLabel, selectedOptions, optionsTotal, grandTotal, monitor, planPrice, meeting };
 }
