@@ -56,6 +56,7 @@ if (TESTIMONIALS.length) {
     ${item.starsLabel ? `<div style="font:13px var(--pm-font-body);color:var(--pm-star);margin-bottom:10px">${item.starsLabel}</div>` : ''}
     ${item.comment ? `<blockquote style="margin:0;font:14px/1.9 var(--pm-font-body);color:oklch(0.35 0.02 235)">“${L(item, 'comment')}”</blockquote>` : ''}
     ${item.name ? `<div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3);margin-top:16px">${L(item, 'name')}</div>` : ''}
+    ${item.note ? `<div style="font:11px/1.6 var(--pm-font-body);color:var(--pm-text-muted);margin-top:10px">${L(item, 'note')}</div>` : ''}
   </div>`).join('');
 } else {
   document.getElementById('pm-voice').remove();

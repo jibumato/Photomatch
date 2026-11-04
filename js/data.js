@@ -48,6 +48,11 @@ export const TESTIMONIALS = [
   {
     before: { src: 'assets/voice-02-before.jpg', alt: '撮影前：普段の写真', altEn: 'Before: an everyday snapshot' },
     after: { src: 'assets/voice-02-after.jpg', alt: '撮影後：栄の中部電力 MIRAI TOWER の前で撮影した全身写真', altEn: 'After: a full-body shot in front of Chubu Electric Power MIRAI TOWER in Sakae' },
+    comment: '撮影前は1人も会えなくて諦めかけてましたが、撮影後はマッチ数20倍で無事彼女できました！',
+    commentEn: "Before the shoot I couldn't get a single date and was about to give up. Afterwards my matches went up 20x, and I found a girlfriend!",
+    // 結果（マッチ数）に触れる声なので、個人の感想である旨を添える。
+    note: '※個人の感想です。結果には個人差があります。',
+    noteEn: '* Individual experience. Results vary.',
   },
 ];
 
