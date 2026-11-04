@@ -45,6 +45,10 @@ export const TESTIMONIALS = [
     badge: 'いいねUP！👍',
     badgeEn: 'More likes! 👍',
   },
+  {
+    before: { src: 'assets/voice-02-before.jpg', alt: '撮影前：普段の写真', altEn: 'Before: an everyday snapshot' },
+    after: { src: 'assets/voice-02-after.jpg', alt: '撮影後：栄の中部電力 MIRAI TOWER の前で撮影した全身写真', altEn: 'After: a full-body shot in front of Chubu Electric Power MIRAI TOWER in Sakae' },
+  },
 ];
 
 export const TARGET_PAINS = [
