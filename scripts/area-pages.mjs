@@ -180,7 +180,7 @@ ${PRICING_PLANS.map((p) => `      <a href="search.html?area=${encodeURIComponent
       </a>`).join('\n')}
     </div>
     <div style="text-align:center;margin-top:24px">
-      <div class="pm-cta-stack"><span class="pm-cta-bubble">1枚あたり¥${minPerPhotoPrice().toLocaleString()}〜・当日の追加料金なし</span><a class="pm-btn pm-btn-primary pm-btn-lg" href="${searchUrl}">${esc(page.name)}エリアの空き枠を見る</a></div>
+      <a class="pm-btn pm-btn-primary pm-btn-lg" href="${searchUrl}">${esc(page.name)}エリアの空き枠を見る</a>
     </div>
   </section>
 
@@ -242,7 +242,7 @@ ${columns.map((a) => `      <a href="column-${a.id}.html" class="pm-card" style=
     <div style="background:linear-gradient(135deg, oklch(0.28 0.04 240), oklch(0.36 0.08 228));color:#fff;border-radius:20px;padding:clamp(32px,7vw,48px) clamp(24px,5vw,40px);text-align:center">
       <h2 style="font:700 clamp(20px,4.5vw,26px)/1.6 var(--pm-font-body);margin:0 0 14px">${esc(page.ctaTitle)}</h2>
       <p style="font:14px/1.9 var(--pm-font-body);color:oklch(0.85 0.01 220);margin:0 0 24px">空き枠カレンダーから、ご都合のよい日時をお選びください。</p>
-      <div class="pm-cta-stack"><span class="pm-cta-bubble">マッチング数保証つき</span><a class="pm-btn pm-btn-primary pm-btn-lg" style="background:#fff;color:oklch(0.24 0.05 245)" href="${searchUrl}">${esc(page.name)}エリアの空き枠を見る</a></div>
+      <a class="pm-btn pm-btn-primary pm-btn-lg" style="background:#fff;color:oklch(0.24 0.05 245)" href="${searchUrl}">${esc(page.name)}エリアの空き枠を見る</a>
     </div>
     <p style="font:13px var(--pm-font-body);color:var(--pm-text-3);margin:20px 0 0;text-align:center">ほかの対応エリア：${others.map((o) => `<a href="${areaPageFor(o.key)}" style="color:oklch(0.45 0.14 210);text-decoration:underline">${esc(o.name)}</a>`).join('・')}</p>
   </section>
