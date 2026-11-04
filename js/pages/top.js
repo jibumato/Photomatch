@@ -78,6 +78,7 @@ document.getElementById('pm-steps').innerHTML = HOW_IT_WORKS.map((s) => `
 {
   const per = minPerPhotoPrice().toLocaleString();
   document.getElementById('pm-hero-per-photo').textContent = tf('top.hero.perPhoto', { price: per });
+  document.getElementById('pm-cta-note-pricing').textContent = tf('top.ctaNote.pricing', { price: per });
   document.getElementById('pm-sticky-price').innerHTML = `
     <span class="pm-sticky-cta-total-label" style="color:var(--pm-warn-text);font-weight:700">${t('top.sticky.off')}</span>
     <span class="pm-sticky-cta-total-value">¥${minPlanPrice().toLocaleString()}<small style="font:700 11px var(--pm-font-body)">〜</small></span>

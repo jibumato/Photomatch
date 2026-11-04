@@ -573,9 +573,15 @@ img.pm-img-fade.is-loaded { opacity: 1; }
 .pm-footer-note { font: 12px/1.6 var(--pm-font-body); color: var(--pm-text-3); }
 
 /* ---------- LP improvements: CTA note bubble, place strip, campaign, per-photo price ---------- */
-/* ボタンの上の控えめな一言（最初の画面のボタンだけ。例「45分で撮影完了・3営業日以内に納品」）。ボタンと一緒に .pm-cta-stack で包む */
-.pm-cta-stack { display: inline-flex; flex-direction: column; align-items: center; gap: 6px; max-width: 100%; }
-.pm-cta-bubble { font: 600 12px/1.4 var(--pm-font-body); color: var(--pm-text-3); text-align: center; }
+/* ボタンの上に乗る一言（例「45分で撮影完了・3営業日以内に納品」）。ボタンと一緒に .pm-cta-stack で包む */
+.pm-cta-stack { display: inline-flex; flex-direction: column; align-items: center; max-width: 100%; }
+.pm-cta-stack > .pm-btn { position: relative; }
+.pm-cta-bubble {
+  position: relative; z-index: 1; margin: 0 0 -8px; padding: 2px 9px; border-radius: 100px;
+  background: #fff; border: 1px solid oklch(0.8 0.07 220); color: oklch(0.45 0.1 230);
+  font: 600 10px/1.4 var(--pm-font-body); letter-spacing: 0.02em; text-align: center; white-space: nowrap;
+}
+.pm-cta-stack > .pm-btn-lg { padding-top: 14px; }
 .pm-hero2-ctas .pm-cta-stack { flex: 1 1 auto; }
 .pm-hero2-ctas .pm-cta-stack > .pm-btn-lg { width: 100%; box-sizing: border-box; }
 @media (min-width: 900px) { .pm-hero2-ctas .pm-cta-stack { flex: 0 0 auto; } }
