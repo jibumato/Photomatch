@@ -73,6 +73,15 @@ export async function restUpdate(env, table, match, patch) {
   return res.json();
 }
 
+export async function restDelete(env, table, match) {
+  const params = new URLSearchParams(match);
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params.toString()}`, {
+    method: 'DELETE',
+    headers: serviceHeaders(env),
+  });
+  if (!res.ok) throw new Error(`Supabase delete failed on ${table}: ${res.status} ${await res.text()}`);
+}
+
 export async function getProfile(env, userId) {
   const rows = await restSelect(env, 'profiles', { id: `eq.${userId}`, select: '*' });
   return rows[0] || null;

@@ -9,7 +9,7 @@ import { escapeHtml } from '../util.js';
 import {
   AREAS, EXTRA_OPTIONS, bookingOptionItems, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
   MONITOR_PLAN_NAMES, monitorPriceFor, areasFor, meetingPointForArea, mapUrlFor, seasonalMeetingList, shootingSpotFor,
-  CUSTOMER_GENDERS, needsGenderForOptions, normalizePhone, isValidPhone,
+  CUSTOMER_GENDERS, needsGenderForOptions, normalizePhone, isValidPhone, bookingCalendarEvent, googleCalendarUrl,
 } from '../data.js';
 import { t, tf, L, getLang, areaText, weekdayText, planNameText, planDescText, discountLabelText, taxIncludedSuffix } from '../i18n.js';
 
@@ -591,7 +591,8 @@ function showConfirmForBooking(booking) {
     <div style="font:700 14px var(--pm-font-body);color:oklch(0.3 0.02 235)">${tf('booking.confirm.total', { total: booking.total_price.toLocaleString() })}</div>
     <div>${t('booking.confirm.paidVia')}</div>
     <div>${tf('booking.confirm.customerName', { name: booking.customer_name })}</div>
-    <div>${tf('booking.confirm.customerContact', { contact: booking.customer_contact })}</div>`;
+    <div>${tf('booking.confirm.customerContact', { contact: booking.customer_contact })}</div>
+    <div style="margin-top:6px"><a href="${escapeHtml(googleCalendarUrl(bookingCalendarEvent(booking, { audience: 'customer', photographerName: state.photographer.name, origin: location.origin })))}" target="_blank" rel="noopener noreferrer" style="font:700 13px var(--pm-font-body);color:oklch(0.45 0.14 210);text-decoration:underline">${t('booking.confirm.gcal')}</a></div>`;
   renderConfirmPlace(booking);
   document.getElementById('confirm-sheet-btn').onclick = () => {
     sheetModal.open(booking.id, tf('booking.confirm.sheetOpenTitle', { date: dateLabel, start: booking.start_time.slice(0, 5), name: state.photographer.name }));

@@ -249,6 +249,11 @@ export async function lineLink(action) {
   return callApi('/api/line/link', { action }, 'LINE連携の処理に失敗しました。');
 }
 
+// The photographer's カレンダー連携 (calendar URL): action 'status' | 'create' | 'reset' | 'delete'.
+export async function calendarFeed(action) {
+  return callApi('/api/calendar/link', { action }, 'カレンダー連携の処理に失敗しました。');
+}
+
 // The photographer's 「確認しました」 for a confirmed / rescheduled booking.
 export async function ackBooking(bookingId) {
   return callApi('/api/bookings/ack', { booking_id: bookingId }, '確認の登録に失敗しました。');

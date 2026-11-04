@@ -45,6 +45,7 @@ const ENTRIES = {
   'mypage.btn.counselingDone': { ja: 'カウンセリング済', en: 'Counseling done' },
   'mypage.btn.reschedule': { ja: '日程変更', en: 'Reschedule' },
   'mypage.btn.cancel': { ja: 'キャンセル', en: 'Cancel' },
+  'mypage.gcal': { ja: '📅 Googleカレンダーに追加 ↗', en: '📅 Add to Google Calendar ↗' },
   'mypage.receipt.link': { ja: '🧾 領収書を開く（Stripe）↗', en: '🧾 Open receipt (Stripe) ↗' },
   'mypage.receipt.failed': { ja: '領収書を取得できませんでした。時間をおいて、もう一度お試しください。', en: "We couldn't get the receipt. Please try again in a little while." },
   'mypage.delivery.link': { ja: '📷 撮影データを開く（Googleドライブ）↗', en: '📷 Open your photos (Google Drive) ↗' },
