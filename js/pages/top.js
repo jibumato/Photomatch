@@ -3,6 +3,7 @@ import {
   STATS, TARGET_PAINS, TARGET_PAINS_EN, SUPPORTED_APPS, SUPPORTED_APPS_EN,
   TESTIMONIALS, PRICING_PLANS, SAFETY_POINTS, FAQS, HOW_IT_WORKS,
   SEASONS, SEASONAL_LOCATIONS, seasonForMonth, jstDateIso, SLOT_TIMES, EVENING_START_TIME,
+  perPhotoPrice, minPerPhotoPrice, minPlanPrice, DISCOUNT_CAMPAIGN,
 } from '../data.js';
 import { getLang, L, t, tf, discountLabelText } from '../i18n.js';
 import { escapeHtml } from '../util.js';
@@ -73,16 +74,47 @@ document.getElementById('pm-steps').innerHTML = HOW_IT_WORKS.map((s) => `
     <div style="font:12px/1.7 var(--pm-font-body);color:oklch(0.42 0.1 215);background:var(--pm-bg-mint);border-radius:10px;padding:10px 12px">${L(s, 'note')}</div>
   </div>`).join('');
 
+// 1枚あたりの価格（いちばん安いプラン）を、ヒーロー・料金のボタン・画面下のバーに出す。
+{
+  const per = minPerPhotoPrice().toLocaleString();
+  document.getElementById('pm-hero-per-photo').textContent = tf('top.hero.perPhoto', { price: per });
+  document.getElementById('pm-cta-note-pricing').textContent = tf('top.ctaNote.pricing', { price: per });
+  document.getElementById('pm-sticky-price').innerHTML = `
+    <span class="pm-sticky-cta-total-label" style="color:var(--pm-warn-text);font-weight:700">${t('top.sticky.off')}</span>
+    <span class="pm-sticky-cta-total-value">¥${minPlanPrice().toLocaleString()}<small style="font:700 11px var(--pm-font-body)">〜</small></span>
+    <span class="pm-sticky-cta-total-label">${tf('top.sticky.sub', { price: per })}</span>`;
+}
+
+// 割引と、その理由（ラベル・期間は DISCOUNT_CAMPAIGN に入れたときだけ出す）。
+{
+  const c = DISCOUNT_CAMPAIGN;
+  const title = escapeHtml(L(c, 'title')).replace(/([\d,]+)/, '<b>$1</b>');
+  const html = `<div class="pm-campaign">
+    ${L(c, 'label') ? `<span class="pm-campaign-label">${escapeHtml(L(c, 'label'))}</span>` : ''}
+    <div class="pm-campaign-title">${title}</div>
+    <div class="pm-campaign-reason">${escapeHtml(L(c, 'reason'))}</div>
+    ${L(c, 'until') ? `<div class="pm-campaign-until">${escapeHtml(L(c, 'until'))}</div>` : ''}
+  </div>`;
+  document.getElementById('pm-campaign-hero').innerHTML = html;
+  document.getElementById('pm-campaign-pricing').innerHTML = html;
+}
+
 document.getElementById('pm-pricing').innerHTML = PRICING_PLANS.map((pl) => `
-  <a href="search.html?plan=${encodeURIComponent(pl.name)}" class="pm-card" style="display:block;border-radius:18px;padding:28px;text-decoration:none;color:inherit">
+  <a href="search.html?plan=${encodeURIComponent(pl.name)}" class="pm-card pm-plan-card${pl.featured ? ' is-featured' : ''}" style="display:block;border-radius:18px;padding:28px;text-decoration:none;color:inherit">
     <div style="font:700 15px var(--pm-font-body);margin-bottom:6px">${L(pl, 'name')}</div>
     ${pl.originalPrice ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
       <span style="font:600 14px var(--pm-font-num);color:var(--pm-text-muted);text-decoration:line-through">¥${pl.originalPrice}</span>
       <span style="font:700 11px var(--pm-font-body);color:#fff;background:var(--pm-warn);padding:2px 8px;border-radius:100px">${discountLabelText(pl.discountLabel)}</span>
     </div>` : ''}
-    <div style="font:800 26px var(--pm-font-num);margin-bottom:4px"><span data-count data-count-duration="1100">¥${pl.price}</span></div>
-    <div style="font:11px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:8px">${t('profile.taxIncluded')}</div>
-    <div style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:16px">${L(pl, 'desc')}</div>
+    <div class="pm-plan-price-row">
+      <div>
+        <div style="font:800 26px var(--pm-font-num);margin-bottom:4px"><span data-count data-count-duration="1100">¥${pl.price}</span></div>
+        <div style="font:11px var(--pm-font-body);color:var(--pm-text-3)">${t('profile.taxIncluded')}</div>
+      </div>
+      <div class="pm-plan-per"><span>${t('top.pricing.perPhoto')}</span><b>¥${perPhotoPrice(pl).toLocaleString()}</b></div>
+    </div>
+    <div style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:8px 0 12px">${L(pl, 'desc')}</div>
+    ${pl.recommend ? `<div class="pm-plan-rec"><div class="pm-plan-rec-title">${t('top.pricing.recommend')}</div><ul>${L(pl, 'recommend').map((r) => `<li>${escapeHtml(r)}</li>`).join('')}</ul></div>` : ''}
     <div style="display:flex;align-items:center;justify-content:center;gap:6px;background:var(--pm-brand-grad);color:#fff;border-radius:10px;padding:12px;font:700 13px var(--pm-font-body)">${t('profile.bookThisPlan')}</div>
   </a>`).join('');
 

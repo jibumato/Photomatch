@@ -13,7 +13,7 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   AREAS, AREA_PAGES, PRICING_PLANS, SEASONS, SEASONAL_LOCATIONS, MEETING_POINTS, HOW_IT_WORKS, FAQS, COLUMN_ARTICLES,
-  seasonalMeetingList, SLOT_TIMES, EVENING_START_TIME,
+  seasonalMeetingList, SLOT_TIMES, EVENING_START_TIME, perPhotoPrice, minPerPhotoPrice, DISCOUNT_CAMPAIGN,
 } from '../js/data.js';
 
 const esc = (s) => String(s)
@@ -138,12 +138,13 @@ ${jsonLd.map((ld) => `<script type="application/ld+json">\n${JSON.stringify(ld, 
     <p style="font:15px/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0 0 20px">${esc(page.lead)}</p>
     <ul style="list-style:none;padding:0;margin:0 0 24px;display:flex;flex-wrap:wrap;gap:8px">
       <li class="pm-badge" style="font-size:12px;padding:6px 12px">撮影45分</li>
-      <li class="pm-badge" style="font-size:12px;padding:6px 12px">¥${minPrice.toLocaleString()}〜（税込）</li>
+      <li class="pm-badge" style="font-size:12px;padding:6px 12px">¥${minPrice.toLocaleString()}〜（税込・1枚¥${minPerPhotoPrice().toLocaleString()}〜）</li>
       <li class="pm-badge" style="font-size:12px;padding:6px 12px">通常3営業日以内に納品</li>
       <li class="pm-badge" style="font-size:12px;padding:6px 12px">審査済みカメラマン</li>
       <li class="pm-badge" style="font-size:12px;padding:6px 12px">マッチング数保証</li>
     </ul>
-    <a class="pm-btn pm-btn-primary pm-btn-lg" href="${searchUrl}">${esc(page.name)}エリアの空き枠を見る</a>
+    <div class="pm-place-strip" style="max-width:520px"><span>${esc(page.name)}</span><span>季節のスポットに集合</span><span>手ぶらでOK</span></div>
+    <div class="pm-cta-stack"><span class="pm-cta-bubble">45分で撮影完了・3営業日以内に納品</span><a class="pm-btn pm-btn-primary pm-btn-lg" href="${searchUrl}">${esc(page.name)}エリアの空き枠を見る</a></div>
     <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:8px">空き枠の確認は会員登録なしでできます</div>
   </section>
 
@@ -160,13 +161,26 @@ ${spots.map(spotCard).join('\n')}
   <section class="pm-wrap-mid" style="padding:clamp(40px,8vw,56px) clamp(20px,5vw,32px) 0">
     <h2 class="pm-section-title">料金プラン</h2>
     <p class="pm-section-sub" style="margin-bottom:24px">表示価格はすべて税込です。当日の追加料金はかかりません。</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
-${PRICING_PLANS.map((p) => `      <a href="search.html?area=${encodeURIComponent(area.label)}&amp;plan=${encodeURIComponent(p.name)}" class="pm-card" style="display:block;padding:20px;text-decoration:none;color:inherit">
+    <div class="pm-campaign" style="max-width:560px;margin:0 auto 20px">
+      ${DISCOUNT_CAMPAIGN.label ? `<span class="pm-campaign-label">${esc(DISCOUNT_CAMPAIGN.label)}</span>` : ''}
+      <div class="pm-campaign-title">${esc(DISCOUNT_CAMPAIGN.title).replace(/([\d,]+)/, '<b>$1</b>')}</div>
+      <div class="pm-campaign-reason">${esc(DISCOUNT_CAMPAIGN.reason)}</div>
+      ${DISCOUNT_CAMPAIGN.until ? `<div class="pm-campaign-until">${esc(DISCOUNT_CAMPAIGN.until)}</div>` : ''}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
+${PRICING_PLANS.map((p) => `      <a href="search.html?area=${encodeURIComponent(area.label)}&amp;plan=${encodeURIComponent(p.name)}" class="pm-card pm-plan-card${p.featured ? ' is-featured' : ''}" style="display:block;padding:20px;text-decoration:none;color:inherit">
         <h3 style="font:700 15px var(--pm-font-body);margin:0 0 6px">${esc(p.name)}</h3>
         ${p.originalPrice ? `<div style="font:600 13px var(--pm-font-num);color:var(--pm-text-muted)"><s>¥${esc(p.originalPrice)}</s> <span style="color:var(--pm-warn-text);font-weight:700">${esc(p.discountLabel)}</span></div>` : ''}
-        <div style="font:800 24px var(--pm-font-num);margin:2px 0 6px">¥${esc(p.price)}</div>
-        <div style="font:13px/1.7 var(--pm-font-body);color:var(--pm-text-3)">${esc(p.desc)}</div>
+        <div class="pm-plan-price-row">
+          <div style="font:800 24px var(--pm-font-num);margin:2px 0 0">¥${esc(p.price)}</div>
+          <div class="pm-plan-per"><span>1枚あたり</span><b>¥${perPhotoPrice(p).toLocaleString()}</b></div>
+        </div>
+        <div style="font:13px/1.7 var(--pm-font-body);color:var(--pm-text-3);margin:6px 0 10px">${esc(p.desc)}</div>
+        ${p.recommend ? `<div class="pm-plan-rec" style="margin-bottom:0"><div class="pm-plan-rec-title">こんな方におすすめ</div><ul>${p.recommend.map((r) => `<li>${esc(r)}</li>`).join('')}</ul></div>` : ''}
       </a>`).join('\n')}
+    </div>
+    <div style="text-align:center;margin-top:24px">
+      <div class="pm-cta-stack"><span class="pm-cta-bubble">1枚あたり¥${minPerPhotoPrice().toLocaleString()}〜・当日の追加料金なし</span><a class="pm-btn pm-btn-primary pm-btn-lg" href="${searchUrl}">${esc(page.name)}エリアの空き枠を見る</a></div>
     </div>
   </section>
 
@@ -228,7 +242,7 @@ ${columns.map((a) => `      <a href="column-${a.id}.html" class="pm-card" style=
     <div style="background:linear-gradient(135deg, oklch(0.28 0.04 240), oklch(0.36 0.08 228));color:#fff;border-radius:20px;padding:clamp(32px,7vw,48px) clamp(24px,5vw,40px);text-align:center">
       <h2 style="font:700 clamp(20px,4.5vw,26px)/1.6 var(--pm-font-body);margin:0 0 14px">${esc(page.ctaTitle)}</h2>
       <p style="font:14px/1.9 var(--pm-font-body);color:oklch(0.85 0.01 220);margin:0 0 24px">空き枠カレンダーから、ご都合のよい日時をお選びください。</p>
-      <a class="pm-btn pm-btn-primary pm-btn-lg" style="background:#fff;color:oklch(0.24 0.05 245)" href="${searchUrl}">${esc(page.name)}エリアの空き枠を見る</a>
+      <div class="pm-cta-stack"><span class="pm-cta-bubble">マッチング数保証つき</span><a class="pm-btn pm-btn-primary pm-btn-lg" style="background:#fff;color:oklch(0.24 0.05 245)" href="${searchUrl}">${esc(page.name)}エリアの空き枠を見る</a></div>
     </div>
     <p style="font:13px var(--pm-font-body);color:var(--pm-text-3);margin:20px 0 0;text-align:center">ほかの対応エリア：${others.map((o) => `<a href="${areaPageFor(o.key)}" style="color:oklch(0.45 0.14 210);text-decoration:underline">${esc(o.name)}</a>`).join('・')}</p>
   </section>
