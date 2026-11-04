@@ -78,7 +78,7 @@ function messages(kind, b, photographerName, origin, customerEmail) {
       `プラン：${planLabel}`,
       ...details.map((i) => {
         if (i.k === '納品予定') return `納品期限：${i.v.replace('までに', 'まで')}`;
-        if (i.k === '納品方法') return '納品方法：管理画面の「納品する」から、Googleフォトのアルバムのリンクを登録（お客様にメールで届きます）';
+        if (i.k === '納品方法') return '納品方法：写真をGoogleドライブのフォルダにアップロードし（共有：リンクを知っている全員が閲覧可）、管理画面の「納品する」からそのリンクを登録（お客様にメールで届きます）';
         return `${i.k}：${i.v.replace('お渡しします', 'お渡しします（全カットを納品してください）')}`;
       }),
       `オプション：${optionText}`,

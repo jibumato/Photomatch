@@ -1,6 +1,6 @@
 // POST /api/bookings/deliver  { booking_id, delivery_url }
 // The photographer (or ops) records that the photos were delivered, with the
-// album link. The customer gets the link by email and on マイページ. Sending it
+// Google Drive folder link. The customer gets the link by email and on マイページ. Sending it
 // again with a new link updates it (and tells the customer). Payouts are only
 // confirmed for delivered bookings (functions/api/payouts/release.js).
 import { isValidDeliveryUrl, deliveryDueDate, OPPOSITE_SEX_OPTION_KEY } from '../../../js/data.js';
@@ -54,7 +54,7 @@ export async function onRequestPost({ request, env }) {
       await sendEmail(env, {
         to: customer.email,
         subject: first ? '【PhotoMatch】撮影データをお届けします' : '【PhotoMatch】撮影データのリンクを更新しました',
-        text: `${booking.customer_name || 'お客'} 様\n\n${first ? 'PhotoMatchをご利用いただき、ありがとうございました。\n撮影データの準備ができましたので、下記のリンクからご覧ください。' : '撮影データのリンクが新しくなりました。下記のリンクからご覧ください。'}\n\n■撮影データ（Googleフォトのアルバム）\n${url}\n\n${booking.order_number ? `注文番号：${booking.order_number}\n` : ''}撮影日：${booking.booking_date} ${booking.start_time.slice(0, 5)}〜\nカメラマン：${(photographer && photographer.name) || '-'}\n\nリンクはマイページからもご確認いただけます。データの保存期間は撮影月の翌々月末日までです。お早めに保存してください。\n${origin}/mypage.html\n\n撮影の感想を、マイページの「レビューを書く」からお寄せいただけると励みになります。\n\n――――――――――\nPhotoMatch\n${origin}/\nお問い合わせ：info.photomatch@gmail.com`,
+        text: `${booking.customer_name || 'お客'} 様\n\n${first ? 'PhotoMatchをご利用いただき、ありがとうございました。\n撮影データの準備ができましたので、下記のリンクからご覧ください。' : '撮影データのリンクが新しくなりました。下記のリンクからご覧ください。'}\n\n■撮影データ（Googleドライブ）\n${url}\n\nリンクを開くと、写真をご覧いただけます。右上の「すべてダウンロード」または各写真のメニューから保存できます（Googleアカウントがなくてもご利用いただけます）。\n\n${booking.order_number ? `注文番号：${booking.order_number}\n` : ''}撮影日：${booking.booking_date} ${booking.start_time.slice(0, 5)}〜\nカメラマン：${(photographer && photographer.name) || '-'}\n\nリンクはマイページからもご確認いただけます。データの保存期間は撮影月の翌々月末日までです。お早めに保存してください。\n${origin}/mypage.html\n\n撮影の感想を、マイページの「レビューを書く」からお寄せいただけると励みになります。\n\n――――――――――\nPhotoMatch\n${origin}/\nお問い合わせ：info.photomatch@gmail.com`,
       });
     } catch (err) {
       console.error('deliver: customer email failed', err);

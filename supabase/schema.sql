@@ -850,7 +850,7 @@ alter table bookings add column if not exists payout_note text; -- opsが銀行�
 -- 前日・当日 プラン料金の100%（オプション料金は全額返金）。返金は Stripe で自動。
 -- photographer_cancel_comp は当日キャンセルのときだけカメラマンへ払う補償（¥2,000）で、
 -- 通常の報酬と同じく payout_status で送金を管理する。
--- 納品（/api/bookings/deliver）。カメラマンが撮影後にアルバムのリンク（https）を登録すると、
+-- 納品（/api/bookings/deliver）。カメラマンが撮影後にGoogleドライブのフォルダの共有リンク（https）を登録すると、
 -- お客様にメールで届き、マイページにも表示される。送金は納品済みの予約だけ確定できる。
 alter table bookings add column if not exists delivered_at timestamptz;
 alter table bookings add column if not exists delivery_url text;

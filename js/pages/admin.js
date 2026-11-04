@@ -307,7 +307,7 @@ async function renderBookings() {
   el.querySelectorAll('.btn-sheet-view').forEach((btn) => btn.addEventListener('click', () => openSheetView(find(btn))));
   el.querySelectorAll('.btn-deliver').forEach((btn) => btn.addEventListener('click', async () => {
     const b = find(btn);
-    const url = prompt(`${b.customer_name || '依頼者'} 様（${b.booking_date}）の撮影データのリンク（Googleフォトのアルバムなど、https:// から始まるURL）を入力してください。\nお客様にメールで届き、マイページにも表示されます。`, b.delivery_url || '');
+    const url = prompt(`${b.customer_name || '依頼者'} 様（${b.booking_date}）の撮影データのGoogleドライブのフォルダのリンク（https://drive.google.com/… 共有：リンクを知っている全員が閲覧可）を入力してください。\nお客様にメールで届き、マイページにも表示されます。`, b.delivery_url || '');
     if (url === null) return;
     if (!isValidDeliveryUrl(url.trim())) { alert('「https://」から始まるURLを入力してください。'); return; }
     btn.disabled = true;

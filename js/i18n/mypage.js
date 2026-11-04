@@ -47,7 +47,7 @@ const ENTRIES = {
   'mypage.btn.cancel': { ja: 'キャンセル', en: 'Cancel' },
   'mypage.receipt.link': { ja: '🧾 領収書を開く（Stripe）↗', en: '🧾 Open receipt (Stripe) ↗' },
   'mypage.receipt.failed': { ja: '領収書を取得できませんでした。時間をおいて、もう一度お試しください。', en: "We couldn't get the receipt. Please try again in a little while." },
-  'mypage.delivery.link': { ja: '📷 撮影データを見る（納品済み）↗', en: '📷 View your photos (delivered) ↗' },
+  'mypage.delivery.link': { ja: '📷 撮影データを開く（Googleドライブ）↗', en: '📷 Open your photos (Google Drive) ↗' },
   'mypage.staffPick': { ja: '異性スタッフのおすすめ', en: 'Opposite-Gender Staff Pick' },
   'mypage.rescheduledFrom': { ja: '日程変更済み（変更前：{date} {time}〜）', en: 'Rescheduled (previously: {date} {time})' },
   'mypage.noShowNote': { ja: '集合時間に15分以上遅れたため、当日キャンセル扱いとなりました（利用規約第5条）', en: 'Treated as a same-day cancellation because you were more than 15 minutes late to the meeting point (Terms, Article 5).' },
