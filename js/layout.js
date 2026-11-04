@@ -10,7 +10,7 @@ const NAV_LINKS = [
   { key: 'nav.faq', href: 'index.html#faq-section' },
 ];
 
-function headerHtml(loginKey, loginHref) {
+function headerHtml(loginKey, loginHref, ctaKey = 'nav.cta') {
   // Built after getSession() resolves (see mountLayout below), so the
   // current language is already known — interpolate the real text directly
   // rather than leaving elements empty for a later applyI18n() pass.
@@ -27,7 +27,7 @@ function headerHtml(loginKey, loginHref) {
       <div class="pm-nav-actions">
         <button type="button" class="pm-lang-toggle" id="pm-lang-toggle-desktop" data-i18n="lang.toggle.label">${t('lang.toggle.label')}</button>
         ${loginLink}
-        <a class="pm-btn pm-btn-primary" href="search.html" data-i18n="nav.cta">${t('nav.cta')}</a>
+        <a class="pm-btn pm-btn-primary" href="search.html" data-i18n="${ctaKey}">${t(ctaKey)}</a>
       </div>
     </div>
     <div class="pm-mobile-actions pm-mobile-only">
@@ -40,7 +40,7 @@ function headerHtml(loginKey, loginHref) {
   <div class="pm-mobile-panel pm-mobile-only" id="pm-mobile-panel" hidden>
     ${nav}
     ${loginLink}
-    <a class="pm-btn pm-btn-primary" style="margin-top:10px;justify-content:center" href="search.html" data-i18n="nav.cta">${t('nav.cta')}</a>
+    <a class="pm-btn pm-btn-primary" style="margin-top:10px;justify-content:center" href="search.html" data-i18n="${ctaKey}">${t(ctaKey)}</a>
   </div>`;
 }
 
@@ -77,7 +77,8 @@ function footerHtml() {
   </div>`;
 }
 
-export async function mountLayout() {
+// ctaKey: the header's booking button label (the top page uses 「空き枠を見てみる」).
+export async function mountLayout({ ctaKey } = {}) {
   initAnalytics();
   const headerEl = document.getElementById('pm-header');
   const footerEl = document.getElementById('pm-footer');
@@ -90,7 +91,7 @@ export async function mountLayout() {
   } catch (e) { /* supabase not configured yet */ }
 
   if (headerEl) {
-    headerEl.innerHTML = headerHtml(loginKey, loginHref);
+    headerEl.innerHTML = headerHtml(loginKey, loginHref, ctaKey);
     const toggle = document.getElementById('pm-menu-toggle');
     const panel = document.getElementById('pm-mobile-panel');
     if (toggle && panel) {

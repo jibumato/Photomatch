@@ -9,7 +9,7 @@ import { getLang, L, t, tf, discountLabelText } from '../i18n.js';
 import { escapeHtml } from '../util.js';
 import { observeReveal, slideTabIndicator } from '../motion.js';
 
-mountLayout();
+mountLayout({ ctaKey: 'top.cta.see' });
 
 document.getElementById('pm-stats').innerHTML = STATS.map((s) => `
   <div class="pm-card pm-stat" data-reveal="zoom" style="text-align:center;padding:28px 16px">

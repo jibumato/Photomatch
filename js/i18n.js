@@ -344,6 +344,7 @@ const DICT = {
   'top.hero.chip4.v': { ja: '保証付き', en: 'Guarantee' },
   'top.hero.chip4.l': { ja: 'マッチング数保証', en: 'on your match count' },
   'top.hero.cta': { ja: '空き枠を見る', en: 'See open times' },
+  'top.cta.see': { ja: '空き枠を見てみる', en: 'See open times' },
   'top.hero.ctaNote': { ja: '登録不要', en: 'no sign-up' },
   'top.hero.priceLink': { ja: '料金を見る →', en: 'See pricing →' },
   'top.hero.lead': { ja: 'プロカメラマンが、街なかで45分撮影。<br>名古屋・岐阜で ¥6,800〜（税込）', en: 'A pro photographer shoots you around town in 45 minutes.<br>Nagoya & Gifu — from ¥6,800 (tax incl.)' },
