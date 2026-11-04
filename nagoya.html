@@ -20,7 +20,7 @@
 <link rel="icon" href="assets/photomatch-icon-transparent.png">
 <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
 <link rel="stylesheet" href="css/base.css?v=4a95132642">
-<link rel="stylesheet" href="css/components.css?v=e8ee0e86f6">
+<link rel="stylesheet" href="css/components.css?v=e5df67af5f">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -98,12 +98,12 @@
     "/js/availability.js": "/js/availability.js?v=6c98651534",
     "/js/chat.js": "/js/chat.js?v=99ccb7ab0d",
     "/js/config.js": "/js/config.js?v=e841133368",
-    "/js/data.js": "/js/data.js?v=5ee696b6cc",
+    "/js/data.js": "/js/data.js?v=33328b2c16",
     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
     "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=2fa74c3fa2",
     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=10419d410c",
-    "/js/i18n.js": "/js/i18n.js?v=a4be0a4d3e",
+    "/js/i18n.js": "/js/i18n.js?v=5a5cc124ac",
     "/js/layout.js": "/js/layout.js?v=7664310f6f",
     "/js/motion.js": "/js/motion.js?v=8be1993f71",
     "/js/pages/admin.js": "/js/pages/admin.js?v=9fe9411ff6",
@@ -126,7 +126,7 @@
     "/js/pages/search.js": "/js/pages/search.js?v=c86faef3ec",
     "/js/pages/stylist.js": "/js/pages/stylist.js?v=70685679a5",
     "/js/pages/terms.js": "/js/pages/terms.js?v=88ad4c0312",
-    "/js/pages/top.js": "/js/pages/top.js?v=0d29022edd",
+    "/js/pages/top.js": "/js/pages/top.js?v=1e7c41a1c7",
     "/js/payslip.js": "/js/payslip.js?v=df21fecd8d",
     "/js/profileEditor.js": "/js/profileEditor.js?v=56cd2d2c43",
     "/js/repo.js": "/js/repo.js?v=c7074d331d",
@@ -159,12 +159,13 @@
     <p style="font:15px/1.9 var(--pm-font-body);color:var(--pm-text-2);margin:0 0 20px">季節ごとの集合場所（秋は名城公園のスターバックス、冬は栄のオアシス21前）に集合して、45分で撮影。名古屋の街並みや公園を背景に、審査済みのプロカメラマンが、アプリ映えする自然な一枚を撮影します。表情やポーズはカメラマンがリードするので、撮られ慣れていない方も安心です。</p>
     <ul style="list-style:none;padding:0;margin:0 0 24px;display:flex;flex-wrap:wrap;gap:8px">
       <li class="pm-badge" style="font-size:12px;padding:6px 12px">撮影45分</li>
-      <li class="pm-badge" style="font-size:12px;padding:6px 12px">¥6,800〜（税込）</li>
+      <li class="pm-badge" style="font-size:12px;padding:6px 12px">¥6,800〜（税込・1枚¥340〜）</li>
       <li class="pm-badge" style="font-size:12px;padding:6px 12px">通常3営業日以内に納品</li>
       <li class="pm-badge" style="font-size:12px;padding:6px 12px">審査済みカメラマン</li>
       <li class="pm-badge" style="font-size:12px;padding:6px 12px">マッチング数保証</li>
     </ul>
-    <a class="pm-btn pm-btn-primary pm-btn-lg" href="search.html?area=%E5%90%8D%E5%8F%A4%E5%B1%8B%E3%82%A8%E3%83%AA%E3%82%A2">名古屋エリアの空き枠を見る</a>
+    <div class="pm-place-strip" style="max-width:520px"><span>名古屋</span><span>季節のスポットに集合</span><span>手ぶらでOK</span></div>
+    <div class="pm-cta-stack"><span class="pm-cta-bubble">45分で撮影完了・3営業日以内に納品</span><a class="pm-btn pm-btn-primary pm-btn-lg" href="search.html?area=%E5%90%8D%E5%8F%A4%E5%B1%8B%E3%82%A8%E3%83%AA%E3%82%A2">名古屋エリアの空き枠を見る</a></div>
     <div style="font:12px var(--pm-font-body);color:var(--pm-text-3);margin-top:8px">空き枠の確認は会員登録なしでできます</div>
   </section>
 
@@ -236,31 +237,56 @@
   <section class="pm-wrap-mid" style="padding:clamp(40px,8vw,56px) clamp(20px,5vw,32px) 0">
     <h2 class="pm-section-title">料金プラン</h2>
     <p class="pm-section-sub" style="margin-bottom:24px">表示価格はすべて税込です。当日の追加料金はかかりません。</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
-      <a href="search.html?area=%E5%90%8D%E5%8F%A4%E5%B1%8B%E3%82%A8%E3%83%AA%E3%82%A2&amp;plan=%E3%82%B9%E3%83%9E%E3%83%9B%E3%83%97%E3%83%A9%E3%83%B3" class="pm-card" style="display:block;padding:20px;text-decoration:none;color:inherit">
+    <div class="pm-campaign" style="max-width:560px;margin:0 auto 20px">
+      
+      <div class="pm-campaign-title">全プラン <b>1,000</b>円OFF</div>
+      <div class="pm-campaign-reason">より多くの方に、プロが撮る“選ばれる一枚”を体験していただきたいから。</div>
+      
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
+      <a href="search.html?area=%E5%90%8D%E5%8F%A4%E5%B1%8B%E3%82%A8%E3%83%AA%E3%82%A2&amp;plan=%E3%82%B9%E3%83%9E%E3%83%9B%E3%83%97%E3%83%A9%E3%83%B3" class="pm-card pm-plan-card" style="display:block;padding:20px;text-decoration:none;color:inherit">
         <h3 style="font:700 15px var(--pm-font-body);margin:0 0 6px">スマホプラン</h3>
         <div style="font:600 13px var(--pm-font-num);color:var(--pm-text-muted)"><s>¥7,800</s> <span style="color:var(--pm-warn-text);font-weight:700">1,000円OFF</span></div>
-        <div style="font:800 24px var(--pm-font-num);margin:2px 0 6px">¥6,800</div>
-        <div style="font:13px/1.7 var(--pm-font-body);color:var(--pm-text-3)">45分・20枚納品・スマホ撮影</div>
+        <div class="pm-plan-price-row">
+          <div style="font:800 24px var(--pm-font-num);margin:2px 0 0">¥6,800</div>
+          <div class="pm-plan-per"><span>1枚あたり</span><b>¥340</b></div>
+        </div>
+        <div style="font:13px/1.7 var(--pm-font-body);color:var(--pm-text-3);margin:6px 0 10px">45分・20枚納品・スマホ撮影</div>
+        <div class="pm-plan-rec" style="margin-bottom:0"><div class="pm-plan-rec-title">こんな方におすすめ</div><ul><li>まずは気軽にプロの撮影を試したい</li><li>スマホらしい自然な写り（盛りすぎない感じ）が好み</li></ul></div>
       </a>
-      <a href="search.html?area=%E5%90%8D%E5%8F%A4%E5%B1%8B%E3%82%A8%E3%83%AA%E3%82%A2&amp;plan=%E3%82%B9%E3%82%BF%E3%83%B3%E3%83%80%E3%83%BC%E3%83%89" class="pm-card" style="display:block;padding:20px;text-decoration:none;color:inherit">
+      <a href="search.html?area=%E5%90%8D%E5%8F%A4%E5%B1%8B%E3%82%A8%E3%83%AA%E3%82%A2&amp;plan=%E3%82%B9%E3%82%BF%E3%83%B3%E3%83%80%E3%83%BC%E3%83%89" class="pm-card pm-plan-card is-featured" style="display:block;padding:20px;text-decoration:none;color:inherit">
         <h3 style="font:700 15px var(--pm-font-body);margin:0 0 6px">スタンダード</h3>
         <div style="font:600 13px var(--pm-font-num);color:var(--pm-text-muted)"><s>¥9,800</s> <span style="color:var(--pm-warn-text);font-weight:700">1,000円OFF</span></div>
-        <div style="font:800 24px var(--pm-font-num);margin:2px 0 6px">¥8,800</div>
-        <div style="font:13px/1.7 var(--pm-font-body);color:var(--pm-text-3)">45分・一眼20枚納品</div>
+        <div class="pm-plan-price-row">
+          <div style="font:800 24px var(--pm-font-num);margin:2px 0 0">¥8,800</div>
+          <div class="pm-plan-per"><span>1枚あたり</span><b>¥440</b></div>
+        </div>
+        <div style="font:13px/1.7 var(--pm-font-body);color:var(--pm-text-3);margin:6px 0 10px">45分・一眼20枚納品</div>
+        <div class="pm-plan-rec" style="margin-bottom:0"><div class="pm-plan-rec-title">こんな方におすすめ</div><ul><li>アプリのメイン写真を本気で変えたい</li><li>背景がきれいにぼける、一眼ならではの写真がほしい</li></ul></div>
       </a>
-      <a href="search.html?area=%E5%90%8D%E5%8F%A4%E5%B1%8B%E3%82%A8%E3%83%AA%E3%82%A2&amp;plan=%E3%82%B9%E3%82%BF%E3%83%B3%E3%83%80%E3%83%BC%E3%83%89%E3%83%97%E3%83%A9%E3%82%B9" class="pm-card" style="display:block;padding:20px;text-decoration:none;color:inherit">
+      <a href="search.html?area=%E5%90%8D%E5%8F%A4%E5%B1%8B%E3%82%A8%E3%83%AA%E3%82%A2&amp;plan=%E3%82%B9%E3%82%BF%E3%83%B3%E3%83%80%E3%83%BC%E3%83%89%E3%83%97%E3%83%A9%E3%82%B9" class="pm-card pm-plan-card" style="display:block;padding:20px;text-decoration:none;color:inherit">
         <h3 style="font:700 15px var(--pm-font-body);margin:0 0 6px">スタンダードプラス</h3>
         <div style="font:600 13px var(--pm-font-num);color:var(--pm-text-muted)"><s>¥11,800</s> <span style="color:var(--pm-warn-text);font-weight:700">1,000円OFF</span></div>
-        <div style="font:800 24px var(--pm-font-num);margin:2px 0 6px">¥10,800</div>
-        <div style="font:13px/1.7 var(--pm-font-body);color:var(--pm-text-3)">45分・一眼20枚納品＋スマホ用5枚</div>
+        <div class="pm-plan-price-row">
+          <div style="font:800 24px var(--pm-font-num);margin:2px 0 0">¥10,800</div>
+          <div class="pm-plan-per"><span>1枚あたり</span><b>¥540</b></div>
+        </div>
+        <div style="font:13px/1.7 var(--pm-font-body);color:var(--pm-text-3);margin:6px 0 10px">45分・一眼20枚納品＋スマホ用5枚</div>
+        <div class="pm-plan-rec" style="margin-bottom:0"><div class="pm-plan-rec-title">こんな方におすすめ</div><ul><li>メイン写真もサブ写真も、まとめて揃えたい</li><li>スマホ用の写真（5枚）も一緒にほしい</li></ul></div>
       </a>
-      <a href="search.html?area=%E5%90%8D%E5%8F%A4%E5%B1%8B%E3%82%A8%E3%83%AA%E3%82%A2&amp;plan=%E7%B5%90%E5%A9%9A%E7%9B%B8%E8%AB%87%E6%89%80" class="pm-card" style="display:block;padding:20px;text-decoration:none;color:inherit">
+      <a href="search.html?area=%E5%90%8D%E5%8F%A4%E5%B1%8B%E3%82%A8%E3%83%AA%E3%82%A2&amp;plan=%E7%B5%90%E5%A9%9A%E7%9B%B8%E8%AB%87%E6%89%80" class="pm-card pm-plan-card" style="display:block;padding:20px;text-decoration:none;color:inherit">
         <h3 style="font:700 15px var(--pm-font-body);margin:0 0 6px">結婚相談所</h3>
         <div style="font:600 13px var(--pm-font-num);color:var(--pm-text-muted)"><s>¥9,800</s> <span style="color:var(--pm-warn-text);font-weight:700">1,000円OFF</span></div>
-        <div style="font:800 24px var(--pm-font-num);margin:2px 0 6px">¥8,800</div>
-        <div style="font:13px/1.7 var(--pm-font-body);color:var(--pm-text-3)">45分・一眼10枚納品</div>
+        <div class="pm-plan-price-row">
+          <div style="font:800 24px var(--pm-font-num);margin:2px 0 0">¥8,800</div>
+          <div class="pm-plan-per"><span>1枚あたり</span><b>¥880</b></div>
+        </div>
+        <div style="font:13px/1.7 var(--pm-font-body);color:var(--pm-text-3);margin:6px 0 10px">45分・一眼10枚納品</div>
+        <div class="pm-plan-rec" style="margin-bottom:0"><div class="pm-plan-rec-title">こんな方におすすめ</div><ul><li>結婚相談所に出すプロフィール写真が必要</li><li>きちんとした、誠実な印象の写真にしたい</li></ul></div>
       </a>
+    </div>
+    <div style="text-align:center;margin-top:24px">
+      <div class="pm-cta-stack"><span class="pm-cta-bubble">1枚あたり¥340〜・当日の追加料金なし</span><a class="pm-btn pm-btn-primary pm-btn-lg" href="search.html?area=%E5%90%8D%E5%8F%A4%E5%B1%8B%E3%82%A8%E3%83%AA%E3%82%A2">名古屋エリアの空き枠を見る</a></div>
     </div>
   </section>
 
@@ -374,7 +400,7 @@
     <div style="background:linear-gradient(135deg, oklch(0.28 0.04 240), oklch(0.36 0.08 228));color:#fff;border-radius:20px;padding:clamp(32px,7vw,48px) clamp(24px,5vw,40px);text-align:center">
       <h2 style="font:700 clamp(20px,4.5vw,26px)/1.6 var(--pm-font-body);margin:0 0 14px">名古屋で、次のマッチングにつながる一枚を。</h2>
       <p style="font:14px/1.9 var(--pm-font-body);color:oklch(0.85 0.01 220);margin:0 0 24px">空き枠カレンダーから、ご都合のよい日時をお選びください。</p>
-      <a class="pm-btn pm-btn-primary pm-btn-lg" style="background:#fff;color:oklch(0.24 0.05 245)" href="search.html?area=%E5%90%8D%E5%8F%A4%E5%B1%8B%E3%82%A8%E3%83%AA%E3%82%A2">名古屋エリアの空き枠を見る</a>
+      <div class="pm-cta-stack"><span class="pm-cta-bubble">マッチング数保証つき</span><a class="pm-btn pm-btn-primary pm-btn-lg" style="background:#fff;color:oklch(0.24 0.05 245)" href="search.html?area=%E5%90%8D%E5%8F%A4%E5%B1%8B%E3%82%A8%E3%83%AA%E3%82%A2">名古屋エリアの空き枠を見る</a></div>
     </div>
     <p style="font:13px var(--pm-font-body);color:var(--pm-text-3);margin:20px 0 0;text-align:center">ほかの対応エリア：<a href="gifu.html" style="color:oklch(0.45 0.14 210);text-decoration:underline">岐阜</a></p>
   </section>

@@ -583,11 +583,34 @@ export const COLUMN_ARTICLES = [
 // the `plans` rows in supabase/schema.sql. planNameText()/planDescText() in
 // js/i18n.js translate the same wording where it's echoed back from the DB.
 export const PRICING_PLANS = [
-  { name: 'スマホプラン', nameEn: 'Smartphone Plan', price: '6,800', originalPrice: '7,800', discountLabel: '1,000円OFF', desc: '45分・20枚納品・スマホ撮影', descEn: '45 min · 20 photos delivered · shot on smartphone' },
-  { name: 'スタンダード', nameEn: 'Standard', price: '8,800', originalPrice: '9,800', discountLabel: '1,000円OFF', desc: '45分・一眼20枚納品', descEn: '45 min · 20 photos delivered · shot on a pro camera' },
-  { name: 'スタンダードプラス', nameEn: 'Standard Plus', price: '10,800', originalPrice: '11,800', discountLabel: '1,000円OFF', desc: '45分・一眼20枚納品＋スマホ用5枚', descEn: '45 min · 20 photos delivered · shot on a pro camera + 5 smartphone crops' },
-  { name: '結婚相談所', nameEn: 'Matchmaking Agency', price: '8,800', originalPrice: '9,800', discountLabel: '1,000円OFF', desc: '45分・一眼10枚納品', descEn: '45 min · 10 photos delivered · shot on a pro camera' },
+  { name: 'スマホプラン', nameEn: 'Smartphone Plan', price: '6,800', originalPrice: '7,800', discountLabel: '1,000円OFF', desc: '45分・20枚納品・スマホ撮影', descEn: '45 min · 20 photos delivered · shot on smartphone', photos: 20,
+    recommend: ['まずは気軽にプロの撮影を試したい', 'スマホらしい自然な写り（盛りすぎない感じ）が好み'],
+    recommendEn: ['You want to try a pro shoot without a big commitment', 'You like the natural look of smartphone photos'] },
+  { name: 'スタンダード', nameEn: 'Standard', price: '8,800', originalPrice: '9,800', discountLabel: '1,000円OFF', desc: '45分・一眼20枚納品', descEn: '45 min · 20 photos delivered · shot on a pro camera', photos: 20, featured: true,
+    recommend: ['アプリのメイン写真を本気で変えたい', '背景がきれいにぼける、一眼ならではの写真がほしい'],
+    recommendEn: ['You want to seriously upgrade your main profile photo', 'You want the soft, blurred background only a pro camera gives'] },
+  { name: 'スタンダードプラス', nameEn: 'Standard Plus', price: '10,800', originalPrice: '11,800', discountLabel: '1,000円OFF', desc: '45分・一眼20枚納品＋スマホ用5枚', descEn: '45 min · 20 photos delivered · shot on a pro camera + 5 smartphone crops', photos: 20,
+    recommend: ['メイン写真もサブ写真も、まとめて揃えたい', 'スマホ用の写真（5枚）も一緒にほしい'],
+    recommendEn: ['You want your main and sub photos all in one go', 'You also want the 5 smartphone-ready photos'] },
+  { name: '結婚相談所', nameEn: 'Matchmaking Agency', price: '8,800', originalPrice: '9,800', discountLabel: '1,000円OFF', desc: '45分・一眼10枚納品', descEn: '45 min · 10 photos delivered · shot on a pro camera', photos: 10,
+    recommend: ['結婚相談所に出すプロフィール写真が必要', 'きちんとした、誠実な印象の写真にしたい'],
+    recommendEn: ['You need a profile photo for a matchmaking agency', 'You want a neat, sincere impression'] },
 ];
+
+// 1枚あたりの価格（プラン料金 ÷ 一眼・スマホで撮った納品枚数。スタンダードプラスの「スマホ用5枚」は数えない）。
+export const perPhotoPrice = (plan) => Math.round(Number(String(plan.price).replace(/,/g, '')) / plan.photos);
+export const minPlanPrice = () => Math.min(...PRICING_PLANS.map((p) => Number(p.price.replace(/,/g, ''))));
+export const minPerPhotoPrice = () => Math.min(...PRICING_PLANS.map(perPhotoPrice));
+
+// 割引（1,000円OFF）の見せ方。label（例「オープン記念」）と until（例「12月31日のご予約まで」）は、
+// 決まったら入れる（空のあいだは表示しない）。reason は割引の理由として、トップと料金に出す。
+export const DISCOUNT_CAMPAIGN = {
+  title: '全プラン 1,000円OFF', titleEn: '¥1,000 off every plan',
+  label: '', labelEn: '',
+  reason: 'より多くの方に、プロが撮る“選ばれる一枚”を体験していただきたいから。',
+  reasonEn: 'Because we want more people to experience a pro photo that gets picked.',
+  until: '', untilEn: '',
+};
 
 // labelEn/descEn are additive display-only translations for the English
 // toggle — .label/.desc/.price themselves must stay untouched: functions/

@@ -571,3 +571,44 @@ img.pm-img-fade.is-loaded { opacity: 1; }
 .pm-footer-ig { display: inline-flex; align-items: center; gap: 6px; font: 700 14px var(--pm-font-num); color: oklch(0.45 0.14 210); }
 .pm-footer-ig:hover { text-decoration: underline; }
 .pm-footer-note { font: 12px/1.6 var(--pm-font-body); color: var(--pm-text-3); }
+
+/* ---------- LP improvements: CTA note bubble, place strip, campaign, per-photo price ---------- */
+/* ボタンの上に乗る一言（例「45分で撮影完了・3営業日以内に納品」）。ボタンと一緒に .pm-cta-stack で包む */
+.pm-cta-stack { display: inline-flex; flex-direction: column; align-items: center; max-width: 100%; }
+.pm-cta-stack > .pm-btn { position: relative; }
+.pm-cta-bubble {
+  position: relative; z-index: 1; margin: 0 0 -11px; padding: 5px 14px; border-radius: 100px;
+  background: #fff; border: 1.5px solid var(--pm-brand-2); color: oklch(0.42 0.13 230);
+  font: 700 12px/1.3 var(--pm-font-body); text-align: center; box-shadow: 0 4px 12px oklch(0.6 0.08 220 / 0.14);
+}
+.pm-cta-stack > .pm-btn-lg { padding-top: 18px; }
+.pm-hero2-ctas .pm-cta-stack { flex: 1 1 auto; }
+.pm-hero2-ctas .pm-cta-stack > .pm-btn-lg { width: 100%; box-sizing: border-box; }
+@media (min-width: 900px) { .pm-hero2-ctas .pm-cta-stack { flex: 0 0 auto; } }
+
+/* 場所の帯「名古屋・岐阜｜季節のスポットに集合｜手ぶらでOK」 */
+.pm-place-strip { display: flex; margin: 0 0 12px; border-radius: 12px; overflow: hidden; border: 1px solid oklch(0.88 0.03 215); font: 700 12px/1.3 var(--pm-font-body); }
+.pm-place-strip > span { display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px 8px; min-height: 24px; }
+.pm-place-strip > span:nth-child(1) { flex: 0 0 auto; padding-inline: 14px; background: var(--pm-navy-1); color: #fff; }
+.pm-place-strip > span:nth-child(2) { flex: 1 1 0; background: var(--pm-badge-bg); color: oklch(0.32 0.1 215); }
+.pm-place-strip > span:nth-child(3) { flex: 0 0 auto; padding-inline: 14px; background: #fff; color: oklch(0.32 0.1 215); }
+
+/* 割引と、その理由 */
+.pm-campaign { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; margin: 0 0 16px; padding: 12px 14px; border-radius: 14px; background: #fff; border: 1.5px solid oklch(0.82 0.08 205); }
+.pm-campaign-label { padding: 4px 12px; border-radius: 100px; background: var(--pm-navy-1); color: #fff; font: 700 11px/1.3 var(--pm-font-body); }
+.pm-campaign-title { font: 900 18px/1.4 var(--pm-font-body); color: var(--pm-text); }
+.pm-campaign-title b { font: 800 22px/1 var(--pm-font-num); color: var(--pm-warn-text); }
+.pm-campaign-reason { font: 12px/1.7 var(--pm-font-body); color: var(--pm-text-2); }
+.pm-campaign-until { font: 700 12px/1.4 var(--pm-font-body); color: var(--pm-text-2); }
+
+/* 料金カード：1枚あたり・こんな方におすすめ */
+.pm-plan-card.is-featured { box-shadow: 0 0 0 2px var(--pm-brand-2), var(--pm-shadow-card); }
+.pm-plan-price-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.pm-plan-per { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 11px; border-radius: 12px; background: var(--pm-navy-1); color: #fff; }
+.pm-plan-per span { font: 700 10px/1 var(--pm-font-body); }
+.pm-plan-per b { font: 800 18px/1 var(--pm-font-num); }
+.pm-plan-rec { list-style: none; margin: 0 0 16px; padding: 10px 0 0; border-top: 1px solid var(--pm-border-soft); display: flex; flex-direction: column; gap: 6px; }
+.pm-plan-rec ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.pm-plan-rec-title { font: 700 12px/1.3 var(--pm-font-body); color: oklch(0.4 0.1 215); }
+.pm-plan-rec li { display: flex; gap: 8px; align-items: flex-start; font: 13px/1.6 var(--pm-font-body); color: var(--pm-text-2); }
+.pm-plan-rec li::before { content: ''; flex-shrink: 0; width: 14px; height: 8px; margin-top: 5px; border-left: 3px solid oklch(0.55 0.13 215); border-bottom: 3px solid oklch(0.55 0.13 215); transform: rotate(-45deg); }
