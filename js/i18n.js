@@ -297,6 +297,7 @@ const DICT = {
   'booking.confirm.datetime': { ja: '日時：{date} {start}〜{end}', en: 'Date & time: {date} {start}–{end}' },
   'booking.confirm.plan': { ja: 'プラン：{plan}（¥{price}　税込）', en: 'Plan: {plan} (¥{price}, tax incl.)' },
   'booking.confirm.total': { ja: 'お支払い合計：¥{total}（税込）', en: 'Total paid: ¥{total} (tax incl.)' },
+  'booking.confirm.gcal': { ja: '📅 Googleカレンダーに追加 ↗', en: '📅 Add to Google Calendar ↗' },
   'booking.confirm.paidVia': { ja: 'お支払い：Stripeで決済完了', en: 'Payment: completed via Stripe' },
   'booking.confirm.customerName': { ja: 'お名前：{name}', en: 'Name: {name}' },
   'booking.confirm.customerContact': { ja: '連絡先：{contact}', en: 'Contact: {contact}' },

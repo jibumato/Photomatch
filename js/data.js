@@ -962,3 +962,57 @@ export function weatherIconFor(code) {
   if (code >= 71 && code <= 77) return { icon: '❄', color: 'oklch(0.65 0.1 230)' };
   return { icon: '☂', color: 'oklch(0.55 0.15 245)' };
 }
+
+// ---- カレンダー（.ics の添付・カメラマンのカレンダー連携・「Googleカレンダーに追加」） ----
+// 予定の中身（タイトル・説明・場所・日時）は、ここ1か所で決める。
+// audience: 'customer' | 'photographer'。includeContact: 依頼者の連絡先を説明に入れるか
+// （カレンダー連携のURLは外部に保存されるので、連絡先は入れない）。
+
+// "2026-10-09" + "10:00:00"（日本時間） -> "20261009T010000Z"
+export function calendarUtcStamp(dateIso, time) {
+  const d = new Date(`${dateIso}T${String(time).slice(0, 5)}:00+09:00`);
+  return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+}
+
+export function bookingCalendarEvent(b, { audience, photographerName, origin, includeContact = true }) {
+  const meeting = meetingPointForArea(b.area, b.booking_date, b.start_time);
+  const forPhotographer = audience === 'photographer';
+  const summary = forPhotographer
+    ? `【PhotoMatch】撮影：${b.customer_name || '依頼者'} 様`
+    : `【PhotoMatch】撮影（${photographerName || 'カメラマン'}）`;
+  const description = [
+    b.order_number ? `注文番号：${b.order_number}` : null,
+    `プラン：${b.plan_name || '-'}`,
+    `撮影エリア：${b.area || '-'}`,
+    meeting ? `集合場所：${meeting.detail}` : null,
+    meeting ? `地図：${mapUrlFor(meeting)}` : null,
+    forPhotographer
+      ? (includeContact ? `依頼者の連絡先：${b.customer_contact || '-'}` : '依頼者の連絡先・カウンセリングの回答は管理画面で確認できます。')
+      : `カメラマン：${photographerName || '-'}`,
+    origin ? `予約の確認：${origin}/${forPhotographer ? 'admin.html' : 'mypage.html'}` : null,
+  ].filter(Boolean).join('\n');
+  return {
+    summary,
+    description,
+    location: meeting ? meeting.detail : (b.area || ''),
+    start: calendarUtcStamp(b.booking_date, b.start_time),
+    end: calendarUtcStamp(b.booking_date, b.end_time || b.start_time),
+  };
+}
+
+// 「Googleカレンダーに追加」のリンク（開くと、内容が入った状態の予定作成画面になる）。
+// maxLength を指定すると、超える場合は説明→場所の順に省く（LINEのボタンは1000文字まで）。
+export function googleCalendarUrl(ev, { maxLength } = {}) {
+  const build = (withDetails, withLocation) => {
+    const q = new URLSearchParams({ action: 'TEMPLATE', text: ev.summary, dates: `${ev.start}/${ev.end}`, ctz: 'Asia/Tokyo' });
+    if (withDetails && ev.description) q.set('details', ev.description);
+    if (withLocation && ev.location) q.set('location', ev.location);
+    return `https://calendar.google.com/calendar/render?${q.toString()}`;
+  };
+  if (!maxLength) return build(true, true);
+  for (const [d, l] of [[true, true], [false, true], [false, false]]) {
+    const url = build(d, l);
+    if (url.length <= maxLength) return url;
+  }
+  return null;
+}

@@ -1,7 +1,7 @@
 // Booking confirmed / canceled notifications, sent to the customer, the
 // photographer and ops at the same time. Never throws: a mail failure must
 // not break the payment webhook or the cancel request that triggered it.
-import { meetingPointForArea, mapUrlFor, WEEKDAY_JP, PHOTOGRAPHER_ACK_HOURS, bookingOptionItems, splitCustomerContact, planDetailItems } from '../../js/data.js';
+import { meetingPointForArea, mapUrlFor, WEEKDAY_JP, PHOTOGRAPHER_ACK_HOURS, bookingOptionItems, splitCustomerContact, planDetailItems, bookingCalendarEvent, googleCalendarUrl } from '../../js/data.js';
 import { restSelect, restUpdate } from './supabaseAdmin.js';
 import { sendEmail } from './email.js';
 import { bookingIcs, icsAttachment } from './ics.js';
@@ -178,16 +178,20 @@ function photographerAckText(link) {
   return `■予約の確認をお願いします\n内容を確認したら、下のリンクを開いて「確認しました」を押してください（管理画面の予約一覧からも押せます）。${PHOTOGRAPHER_ACK_HOURS}時間以内に確認がない場合は、運営からご連絡します。\n${link}`;
 }
 
-function calendarText(kind) {
-  if (kind === 'confirmed') return '■カレンダーへの登録\n添付のファイル（photomatch-booking.ics）を開くと、カレンダーに予定を追加できます（前日と1時間前に通知されます）。';
+// gcal: the 「Googleカレンダーに追加」 link (new / changed bookings). The photographer's
+// copy also mentions the calendar URL (admin.html), which keeps itself up to date.
+function calendarText(kind, gcal, audience) {
+  const google = gcal ? `\nGoogleカレンダーをお使いの場合は、こちらから追加できます：\n${gcal}` : '';
+  const feed = audience === 'photographer' ? '\n※管理画面の「カレンダー連携」を設定すると、予約・日程変更・キャンセルがカレンダーに自動で反映されます。' : '';
+  if (kind === 'confirmed') return `■カレンダーへの登録\n添付のファイル（photomatch-booking.ics）を開くと、カレンダーに予定を追加できます（前日と1時間前に通知されます）。${google}${feed}`;
   if (CANCEL_KINDS.includes(kind)) return '■カレンダーについて\nカレンダーに登録済みの場合は、予定を削除してください（添付のファイルを開くと削除できるカレンダーもあります）。';
-  return '■カレンダーへの登録\nカレンダーに登録済みの場合は、変更前の予定を削除し、添付のファイル（photomatch-booking.ics）を開いて登録し直してください。';
+  return `■カレンダーへの登録\nカレンダーに登録済みの場合は、変更前の予定を削除し、添付のファイル（photomatch-booking.ics）を開いて登録し直してください。${google}${feed}`;
 }
 
 // LINE version of the photographer's notice: the essentials in one text,
 // plus 「確認しました」 / 管理画面 buttons when a (new) date needs confirming.
 // Both go in one push, which counts as one message toward LINE's monthly limit.
-function ackButtons(b, origin, lead) {
+function ackButtons(b, origin, lead, gcal) {
   const r = b.ack_requested_at ? new Date(b.ack_requested_at).getTime() : '';
   return {
     type: 'template',
@@ -198,6 +202,7 @@ function ackButtons(b, origin, lead) {
       actions: [
         { type: 'postback', label: '確認しました', data: `ack=${b.id}&r=${r}`, displayText: '確認しました' },
         { type: 'uri', label: '管理画面を開く', uri: `${origin}/admin.html` },
+        ...(gcal ? [{ type: 'uri', label: 'Googleカレンダーに追加', uri: gcal }] : []),
       ],
     },
   };
@@ -227,7 +232,10 @@ function lineBookingMessages(kind, b, origin) {
   const comp = b.photographer_cancel_comp ? `\n補償：${yen(b.photographer_cancel_comp)}` : '';
   const messages = [{ type: 'text', text: clip(`${head}\n${was}${detail}${CANCEL_KINDS.includes(kind) || kind === 'no_show' ? comp : ''}`, 4900) }];
   if (ACK_KINDS.includes(kind)) {
-    messages.push(ackButtons(b, origin, `内容を確認したら「確認しました」を押してください（${PHOTOGRAPHER_ACK_HOURS}時間以内に確認がない場合、運営からご連絡します）。`));
+    // LINE caps a button's link at 1000 characters (googleCalendarUrl drops the
+    // description, then the place, to fit; null if it still doesn't).
+    const gcal = googleCalendarUrl(bookingCalendarEvent(b, { audience: 'photographer', origin }), { maxLength: 1000 });
+    messages.push(ackButtons(b, origin, `内容を確認したら「確認しました」を押してください（${PHOTOGRAPHER_ACK_HOURS}時間以内に確認がない場合、運営からご連絡します）。`, gcal));
   } else {
     messages.push({ type: 'text', text: `詳細は管理画面から確認できます。\n${origin}/admin.html` });
   }
@@ -262,7 +270,8 @@ export async function notifyBooking(env, bookingId, kind, origin) {
       const method = CANCEL_KINDS.includes(kind) ? 'CANCEL' : 'PUBLISH';
       for (const who of ['customer', 'photographer']) {
         attach[who].push(icsAttachment(bookingIcs(booking, { photographerName, audience: who, method, origin })));
-        msg[who].text = withExtra(msg[who].text, calendarText(kind), origin);
+        const gcal = method === 'PUBLISH' ? googleCalendarUrl(bookingCalendarEvent(booking, { audience: who, photographerName, origin })) : null;
+        msg[who].text = withExtra(msg[who].text, calendarText(kind, gcal, who), origin);
       }
     }
     const customerEmail = emailOf(booking.client_id);

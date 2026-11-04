@@ -1091,6 +1091,19 @@ create table if not exists line_link_codes (
 alter table line_link_codes enable row level security;
 revoke all on line_link_codes from anon, authenticated;
 
+-- カメラマンのカレンダー連携（admin.html の「カレンダー連携」、/api/calendar/link）。
+-- token を含むURL（/api/calendar/feed/<token>.ics）を Googleカレンダーの「URLで追加」や
+-- iPhone のカレンダー照会に登録すると、予約・日程変更・キャンセルが自動で反映される。
+-- token は推測できない乱数で、作り直すと古いURLは使えなくなる。サーバー（service_role）だけが読む。
+create table if not exists calendar_feeds (
+  photographer_id text primary key references photographers(id) on delete cascade,
+  token text not null unique,
+  created_at timestamptz not null default now(),
+  last_fetched_at timestamptz
+);
+alter table calendar_feeds enable row level security;
+revoke all on calendar_feeds from anon, authenticated;
+
 -- 未確認の予約のチェックを10分ごとに実行する（Supabase の pg_cron + pg_net から
 -- /api/bookings/ack-check を呼ぶ）。拡張が使えない環境（ローカルのテスト用DBなど）では
 -- 何もしない。Cloudflare に CRON_SECRET を設定した場合は、下の headers に

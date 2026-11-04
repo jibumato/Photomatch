@@ -3,7 +3,7 @@ import { requireRole, signOut } from '../auth.js';
 import {
   getMyPhotographerRow, getOpenShifts, openShifts, closeShifts,
   getPhotographerBookings, getMessageCounts, getReadTimestamps,
-  getBankAccount, saveBankAccount, getCounselingSheetsForBookings, deliverBooking, ackBooking, lineLink,
+  getBankAccount, saveBankAccount, getCounselingSheetsForBookings, deliverBooking, ackBooking, lineLink, calendarFeed,
 } from '../repo.js';
 import { mountChatModal } from '../chat.js';
 import { loadDailyWeather } from '../weather.js';
@@ -11,7 +11,7 @@ import { mountProfileEditor } from '../profileEditor.js';
 import {
   AREAS, SLOT_TIMES, TOTAL_BOOKING_DAYS, WEEKDAY_JP, PENDING_PAYMENT_HOLD_MIN, buildBookingDays, weatherIconFor,
   EXTRA_OPTIONS, COUNSELING_QUESTIONS, meetingPointForArea, deliveryDueDate, photographerPayoutFor, recordedOrEstimatedTaxDeduction, isPayoutOption, isValidDeliveryUrl, jstDateIso,
-  awaitingPhotographerAck, PHOTOGRAPHER_ACK_HOURS,
+  awaitingPhotographerAck, PHOTOGRAPHER_ACK_HOURS, bookingCalendarEvent, googleCalendarUrl,
 } from '../data.js';
 import { takenIntervalsFrom, openSetFrom, cellState as slotState } from '../availability.js';
 import { escapeHtml } from '../util.js';
@@ -240,6 +240,10 @@ function bookingCardHtml(b, meta) {
   if (!canceled) {
     actions.push(`<button data-booking-id="${b.id}" class="btn-sheet-view" style="${btn};background:#fff;border:1.5px solid oklch(0.86 0.03 215);color:oklch(0.4 0.06 235)">カウンセリング${meta.sheetDone ? '（回答あり）' : '（未回答）'}</button>`);
     if (shootStarted(b)) actions.push(`<button data-booking-id="${b.id}" class="btn-deliver" style="${btn};background:#fff;border:1.5px solid oklch(0.62 0.14 210);color:oklch(0.4 0.12 215)">${b.delivered_at ? '納品リンクを変更' : '納品する'}</button>`);
+    else {
+      const gcal = googleCalendarUrl(bookingCalendarEvent(b, { audience: 'photographer', origin: location.origin }));
+      actions.push(`<a href="${escapeHtml(gcal)}" target="_blank" rel="noopener noreferrer" style="${btn};background:#fff;border:1.5px solid oklch(0.86 0.03 215);color:oklch(0.4 0.06 235);text-decoration:none">Googleカレンダーに追加</a>`);
+    }
   }
   return `
   <div class="pm-card" style="padding:18px 20px;${canceled ? 'background:var(--pm-bg)' : ''}">
@@ -496,6 +500,59 @@ async function renderLineSection() {
   });
 }
 
+// ---- カレンダー連携（予約を、Googleカレンダー・iPhoneのカレンダーに自動で反映する） ----
+// The calendar URL is served by /api/calendar/feed/<token>.ics; calendar apps
+// re-read it on their own schedule (Google: every several hours).
+async function renderCalendarSection() {
+  const el = document.getElementById('pm-calendar-section');
+  const title = '<div style="font:700 15px var(--pm-font-body);margin-bottom:6px">カレンダー連携</div>';
+  const note = (t) => `<p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0 0 12px">${t}</p>`;
+  const fmt = (iso) => new Date(iso).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  let status;
+  try {
+    status = await calendarFeed('status');
+  } catch (err) {
+    el.innerHTML = `${title}${note(escapeHtml(err.message))}`;
+    return;
+  }
+  const run = async (btn, action, confirmText) => {
+    if (confirmText && !confirm(confirmText)) return;
+    btn.disabled = true;
+    try { await calendarFeed(action); } catch (err) { alert(err.message); btn.disabled = false; return; }
+    renderCalendarSection();
+  };
+  if (!status.enabled) {
+    el.innerHTML = `${title}
+      ${note('専用のURLをGoogleカレンダー（またはiPhoneのカレンダー）に一度登録すると、新しい予約・日程変更・キャンセルが自動でカレンダーに反映されます。')}
+      <button class="pm-btn pm-btn-primary" id="cal-create-btn">カレンダー連携を始める</button>`;
+    document.getElementById('cal-create-btn').addEventListener('click', (e) => run(e.currentTarget, 'create'));
+    return;
+  }
+  const linkBtn = (href, label, primary) => `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" class="${primary ? 'pm-btn pm-btn-primary' : 'pm-btn-outline'}" style="display:inline-flex;font-size:13px;text-decoration:none">${label}</a>`;
+  el.innerHTML = `${title}
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap"><span style="padding:3px 10px;border-radius:100px;font:700 11px var(--pm-font-body);background:oklch(0.94 0.07 150);color:oklch(0.4 0.12 155)">URL発行済み</span>
+      <span style="font:12px var(--pm-font-body);color:var(--pm-text-3)">${status.last_fetched_at ? `カレンダーが最後に読み込んだ日時：${escapeHtml(fmt(status.last_fetched_at))}` : 'まだカレンダーに読み込まれていません'}</span></div>
+    ${note('<b>Googleカレンダー：</b>パソコンで「Googleカレンダーに追加」を押し、表示された画面で「追加」を押します（スマホのアプリでは登録できないため、パソコンのブラウザで一度だけ行ってください。登録後はスマホのアプリにも表示されます）。<br><b>iPhone：</b>「iPhoneのカレンダーに追加」を押し、「照会」を押します。')}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${linkBtn(status.google_url, 'Googleカレンダーに追加', true)}${linkBtn(status.webcal_url, 'iPhoneのカレンダーに追加')}</div>
+    <label for="cal-url" style="display:block;font:700 12px var(--pm-font-body);color:var(--pm-text-3);margin-bottom:4px">カレンダーのURL（他のカレンダーアプリでは「URLで追加」にこれを貼り付けます）</label>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input id="cal-url" type="text" readonly value="${escapeHtml(status.url)}" style="flex:1;min-width:0;padding:9px 12px;border:1.5px solid var(--pm-border);border-radius:10px;font:12px var(--pm-font-num);color:oklch(0.35 0.02 235);background:var(--pm-bg)">
+      <button class="pm-btn-outline" id="cal-copy-btn" style="font-size:12px;white-space:nowrap">コピー</button>
+    </div>
+    ${note('カレンダーへの反映は、カレンダーアプリが定期的に読み込んだときです（Googleカレンダーは数時間〜1日ほどかかることがあります）。急ぎのお知らせは、これまでどおりメール（とLINE）で届きます。依頼者の連絡先はカレンダーには載りません（管理画面で確認してください）。このURLを知っている人は予定を見られるため、他の人に教えないでください。')}
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="pm-btn-outline" id="cal-reset-btn" style="font-size:12px">URLを作り直す</button>
+      <button class="pm-btn-outline" id="cal-delete-btn" style="font-size:12px">連携をやめる</button>
+    </div>`;
+  document.getElementById('cal-copy-btn').addEventListener('click', async (e) => {
+    const input = document.getElementById('cal-url');
+    try { await navigator.clipboard.writeText(input.value); } catch (err) { input.select(); document.execCommand('copy'); }
+    e.currentTarget.textContent = 'コピーしました';
+  });
+  document.getElementById('cal-reset-btn').addEventListener('click', (e) => run(e.currentTarget, 'reset', 'URLを作り直します。今のURLは使えなくなるので、カレンダーに登録し直してください。よろしいですか？'));
+  document.getElementById('cal-delete-btn').addEventListener('click', (e) => run(e.currentTarget, 'delete', 'カレンダー連携をやめます。カレンダーに登録したURLは使えなくなります（カレンダーアプリ側の登録も削除してください）。よろしいですか？'));
+}
+
 async function renderBankAccountSection(photographer) {
   const el = document.getElementById('pm-bank-account-section');
   const account = await getBankAccount(photographer.id);
@@ -570,6 +627,7 @@ async function init() {
   mountProfileEditor(document.getElementById('pm-profile-section'), photographer, profile.id);
   renderBankAccountSection(photographer);
   renderLineSection();
+  renderCalendarSection();
 
   const [bookings] = await Promise.all([getPhotographerBookings(state.photographerId), loadShifts(), loadWeather()]);
   state.bookings = bookings;
