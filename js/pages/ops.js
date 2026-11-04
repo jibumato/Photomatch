@@ -591,7 +591,7 @@ function opsBookingCardHtml(b) {
     b.refund_status === 'failed' ? '<b style="color:var(--pm-warn-text)">Stripeで手動返金が必要</b>' : '',
     needsStaffPick(b) ? `<b style="color:var(--pm-warn-text)">異性スタッフ写真セレクト：未送信（${b.customer_gender === 'male' ? '女性' : b.customer_gender === 'female' ? '男性' : '異性の'}スタッフが選ぶ）</b>` : '',
     b.staff_pick_at ? `異性スタッフのおすすめ送信済み（${b.staff_pick_at.slice(0, 10)}）` : '',
-    b.delivered_at && isValidDeliveryUrl(b.delivery_url) ? `納品：<a href="${escapeHtml(b.delivery_url)}" target="_blank" rel="noopener noreferrer">アルバムを開く</a>` : '',
+    b.delivered_at && isValidDeliveryUrl(b.delivery_url) ? `納品：<a href="${escapeHtml(b.delivery_url)}" target="_blank" rel="noopener noreferrer">Googleドライブを開く</a>` : '',
     awaitingPhotographerAck(b) ? `<b style="color:var(--pm-warn-text)">カメラマン未確認${b.ack_alerted_at ? '（期限超過・通知済み）' : ''}</b>` : '',
     b.photographer_ack_at && b.status !== 'canceled' ? 'カメラマン確認済み' : '',
     b.rescheduled_count ? `日程変更 ${b.rescheduled_count}回（変更前：${b.previous_booking_date} ${String(b.previous_start_time || '').slice(0, 5)}〜）` : '',
@@ -686,7 +686,7 @@ async function loadBookings() {
     try { await markRefunded(b.id, note); refresh(); } catch (err) { alert(err.message || '更新に失敗しました。'); btn.disabled = false; }
   });
   each('btn-ops-pick', async (b, btn) => {
-    const note = prompt(`「異性スタッフ写真セレクト」のおすすめを、${b.customer_name || ''} 様に送ります（メールとマイページに表示されます）。\nアルバムのリンク：${b.delivery_url || '-'}\n\nおすすめの写真（何枚目か・どの写真か）と、選んだ理由を入力してください。`, b.staff_pick_note || '');
+    const note = prompt(`「異性スタッフ写真セレクト」のおすすめを、${b.customer_name || ''} 様に送ります（メールとマイページに表示されます）。\nGoogleドライブのリンク：${b.delivery_url || '-'}\n\nおすすめの写真（何枚目か・どの写真か）と、選んだ理由を入力してください。`, b.staff_pick_note || '');
     if (note === null) return;
     if (!note.trim()) { alert('内容を入力してください。'); return; }
     btn.disabled = true;
