@@ -566,3 +566,8 @@ img.pm-img-fade.is-loaded { opacity: 1; }
 .pm-confirm-place-kind { align-self: flex-start; font: 700 11px var(--pm-font-body); color: oklch(0.4 0.14 200); background: var(--pm-badge-bg); padding: 2px 8px; border-radius: 100px; }
 .pm-confirm-place-note { font: 12px/1.6 var(--pm-font-body); color: var(--pm-text-3); }
 .pm-confirm-place-map { margin-top: 2px; font: 700 12px var(--pm-font-body); color: oklch(0.45 0.14 210); text-decoration: underline; }
+
+/* フッター：お問い合わせ（運営のInstagram） */
+.pm-footer-ig { display: inline-flex; align-items: center; gap: 6px; font: 700 14px var(--pm-font-num); color: oklch(0.45 0.14 210); }
+.pm-footer-ig:hover { text-decoration: underline; }
+.pm-footer-note { font: 12px/1.6 var(--pm-font-body); color: var(--pm-text-3); }

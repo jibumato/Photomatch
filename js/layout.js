@@ -66,6 +66,14 @@ function footerHtml() {
       <a href="gifu.html" data-i18n="footer.areaGifu">岐阜で撮影</a>
       <a href="meeting-points.html" data-i18n="footer.meeting">集合場所</a>
     </div>
+    <div class="pm-footer-links">
+      <div class="pm-h" data-i18n="footer.contact">お問い合わせ</div>
+      <a class="pm-footer-ig" href="https://www.instagram.com/photomatch_form/" target="_blank" rel="noopener noreferrer" aria-label="${t('footer.instagramAria')}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.6" fill="currentColor"/></svg>
+        @photomatch_form
+      </a>
+      <div class="pm-footer-note" data-i18n="footer.contactNote">InstagramのDMで受け付けています</div>
+    </div>
   </div>`;
 }
 
