@@ -1,6 +1,6 @@
 import { mountLayout } from '../layout.js';
 import {
-  STATS, TARGET_PAINS, TARGET_PAINS_EN, SUPPORTED_APPS, SUPPORTED_APPS_EN,
+  STATS, TARGET_PAINS, TARGET_PAINS_EN, TARGET_PAIN_FIXES, TARGET_PAIN_FIXES_EN, SUPPORTED_APPS, SUPPORTED_APPS_EN,
   TESTIMONIALS, PRICING_PLANS, SAFETY_POINTS, FAQS, HOW_IT_WORKS,
   SEASONS, SEASONAL_LOCATIONS, seasonForMonth, jstDateIso, SLOT_TIMES, EVENING_START_TIME,
   perPhotoPrice, minPerPhotoPrice, minPlanPrice, DISCOUNT_CAMPAIGN,
@@ -24,11 +24,13 @@ document.getElementById('pm-hero-proof').innerHTML = STATS.map((s) => `
   <span style="white-space:nowrap">${L(s, 'label')} <b data-count data-count-delay="900" style="font:800 15px var(--pm-font-num);color:oklch(0.45 0.14 210)">${s.value}</b></span>`).join('<span style="color:var(--pm-text-muted);margin:0 10px">／</span>')
   + `<a href="#results-section" style="display:block;margin-top:4px;font:11px var(--pm-font-body);color:var(--pm-text-muted);text-decoration:underline">${getLang() === 'en' ? '※ track record of our photographers (see below)' : '※カメラマンの実績の合計です（詳細は下記）'}</a>`;
 
+// FOR YOU：お悩み（上・グレー）→ こう変わる（下・水色の帯）の組。
 const painsList = getLang() === 'en' ? TARGET_PAINS_EN : TARGET_PAINS;
-document.getElementById('pm-pains').innerHTML = painsList.map((p) => `
-  <div style="display:flex;align-items:flex-start;gap:10px;background:oklch(1 0 0 / 0.08);border:1px solid oklch(1 0 0 / 0.14);border-radius:12px;padding:14px 16px">
-    <span style="font:700 14px var(--pm-font-num);color:oklch(0.82 0.12 195);flex-shrink:0">✓</span>
-    <span style="font:13px/1.7 var(--pm-font-body);color:oklch(0.95 0.005 220)">${p}</span>
+const fixesList = getLang() === 'en' ? TARGET_PAIN_FIXES_EN : TARGET_PAIN_FIXES;
+document.getElementById('pm-pains').innerHTML = painsList.map((p, i) => `
+  <div class="pm-foryou-card">
+    <div class="pm-foryou-pain"><span class="pm-foryou-q" aria-hidden="true">?</span><span>${escapeHtml(p)}</span></div>
+    ${fixesList[i] ? `<div class="pm-foryou-fix"><span class="pm-foryou-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg></span><span>${escapeHtml(fixesList[i])}</span></div>` : ''}
   </div>`).join('');
 
 document.getElementById('pm-apps').innerHTML = SUPPORTED_APPS.map((a) => `
