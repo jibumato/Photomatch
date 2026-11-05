@@ -72,6 +72,18 @@ export const TARGET_PAINS_EN = [
   "The photo a friend took just doesn't quite land",
 ];
 
+// FOR YOU：お悩み（TARGET_PAINS）ごとの「こう変わる」（同じ順番・同じ件数）。
+export const TARGET_PAIN_FIXES = [
+  '「会ってみたい」と思われる、自然な笑顔の一枚に',
+  'メインもサブも、45分の撮影でまとめてそろう',
+  '表情もポーズも、プロがリードするから安心',
+];
+export const TARGET_PAIN_FIXES_EN = [
+  'A natural, smiling photo that makes people want to meet you',
+  'Main and sub photos, all done in one 45-minute shoot',
+  'A pro guides your expression and pose, so you can relax',
+];
+
 export const SUPPORTED_APPS = ['Pairs', 'with', 'Omiai', 'タップル', 'Tinder', 'Bumble', '東カレデート', 'D³'];
 // Display-only romanizations for the two Japanese-only app names above,
 // used when English is selected (falls back to the original for anything
