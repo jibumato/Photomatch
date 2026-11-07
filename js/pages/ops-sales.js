@@ -11,6 +11,10 @@ const yen = (n) => `${n < 0 ? '−' : ''}¥${Math.abs(Math.round(n || 0)).toLoca
 const monthLabel = (m) => `${m.slice(0, 4)}年${Number(m.slice(5))}月`;
 
 const months = recentMonths(jstDateIso(), 12);
+// その月の末日（例 '2026-11' → '2026-11-30'）。30日までの月に「-31」と指定すると、存在しない日付になってデータベースが受け付けない。
+const lastDayOf = (m) => { const [y, mo] = m.split('-').map(Number); return `${m}-${String(new Date(Date.UTC(y, mo, 0)).getUTCDate()).padStart(2, '0')}`; };
+const rangeFrom = `${months[0]}-01`;
+const rangeTo = lastDayOf(months[months.length - 1]);
 const state = { all: [], expenses: [], expensesError: null, month: months[months.length - 1], scope: 'all' };
 const monthExpenses = () => state.expenses.filter((e) => expenseMonthOf(e) === state.month);
 
@@ -230,9 +234,9 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   const profile = await requireRole('ops', 'ops-login.html');
   if (!profile) return;
   try {
-    state.all = await getBookingsForSales(`${months[0]}-01`, `${months[months.length - 1]}-31`);
+    state.all = await getBookingsForSales(rangeFrom, rangeTo);
     try {
-      state.expenses = await getExpenses(`${months[0]}-01`, `${months[months.length - 1]}-31`);
+      state.expenses = await getExpenses(rangeFrom, rangeTo);
     } catch (err) {
       console.error(err);
       state.expensesError = '経費を読み込めませんでした。Supabase で supabase/schema.sql を実行して、経費のテーブルを作ってください。';
