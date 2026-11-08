@@ -630,8 +630,8 @@ export const minPerPhotoPrice = () => Math.min(...PRICING_PLANS.map(perPhotoPric
 export const DISCOUNT_CAMPAIGN = {
   title: '全プラン 1,000円OFF', titleEn: '¥1,000 off every plan',
   label: 'オープン記念', labelEn: 'Opening offer',
-  reason: 'より多くの方に、プロが撮る“選ばれる一枚”を体験していただきたいから。',
-  reasonEn: 'Because we want more people to experience a pro photo that gets picked.',
+  reason: 'より多くの方に、プロが撮る“選ばれる一枚”を体験していただくため',
+  reasonEn: 'So that more people can experience a pro photo that gets picked.',
   until: '', untilEn: '',
 };
 
