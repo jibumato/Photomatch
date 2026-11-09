@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/photomatch-icon-transparent.png">
 <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
 <link rel="stylesheet" href="css/base.css?v=4a95132642">
-<link rel="stylesheet" href="css/components.css?v=98393c5938">
+<link rel="stylesheet" href="css/components.css?v=95aba624eb">
 <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
 <script type="importmap">
 {
@@ -38,7 +38,7 @@
     "/js/pages/mypage.js": "/js/pages/mypage.js?v=c03a215afc",
     "/js/pages/ops-login.js": "/js/pages/ops-login.js?v=91fbd27662",
     "/js/pages/ops-sales.js": "/js/pages/ops-sales.js?v=86bab47d86",
-    "/js/pages/ops.js": "/js/pages/ops.js?v=ad54358246",
+    "/js/pages/ops.js": "/js/pages/ops.js?v=7d3ce22e06",
     "/js/pages/payslip.js": "/js/pages/payslip.js?v=8c7f5b8019",
     "/js/pages/pro-login.js": "/js/pages/pro-login.js?v=3ae32cde71",
     "/js/pages/profile.js": "/js/pages/profile.js?v=0f56fec4f8",
@@ -89,6 +89,19 @@
         <h1 style="font:700 22px var(--pm-font-body);margin:0 0 6px">予約の管理</h1>
         <p style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:0;max-width:640px">カメラマン都合・悪天候などでの<b>日程変更</b>や<b>キャンセル（返金）</b>、15分以上の<b>遅刻キャンセル</b>を、運営がお客様の代わりに行います。どれも、お客様・カメラマン・運営にメールが届きます。日程変更の変更先は、カメラマンが受付中にしている空き枠から選びます（必要ならカメラマンに枠を開けてもらってください）。</p>
       </div>
+      <section class="pm-card pm-sched" aria-labelledby="pm-sched-title">
+        <div class="pm-sched-top">
+          <h2 id="pm-sched-title" class="pm-sched-title">撮影スケジュール</h2>
+          <div class="pm-sched-nav">
+            <button type="button" class="pm-btn-outline" id="pm-sched-prev" aria-label="前の日">◀</button>
+            <button type="button" class="pm-btn-outline" id="pm-sched-today">今日</button>
+            <button type="button" class="pm-btn-outline" id="pm-sched-next" aria-label="次の日">▶</button>
+            <label class="pm-sched-date"><span class="pm-visually-hidden">日付を選ぶ</span><input class="pm-input" type="date" id="pm-sched-date"></label>
+          </div>
+        </div>
+        <div id="pm-sched-days" class="pm-sched-days" role="tablist" aria-label="今日から2週間"></div>
+        <div id="pm-schedule"></div>
+      </section>
       <form id="booking-search-form" style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px;max-width:560px">
         <input class="pm-input" id="booking-search-input" type="search" placeholder="注文番号・お名前・メール・電話番号で検索" style="flex:1;min-width:220px">
         <button class="pm-btn-outline" type="submit">検索</button>
@@ -208,6 +221,6 @@
 <div id="pm-ops-resched-mount"></div>
 <footer class="pm-footer" id="pm-footer"></footer>
 
-<script type="module" src="js/pages/ops.js?v=ad54358246"></script>
+<script type="module" src="js/pages/ops.js?v=7d3ce22e06"></script>
 </body>
 </html>

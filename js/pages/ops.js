@@ -11,6 +11,7 @@ import {
 import {
   AREAS, EXTRA_OPTIONS, OPS_CANCEL_REASONS, RESCHEDULABLE_STATUSES, awaitingPhotographerAck, photographerPayoutFor, noShowQuote, jstDateIso, addDaysToIso,
   payoutBasisDate, payoutMonthClosed, payoutOptionCount, taxDeductionFor, isInvoiceRegistered, guaranteeClaimDeadline, MONITOR_CAPACITY, OPPOSITE_SEX_OPTION_KEY, isValidDeliveryUrl, withholdingTaxFor,
+  SLOT_TIMES, WEEKDAY_JP, meetingPointForArea,
 } from '../data.js';
 import { mountRescheduleModal } from '../rescheduleModal.js';
 import { safePhotoUrl } from '../util.js';
@@ -620,6 +621,132 @@ function opsBookingCardHtml(b) {
   </div>`;
 }
 
+// ---- 撮影スケジュール（1日の予定をカメラマンごとに） ----
+// 予約の一覧（過去45日〜今後）から、選んだ日の撮影をカメラマンごとに時間順で並べる。
+// 上の帯は今日から2週間の日付と撮影件数。各行の「詳細・操作」で、下の一覧のその予約へ移動する。
+let schedDay = null;
+let schedRows = [];
+const schedMin = (t) => Number(String(t).slice(0, 2)) * 60 + Number(String(t).slice(3, 5));
+const SCHED_FROM = schedMin(SLOT_TIMES[0]);
+const SCHED_TO = 22 * 60;
+const dayLabel = (iso) => {
+  const [y, m, d] = iso.split('-').map(Number);
+  return `${m}月${d}日（${WEEKDAY_JP[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]}）`;
+};
+const shortPlace = (s) => String(s || '').replace(/（[^）]*）\s*$/, '');
+
+function schedItemHtml(b) {
+  const optionLabels = (b.options || []).map((o) => (EXTRA_OPTIONS.find((x) => x.key === o.key) || {}).label).filter(Boolean);
+  const meeting = meetingPointForArea(b.area, b.booking_date, b.start_time);
+  const pending = b.status === 'pending_payment';
+  const unacked = awaitingPhotographerAck(b);
+  const flag = pending ? `<span class="pm-sched-flag is-muted">決済待ち</span>`
+    : unacked ? `<span class="pm-sched-flag is-warn">カメラマン未確認</span>`
+      : b.photographer_ack_at ? `<span class="pm-sched-flag is-ok">カメラマン確認済み</span>` : '';
+  return `<li class="pm-sched-item${pending ? ' is-pending' : ''}${unacked ? ' is-warn' : ''}">
+    <span class="pm-sched-time">${String(b.start_time).slice(0, 5)}<small>〜${String(b.end_time).slice(0, 5)}</small></span>
+    <div class="pm-sched-body">
+      <div class="pm-sched-name">${escapeHtml(b.customer_name || '依頼者')} 様 ${flag}</div>
+      <div class="pm-sched-meta">${escapeHtml(b.plan_name || '')}${b.monitor_application_id ? '（モニター価格）' : ''}${optionLabels.length ? ` ＋ ${optionLabels.map(escapeHtml).join('、')}` : ''}</div>
+      <div class="pm-sched-meta">${escapeHtml(b.area || '')}${meeting ? ` ・ 集合：${escapeHtml(shortPlace(meeting.detail))}` : ''}</div>
+      <div class="pm-sched-meta">連絡先：${escapeHtml(b.customer_contact || '-')}${b.order_number ? ` ・ ${escapeHtml(b.order_number)}` : ''}</div>
+    </div>
+    <a href="#" class="pm-sched-jump" data-id="${b.id}">詳細・操作</a>
+  </li>`;
+}
+
+function renderSchedule() {
+  const today = jstDateIso();
+  const earliest = addDaysToIso(today, -45);
+  if (!schedDay) schedDay = today;
+  const active = schedRows.filter((b) => b.status !== 'canceled');
+  const countByDay = {};
+  // 件数は決済が済んだ撮影だけ（決済待ちは数えない。下のまとめの「撮影 ○件」と同じ）
+  active.filter((b) => b.status !== 'pending_payment').forEach((b) => { countByDay[b.booking_date] = (countByDay[b.booking_date] || 0) + 1; });
+
+  // 今日から2週間の帯（件数つき）
+  const days = Array.from({ length: 14 }, (_, i) => addDaysToIso(today, i));
+  document.getElementById('pm-sched-days').innerHTML = days.map((d) => {
+    const [, m, dd] = d.split('-').map(Number);
+    const w = WEEKDAY_JP[new Date(`${d}T00:00:00Z`).getUTCDay()];
+    const n = countByDay[d] || 0;
+    return `<button type="button" role="tab" aria-selected="${d === schedDay}" class="pm-sched-day${d === schedDay ? ' is-on' : ''}${n ? '' : ' is-empty'}${w === '土' ? ' is-sat' : ''}${w === '日' ? ' is-sun' : ''}" data-day="${d}">
+      <span class="pm-sched-day-w">${d === today ? '今日' : w}</span><span class="pm-sched-day-d">${m}/${dd}</span><span class="pm-sched-day-n">${n ? `${n}件` : '—'}</span></button>`;
+  }).join('');
+  const dateInput = document.getElementById('pm-sched-date');
+  dateInput.value = schedDay;
+  dateInput.min = earliest;
+
+  const el = document.getElementById('pm-schedule');
+  if (schedDay < earliest) {
+    el.innerHTML = `<div class="pm-empty">${dayLabel(schedDay)}：45日より前の撮影は、ここには表示されません。検索欄（注文番号・お名前など）から探してください。</div>`;
+    return;
+  }
+  const rows = active.filter((b) => b.booking_date === schedDay)
+    .sort((a, b) => String(a.start_time).localeCompare(String(b.start_time)));
+  const lanes = [];
+  rows.forEach((b) => {
+    let lane = lanes.find((l) => l.id === b.photographer_id);
+    if (!lane) { lane = { id: b.photographer_id, name: b.photographer_name, rows: [] }; lanes.push(lane); }
+    lane.rows.push(b);
+  });
+  const paidRows = rows.filter((b) => b.status !== 'pending_payment');
+  const revenue = paidRows.reduce((sum, b) => sum + (b.total_price || 0), 0);
+  const unacked = rows.filter(awaitingPhotographerAck).length;
+  const pendingPay = rows.length - paidRows.length;
+  const head = `<div class="pm-sched-summary">
+      <b class="pm-sched-summary-day">${dayLabel(schedDay)}${schedDay === today ? '<span>今日</span>' : ''}</b>
+      <span>撮影 <b>${paidRows.length}</b>件</span>
+      <span>カメラマン <b>${lanes.length}</b>人</span>
+      <span>売上 <b>${yen(revenue)}</b></span>
+      ${unacked ? `<span class="is-warn">カメラマン未確認 <b>${unacked}</b>件</span>` : ''}
+      ${pendingPay ? `<span class="is-muted">決済待ち ${pendingPay}件</span>` : ''}
+    </div>`;
+  if (!rows.length) {
+    el.innerHTML = `${head}<div class="pm-empty">この日の撮影はありません。</div>`;
+    return;
+  }
+  const span = SCHED_TO - SCHED_FROM;
+  const ticks = [];
+  for (let h = Math.ceil(SCHED_FROM / 60); h <= SCHED_TO / 60; h += 2) ticks.push(h);
+  el.innerHTML = head + lanes.map((lane) => `
+    <div class="pm-sched-lane">
+      <div class="pm-sched-lane-head"><b>${escapeHtml(lane.name || '')}</b><span>${lane.rows.length}件</span></div>
+      <div class="pm-sched-bar" aria-hidden="true">
+        ${ticks.map((h) => `<span class="pm-sched-tick" style="left:${(((h * 60) - SCHED_FROM) / span) * 100}%">${h}</span>`).join('')}
+        ${lane.rows.map((b) => {
+          const s = schedMin(b.start_time);
+          const e = schedMin(b.end_time || b.start_time);
+          return `<span class="pm-sched-block${b.status === 'pending_payment' ? ' is-pending' : ''}${awaitingPhotographerAck(b) ? ' is-warn' : ''}" style="left:${((s - SCHED_FROM) / span) * 100}%;width:${Math.max(((e - s) / span) * 100, 1.5)}%"></span>`;
+        }).join('')}
+      </div>
+      <ol class="pm-sched-list">${lane.rows.map(schedItemHtml).join('')}</ol>
+    </div>`).join('');
+
+  el.querySelectorAll('.pm-sched-jump').forEach((a) => a.addEventListener('click', (e) => {
+    e.preventDefault();
+    const card = document.querySelector(`#pm-bookings-upcoming [data-booking-row="${a.dataset.id}"], #pm-bookings-recent [data-booking-row="${a.dataset.id}"]`);
+    if (!card) return;
+    const details = card.closest('details');
+    if (details) details.open = true;
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    card.classList.add('pm-flash');
+    setTimeout(() => card.classList.remove('pm-flash'), 2000);
+  }));
+}
+
+{
+  const go = (d) => { schedDay = d; renderSchedule(); };
+  document.getElementById('pm-sched-prev').addEventListener('click', () => go(addDaysToIso(schedDay || jstDateIso(), -1)));
+  document.getElementById('pm-sched-next').addEventListener('click', () => go(addDaysToIso(schedDay || jstDateIso(), 1)));
+  document.getElementById('pm-sched-today').addEventListener('click', () => go(jstDateIso()));
+  document.getElementById('pm-sched-date').addEventListener('change', (e) => { if (e.target.value) go(e.target.value); });
+  document.getElementById('pm-sched-days').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-day]');
+    if (btn) go(btn.dataset.day);
+  });
+}
+
 // 注文番号・お名前・連絡先での検索（期間の制限なし）。結果は検索欄の下に出し、
 // ほかの一覧と同じ操作ができる。
 let bookingSearch = '';
@@ -642,7 +769,8 @@ async function loadBookings() {
   const visible = list.filter((b) => !(b.status === 'pending_payment' && Date.now() - new Date(b.created_at).getTime() > 60 * 60 * 1000));
   // 要対応 also lists delivered shoots still waiting for their 異性スタッフ pick.
   const attention = [...needing, ...visible.filter((b) => needsStaffPick(b) && !needing.some((n) => n.id === b.id))];
-  const upcoming = visible.filter((b) => b.booking_date >= today && b.status !== 'canceled');
+  const upcoming = visible.filter((b) => b.booking_date >= today && b.status !== 'canceled')
+    .sort((x, y) => `${x.booking_date} ${x.start_time}`.localeCompare(`${y.booking_date} ${y.start_time}`));
   const recent = visible.filter((b) => b.booking_date < today || b.status === 'canceled').reverse();
   const all = [...attention, ...visible, ...(found || [])];
   const byId = Object.fromEntries(all.map((b) => [b.id, b]));
@@ -650,7 +778,16 @@ async function loadBookings() {
     document.getElementById(id).innerHTML = rows.length ? rows.map(opsBookingCardHtml).join('') : `<div class="pm-empty">${empty}</div>`;
   };
   fill('pm-bookings-attention', attention, '対応が必要な予約はありません。');
-  fill('pm-bookings-upcoming', upcoming, '今後の予約はありません。');
+  // 今後の予約は日付ごとに見出しを付けて並べる。
+  document.getElementById('pm-bookings-upcoming').innerHTML = upcoming.length
+    ? upcoming.map((b, i) => {
+      const first = i === 0 || upcoming[i - 1].booking_date !== b.booking_date;
+      const n = upcoming.filter((x) => x.booking_date === b.booking_date).length;
+      return `${first ? `<div class="pm-ops-day-head">${dayLabel(b.booking_date)}${b.booking_date === today ? '<span>今日</span>' : ''}<small>${n}件</small></div>` : ''}${opsBookingCardHtml(b)}`;
+    }).join('')
+    : '<div class="pm-empty">今後の予約はありません。</div>';
+  schedRows = visible;
+  renderSchedule();
   fill('pm-bookings-recent', recent, '過去45日の撮影・キャンセルはありません。');
 
   const refresh = () => { loadBookings().catch(console.error); loadPayouts().catch(console.error); };
