@@ -637,3 +637,58 @@ img.pm-img-fade.is-loaded { opacity: 1; }
 .pm-foryou-q { background: oklch(0.95 0.01 230); color: oklch(0.5 0.02 235); font: 800 13px/1 var(--pm-font-num); }
 .pm-foryou-check { background: var(--pm-brand-grad); }
 .pm-foryou-footer { display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 11px 20px; border-radius: 100px; background: oklch(0.96 0.04 70); font: 700 clamp(13px, 3vw, 15px)/1.5 var(--pm-font-body); color: oklch(0.42 0.1 55); }
+
+/* ---------- 運営：撮影スケジュール（1日の予定） ---------- */
+.pm-sched { padding: 18px 20px; margin-bottom: 28px; }
+.pm-sched-top { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.pm-sched-title { margin: 0; font: 700 18px var(--pm-font-body); }
+.pm-sched-nav { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pm-sched-nav .pm-btn-outline { min-height: 36px; padding: 6px 12px; font-size: 13px; }
+.pm-sched-date .pm-input { min-height: 36px; padding: 6px 10px; width: auto; }
+.pm-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.pm-sched-days { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(58px, 1fr); gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; }
+.pm-sched-day { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 4px; border-radius: 12px; border: 1px solid var(--pm-border); background: #fff; cursor: pointer; font-family: var(--pm-font-body); color: var(--pm-text); }
+.pm-sched-day-w { font: 700 11px/1.2 var(--pm-font-body); color: var(--pm-text-3); }
+.pm-sched-day.is-sat .pm-sched-day-w { color: oklch(0.5 0.13 240); }
+.pm-sched-day.is-sun .pm-sched-day-w { color: oklch(0.55 0.16 25); }
+.pm-sched-day-d { font: 800 15px/1.2 var(--pm-font-num); }
+.pm-sched-day-n { font: 700 11px/1.2 var(--pm-font-body); color: oklch(0.42 0.13 215); }
+.pm-sched-day.is-empty .pm-sched-day-n { color: var(--pm-text-muted); }
+.pm-sched-day.is-on { background: var(--pm-navy-1); border-color: var(--pm-navy-1); color: #fff; }
+.pm-sched-day.is-on .pm-sched-day-w, .pm-sched-day.is-on .pm-sched-day-n { color: oklch(0.88 0.06 210); }
+.pm-sched-summary { display: flex; align-items: baseline; gap: 6px 16px; flex-wrap: wrap; padding: 12px 14px; border-radius: 12px; background: var(--pm-bg-soft); font: 13px var(--pm-font-body); color: var(--pm-text-2); margin-bottom: 12px; }
+.pm-sched-summary b { font: 800 15px var(--pm-font-num); color: var(--pm-text); }
+.pm-sched-summary .pm-sched-summary-day { font: 700 16px var(--pm-font-body); }
+.pm-sched-summary-day span, .pm-ops-day-head span { margin-left: 6px; padding: 2px 8px; border-radius: 100px; background: var(--pm-brand-grad); color: #fff; font: 700 11px var(--pm-font-body); vertical-align: middle; }
+.pm-sched-summary .is-warn, .pm-sched-summary .is-warn b { color: var(--pm-warn-text); }
+.pm-sched-summary .is-muted { color: var(--pm-text-muted); }
+.pm-sched-lane { border: 1px solid var(--pm-border-soft); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; background: #fff; }
+.pm-sched-lane-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font: 14px var(--pm-font-body); }
+.pm-sched-lane-head span { font: 700 12px var(--pm-font-body); color: var(--pm-text-3); }
+.pm-sched-bar { position: relative; height: 26px; border-radius: 8px; background: var(--pm-bg-soft); margin: 0 0 18px; }
+.pm-sched-tick { position: absolute; bottom: -16px; transform: translateX(-50%); font: 600 10px var(--pm-font-num); color: var(--pm-text-muted); }
+.pm-sched-tick::before { content: ''; position: absolute; left: 50%; bottom: 16px; width: 1px; height: 26px; background: var(--pm-border-faint); }
+.pm-sched-block { position: absolute; top: 3px; bottom: 3px; border-radius: 6px; background: var(--pm-brand-grad); }
+.pm-sched-block.is-warn { background: oklch(0.72 0.15 60); }
+.pm-sched-block.is-pending { background: oklch(0.85 0.02 230); }
+.pm-sched-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.pm-sched-item { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 10px 0; border-top: 1px solid var(--pm-border-faint); }
+.pm-sched-item:first-child { border-top: 0; }
+.pm-sched-item.is-pending { opacity: 0.6; }
+.pm-sched-time { font: 800 16px/1.2 var(--pm-font-num); color: var(--pm-text); display: flex; flex-direction: column; }
+.pm-sched-time small { font: 600 11px var(--pm-font-num); color: var(--pm-text-3); }
+.pm-sched-name { font: 700 14px/1.5 var(--pm-font-body); color: var(--pm-text); }
+.pm-sched-meta { font: 12px/1.7 var(--pm-font-body); color: var(--pm-text-3); overflow-wrap: anywhere; }
+.pm-sched-flag { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 100px; font: 700 11px var(--pm-font-body); vertical-align: middle; }
+.pm-sched-flag.is-ok { background: oklch(0.94 0.07 150); color: oklch(0.4 0.12 155); }
+.pm-sched-flag.is-warn { background: oklch(0.95 0.06 70); color: oklch(0.45 0.13 55); }
+.pm-sched-flag.is-muted { background: oklch(0.94 0.005 240); color: var(--pm-text-3); }
+.pm-sched-jump { font: 700 12px var(--pm-font-body); color: oklch(0.45 0.14 210); white-space: nowrap; padding-top: 2px; }
+@media (max-width: 560px) {
+  .pm-sched-item { grid-template-columns: 56px minmax(0, 1fr); }
+  .pm-sched-jump { grid-column: 2; }
+}
+.pm-ops-day-head { display: flex; align-items: baseline; gap: 8px; margin: 10px 0 0; padding: 0 2px; font: 700 15px var(--pm-font-body); color: var(--pm-text); }
+.pm-ops-day-head:first-child { margin-top: 0; }
+.pm-ops-day-head small { font: 600 12px var(--pm-font-body); color: var(--pm-text-3); }
+.pm-flash { outline: 3px solid oklch(0.7 0.13 210); outline-offset: 2px; transition: outline-color 0.4s; }
