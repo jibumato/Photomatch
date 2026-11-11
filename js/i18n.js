@@ -165,7 +165,6 @@ const DICT = {
   'profile.badge.english': { ja: '英語対応', en: 'English OK' },
   'profile.plans': { ja: '料金プラン', en: 'Pricing Plans' },
   'profile.reviews': { ja: 'レビュー', en: 'Reviews' },
-  'profile.reviewsEmpty': { ja: 'まだレビューはありません。', en: 'No reviews yet.' },
   'profile.plansEmpty': { ja: 'プラン情報がありません。', en: 'No plans available.' },
   'profile.bookThisPlan': { ja: 'このプランで予約', en: 'Book This Plan' },
   'profile.bookCta': { ja: '空き枠から予約する', en: 'View Availability & Book' },

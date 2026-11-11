@@ -93,6 +93,7 @@ function instagramLinkHtml(raw) {
         </a>`).join('') || `<div class="pm-empty">${t('profile.plansEmpty')}</div>`;
     }
 
+    document.getElementById('pm-reviews-section').hidden = reviews.length === 0;
     document.getElementById('pm-reviews').innerHTML = reviews.map((rv) => `
       <div style="border:1px solid var(--pm-border-soft);border-radius:14px;padding:16px">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
@@ -100,7 +101,7 @@ function instagramLinkHtml(raw) {
           <span style="font:13px var(--pm-font-body);color:var(--pm-star)">${starsLabel(rv.stars)}</span>
         </div>
         <div style="font:13px/1.7 var(--pm-font-body);color:oklch(0.45 0.02 235)">${escapeHtml(rv.comment || '')}</div>
-      </div>`).join('') || `<div class="pm-empty">${t('profile.reviewsEmpty')}</div>`;
+      </div>`).join('');
   } catch (err) {
     document.getElementById('pm-loading').textContent = t('profile.loadError');
     console.error(err);
