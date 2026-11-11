@@ -582,7 +582,7 @@ insert into plans (photographer_id, name, price, original_price, discount_label,
 select p.id, v.name, v.price, v.original_price, v.discount_label, v.description, v.duration_min, v.sort_order
 from photographers p
 cross join (values
-  ('スマホプラン', 6800, 7800, '1,000円OFF', '45分・20枚納品・スマホ撮影', 45, 0),
+  ('スマホプラン', 6800, 7800, '1,000円OFF', '45分・スマホ20枚納品', 45, 0),
   ('スタンダード', 8800, 9800, '1,000円OFF', '45分・一眼20枚納品', 45, 1),
   ('スタンダードプラス', 10800, 11800, '1,000円OFF', '45分・一眼20枚納品＋スマホ用5枚', 45, 2),
   ('結婚相談所', 8800, 9800, '1,000円OFF', '45分・一眼10枚納品', 45, 3)
@@ -1219,3 +1219,8 @@ update plans set description = '45分・一眼20枚納品＋スマホ用5枚'
   where name = 'スタンダードプラス' and description = '45分・20枚納品＋スマホ用5枚';
 update plans set description = '45分・一眼10枚納品'
   where name = '結婚相談所' and description = '45分・10枚納品';
+
+-- スマホプランの説明を「スマホ20枚納品」と分かりやすく（2026年11月）。標準の説明のままの行だけを
+-- 書き換えるので、カメラマンが独自に変えた説明には触れず、何度実行しても安全。
+update plans set description = '45分・スマホ20枚納品'
+  where name = 'スマホプラン' and description = '45分・20枚納品・スマホ撮影';
