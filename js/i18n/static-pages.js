@@ -37,7 +37,7 @@ registerDict({
   'monitor.badge': { ja: '先着10名限定', en: 'First 10 applicants only' },
   'monitor.title': { ja: 'モニター価格プラン募集', en: 'Monitor Pricing Plan: Now Recruiting' },
   'monitor.lead': {
-    ja: 'スタンダードプラン（45分・一眼20枚納品）を<b style="color:oklch(0.35 0.02 235)">半額の¥4,400（税込）</b>、スマホプラン（45分・20枚納品・スマホ撮影）を<b style="color:oklch(0.35 0.02 235)">半額の¥3,400（税込）</b>でご利用いただけます。マッチングアプリの写真を変えた前後の変化を教えていただく、モニター企画です。',
+    ja: 'スタンダードプラン（45分・一眼20枚納品）を<b style="color:oklch(0.35 0.02 235)">半額の¥4,400（税込）</b>、スマホプラン（45分・スマホ20枚納品）を<b style="color:oklch(0.35 0.02 235)">半額の¥3,400（税込）</b>でご利用いただけます。マッチングアプリの写真を変えた前後の変化を教えていただく、モニター企画です。',
     en: 'Get the Standard Plan (45 min · 20 photos delivered · shot on a pro camera) at <b style="color:oklch(0.35 0.02 235)">half price: ¥4,400 (tax incl.)</b>, or the Smartphone Plan (45 min · 20 photos delivered · shot on smartphone) at <b style="color:oklch(0.35 0.02 235)">half price: ¥3,400 (tax incl.)</b>. In return, we ask you to tell us how things change before and after you update your dating-app photos.',
   },
   'monitor.eligible.title': { ja: 'ご応募いただける方', en: 'Who Can Apply' },

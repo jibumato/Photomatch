@@ -270,7 +270,7 @@ export const FAQS = [
     a: '撮影は公共の場所で行うため、完全に人目を避けることはできませんが、できるだけ人通りの少ないスポットや時間帯を選んで撮影します。ご希望は、ご予約後の事前カウンセリングやカメラマンとのチャットでお伝えください。',
     aEn: "Because we shoot in public places we can't completely avoid other people, but we choose quieter spots and times whenever possible. Let your photographer know your preference in the pre-shoot questionnaire or in chat after you book." },
   { q: 'すべてスマホで撮ってもらうことはできますか？', qEn: 'Can the whole shoot be done on a smartphone?',
-    a: 'できます。「スマホプラン」（45分・20枚納品・スマホ撮影）をお選びください。',
+    a: 'できます。「スマホプラン」（45分・スマホ20枚納品）をお選びください。',
     aEn: 'Yes. Choose the "Smartphone Plan" (45 min, 20 photos delivered, shot on a smartphone).' },
   { q: '撮った写真は、マッチングアプリ以外にも使えますか？', qEn: 'Can I use the photos for things other than dating apps?',
     a: 'もちろんお使いいただけます。SNSのアイコンやLINEのプロフィール写真などにお使いの方もいらっしゃいます。個人的な利用の範囲を超える使い方（商用利用など）をされる場合は、事前にご相談ください。',
@@ -606,7 +606,7 @@ export const COLUMN_ARTICLES = [
 // the `plans` rows in supabase/schema.sql. planNameText()/planDescText() in
 // js/i18n.js translate the same wording where it's echoed back from the DB.
 export const PRICING_PLANS = [
-  { name: 'スマホプラン', nameEn: 'Smartphone Plan', price: '6,800', originalPrice: '7,800', discountLabel: '1,000円OFF', desc: '45分・20枚納品・スマホ撮影', descEn: '45 min · 20 photos delivered · shot on smartphone', photos: 20,
+  { name: 'スマホプラン', nameEn: 'Smartphone Plan', price: '6,800', originalPrice: '7,800', discountLabel: '1,000円OFF', desc: '45分・スマホ20枚納品', descEn: '45 min · 20 smartphone photos delivered', photos: 20,
     recommend: ['まずは気軽にプロの撮影を試したい', 'スマホらしい自然な写り（盛りすぎない感じ）が好み'],
     recommendEn: ['You want to try a pro shoot without a big commitment', 'You like the natural look of smartphone photos'] },
   { name: 'スタンダード', nameEn: 'Standard', price: '8,800', originalPrice: '9,800', discountLabel: '1,000円OFF', desc: '45分・一眼20枚納品', descEn: '45 min · 20 photos delivered · shot on a pro camera', photos: 20, featured: true,
@@ -894,7 +894,8 @@ export function planDetailItems(b) {
   const count = desc.match(/(\d+)枚納品([＋+][^・]+)?/);
   if (count) items.push({ k: '納品枚数', v: `${count[1]}枚${count[2] ? `（${count[2].replace(/^[＋+]/, '＋')}）` : ''}${optionKeys.includes('fullData') ? '　※全データ納品オプションで、撮影した全カットもお渡しします' : ''}` });
   else if (desc) items.push({ k: 'プラン内容', v: desc });
-  if (desc.includes('スマホ撮影')) items.push({ k: '撮影機材', v: 'スマートフォン' });
+  // 「スマホ撮影」（以前の説明）または「スマホ20枚納品」。「スマホ用5枚」（スタンダードプラス）は一眼のプラン。
+  if (desc.includes('スマホ撮影') || /スマホ\d+枚/.test(desc)) items.push({ k: '撮影機材', v: 'スマートフォン' });
   else if (desc.includes('一眼')) items.push({ k: '撮影機材', v: '一眼カメラ' });
   if (b && b.booking_date) {
     const due = deliveryDueDate(b);
