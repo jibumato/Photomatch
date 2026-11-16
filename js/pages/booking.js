@@ -7,7 +7,7 @@ import { loadDailyWeather } from '../weather.js';
 import { takenIntervalsFrom, openSetFrom, isSlotTaken, canStartAt } from '../availability.js';
 import { escapeHtml } from '../util.js';
 import {
-  AREAS, EXTRA_OPTIONS, bookingOptionItems, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
+  AREAS, optionsForPlan, bookingOptionItems, SLOT_TIMES, TOTAL_BOOKING_DAYS, buildBookingDays, addMinutes, weatherIconFor,
   MONITOR_PLAN_NAMES, monitorPriceFor, areasFor, meetingPointForArea, mapUrlFor, seasonalMeetingList, shootingSpotFor,
   CUSTOMER_GENDERS, needsGenderForOptions, normalizePhone, isValidPhone, bookingCalendarEvent, googleCalendarUrl,
 } from '../data.js';
@@ -309,7 +309,7 @@ function currentSummary() {
   const startTime = SLOT_TIMES[state.slotIndex];
   const endTime = addMinutes(startTime, plan.duration_min || 30);
   const areaLabel = (AREAS.find((a) => a.key === state.selectedArea) || AREAS[0]).label;
-  const selectedOptions = EXTRA_OPTIONS.filter((o) => state.options.includes(o.key));
+  const selectedOptions = optionsForPlan(plan).filter((o) => state.options.includes(o.key));
   const optionsTotal = selectedOptions.reduce((sum, o) => sum + o.price, 0);
   const monitor = state.hasMonitorPrice && MONITOR_PLAN_NAMES.includes(plan.name);
   const planPrice = monitor ? monitorPriceFor(plan.price) : plan.price;
@@ -341,13 +341,16 @@ function goContactStep() {
   document.getElementById('f-password').value = '';
   document.getElementById('err-password').style.display = 'none';
   showAuthNotice('');
+  // プランを選び直したときなど、そのプランで選べないオプション（スマホプランのスキンレタッチ）は外す。
+  const allowed = optionsForPlan(s.plan).map((o) => o.key);
+  state.options = state.options.filter((k) => allowed.includes(k));
   renderOptionTiles();
   updateContactStickyTotal();
   syncAuthFields();
 }
 
 function renderOptionTiles() {
-  document.getElementById('option-tiles').innerHTML = EXTRA_OPTIONS.map((o) => {
+  document.getElementById('option-tiles').innerHTML = optionsForPlan(state.plans[state.planIndex]).map((o) => {
     const active = state.options.includes(o.key);
     return `<button type="button" data-key="${o.key}" class="option-tile pm-unbutton" aria-pressed="${active}" style="cursor:pointer;width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;border:${active ? '2px solid oklch(0.62 0.14 210)' : '1px solid var(--pm-border)'};border-radius:12px;padding:14px 16px;background:${active ? 'var(--pm-bg-mint)' : '#fff'}">
       <div style="display:flex;align-items:center;gap:12px">

@@ -642,11 +642,28 @@ export const DISCOUNT_CAMPAIGN = {
 // confirmation email text).
 export const EXTRA_OPTIONS = [
   { key: 'fullData', label: '全データ納品', labelEn: 'All Photos Delivered', desc: '撮影した全カットをまとめてお渡し', descEn: 'Every shot from the session, delivered together', price: 3800 },
-  { key: 'retouch', label: 'スキンレタッチ（美肌補正）', labelEn: 'Skin Retouching', desc: '肌の質感・くすみを自然に補正（20枚まで）', descEn: 'Natural-looking skin smoothing and tone correction (up to 20 photos)', price: 3800 },
+  { key: 'retouch', label: 'スキンレタッチ（美肌補正）', labelEn: 'Skin Retouching', desc: '一眼で撮影した写真の肌を自然に補正（20枚まで・スマホ撮影分は対象外）', descEn: 'Natural-looking skin smoothing and tone correction for the photos shot on the camera (up to 20; smartphone shots not included)', price: 3800 },
   { key: 'speed', label: 'スピード納品', labelEn: 'Speed Delivery', desc: '撮影日から原則3営業日以内の通常納期を、撮影日の翌営業日（土日祝を除く）に早めるオプションです。', descEn: 'Moves the usual 3-business-day turnaround up to the next business day after your shoot (excluding weekends/holidays).', price: 3800 },
   { key: 'reschedule', label: 'あんしん振替プラン', labelEn: 'Peace-of-Mind Reschedule Plan', desc: '撮影日の2日前〜当日の急な不調・急用でも、1回まで無料で日程変更できます（3日前までは、プランなしでも無料）', descEn: 'Reschedule once for free from 2 days before up to the day itself — sudden illness or an urgent conflict. (Until 3 days before, rescheduling is free without the plan.)', price: 4800 },
   { key: 'oppositeSexPick', label: '異性スタッフ写真セレクト', labelEn: 'Opposite-Gender Staff Pick', desc: '異性のスタッフ目線でマッチングアプリ受けの良い一枚を選び、おすすめとしてご提案します', descEn: "A staff member of the opposite gender picks the shot they think will land best on dating apps, and suggests it to you.", price: 3800 },
 ];
+
+// スマホだけで撮影するプラン（スマホプラン）か。説明の「スマホ撮影」（以前の説明）または
+// 「スマホ20枚納品」で判定する。「一眼20枚納品＋スマホ用5枚」（スタンダードプラス）は一眼で撮る
+// プランなので含まない。plan は plans の行（description）でも PRICING_PLANS（desc）でもよい。
+export function isSmartphoneOnlyPlan(plan) {
+  const desc = String((plan && (plan.description || plan.desc || plan.plan_description)) || '');
+  if (desc) return desc.includes('スマホ撮影') || /スマホ\d+枚/.test(desc);
+  return !!plan && (plan.name || plan.plan_name) === 'スマホプラン';
+}
+// スキンレタッチは一眼で撮影した写真だけが対象。スマホだけのプランでは選べない
+// （スタンダードプラスでは一眼の20枚が対象で、スマホ用の5枚は対象外）。
+export const ONE_LENS_ONLY_OPTION_KEYS = ['retouch'];
+// そのプランで選べるオプション。予約画面の表示と、サーバー側の検証（create-session）で共用する。
+export function optionsForPlan(plan) {
+  const smartphoneOnly = isSmartphoneOnlyPlan(plan);
+  return EXTRA_OPTIONS.filter((o) => !(smartphoneOnly && ONE_LENS_ONLY_OPTION_KEYS.includes(o.key)));
+}
 
 // 予約のオプション（bookings.options）を、名前と金額つきで返す。金額は予約時に保存した
 // ものを優先する（あとで料金を変えても、過去の予約の明細は変わらない）。古い予約は
@@ -894,9 +911,11 @@ export function planDetailItems(b) {
   const count = desc.match(/(\d+)枚納品([＋+][^・]+)?/);
   if (count) items.push({ k: '納品枚数', v: `${count[1]}枚${count[2] ? `（${count[2].replace(/^[＋+]/, '＋')}）` : ''}${optionKeys.includes('fullData') ? '　※全データ納品オプションで、撮影した全カットもお渡しします' : ''}` });
   else if (desc) items.push({ k: 'プラン内容', v: desc });
-  // 「スマホ撮影」（以前の説明）または「スマホ20枚納品」。「スマホ用5枚」（スタンダードプラス）は一眼のプラン。
-  if (desc.includes('スマホ撮影') || /スマホ\d+枚/.test(desc)) items.push({ k: '撮影機材', v: 'スマートフォン' });
+  const smartphoneOnly = isSmartphoneOnlyPlan({ description: desc, name: b && b.plan_name });
+  if (smartphoneOnly) items.push({ k: '撮影機材', v: 'スマートフォン' });
   else if (desc.includes('一眼')) items.push({ k: '撮影機材', v: '一眼カメラ' });
+  // スキンレタッチの対象は一眼で撮影した写真だけ（スタンダードプラスのスマホ用5枚は対象外）。
+  if (optionKeys.includes('retouch') && !smartphoneOnly) items.push({ k: 'スキンレタッチ', v: `一眼で撮影した写真が対象（20枚まで）${/スマホ用/.test(desc) ? '。スマホ用の写真は対象外' : ''}` });
   if (b && b.booking_date) {
     const due = deliveryDueDate(b);
     const [, m, d] = due.date.split('-').map(Number);
