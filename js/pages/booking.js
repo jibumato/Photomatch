@@ -49,6 +49,7 @@ const state = {
   days: buildBookingDays(TOTAL_BOOKING_DAYS),
   takenIntervals: {}, // iso -> [[startMin,endMin], ...]
   openSet: new Set(), // `${iso}|${time}` the photographer has opened (closed by default)
+  availabilityError: null, // set when the slots/shifts load failed — the grid shows an error + retry
   lastBooking: null,
 };
 
@@ -149,15 +150,39 @@ function showAuthNotice(html) {
   el.style.display = html ? 'block' : 'none';
 }
 
+// A request that never answers would otherwise leave the calendar blank
+// forever, so give up after this long and show the error with a retry button.
+const AVAILABILITY_TIMEOUT_MS = 15000;
+
 async function loadAvailability() {
   const fromIso = state.days[0].iso;
   const toIso = state.days[state.days.length - 1].iso;
-  const [taken, shifts] = await Promise.all([
-    getTakenSlots(photographerId, fromIso, toIso),
-    getOpenShifts(photographerId, fromIso, toIso),
-  ]);
-  state.takenIntervals = takenIntervalsFrom(taken);
-  state.openSet = openSetFrom(shifts);
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('availability load timed out')), AVAILABILITY_TIMEOUT_MS);
+  });
+  try {
+    const [taken, shifts] = await Promise.race([
+      Promise.all([
+        getTakenSlots(photographerId, fromIso, toIso),
+        getOpenShifts(photographerId, fromIso, toIso),
+      ]),
+      timeout,
+    ]);
+    state.takenIntervals = takenIntervalsFrom(taken);
+    state.openSet = openSetFrom(shifts);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Availability and weather for the slot step. A failed availability load is
+// remembered (and logged) so renderSlotGrid shows an error instead of an empty
+// calendar; the weather never throws (it falls back to no icons).
+async function loadSlotData() {
+  const [availability] = await Promise.allSettled([loadAvailability(), loadWeather()]);
+  state.availabilityError = availability.status === 'rejected' ? availability.reason : null;
+  if (state.availabilityError) console.error('availability load failed', state.availabilityError);
 }
 
 async function loadWeather() {
@@ -198,7 +223,7 @@ async function goSlotStep() {
   const plan = state.plans[state.planIndex];
   document.getElementById('slot-plan-line').textContent = tf('booking.slot.planLine', { plan: planNameText(plan.name), duration: plan.duration_min });
   document.getElementById('pm-loading-slot');
-  await Promise.all([loadAvailability(), loadWeather()]);
+  await loadSlotData();
   renderSlotGrid();
 }
 
@@ -262,6 +287,16 @@ function renderSlotGrid() {
 
   const plan = state.plans[state.planIndex];
   const grid = document.getElementById('slot-grid');
+  if (state.availabilityError) {
+    grid.style.gridTemplateColumns = '1fr';
+    grid.style.minWidth = '0';
+    grid.innerHTML = `<div style="padding:24px 16px;text-align:center;font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3)">
+      <p style="margin:0 0 12px">${t('booking.slot.loadError')}</p>
+      <button type="button" id="slot-retry" class="pm-btn-outline">${t('booking.slot.retry')}</button>
+    </div>`;
+    document.getElementById('slot-retry').addEventListener('click', () => goSlotStep());
+    return;
+  }
   grid.style.gridTemplateColumns = `48px repeat(${state.days.length}, minmax(44px,1fr))`;
   grid.style.minWidth = (48 + state.days.length * 46) + 'px';
 
@@ -721,7 +756,7 @@ function renderConfirmPlace(booking) {
 
 async function goSlotStepFromRestore() {
   showStep('slot');
-  await Promise.all([loadAvailability(), loadWeather()]);
+  await loadSlotData();
   renderAreaChips();
   const plan = state.plans[state.planIndex];
   document.getElementById('slot-plan-line').textContent = tf('booking.slot.planLine', { plan: planNameText(plan.name), duration: plan.duration_min });

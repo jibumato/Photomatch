@@ -265,6 +265,8 @@ const DICT = {
   'booking.slot.weatherLoading': { ja: '天気予報を取得中…', en: 'Loading forecast…' },
   'booking.slot.weatherFor': { ja: '天気予報は「{area}」の予報です。', en: 'The forecast shown is for {area}.' },
   'booking.slot.weatherFailed': { ja: '天気予報を取得できませんでした。', en: "Couldn't load the weather forecast." },
+  'booking.slot.loadError': { ja: '空き枠を読み込めませんでした。通信状況をご確認のうえ、もう一度お試しください。', en: "Couldn't load the available times. Please check your connection and try again." },
+  'booking.slot.retry': { ja: 'もう一度読み込む', en: 'Try again' },
   'booking.slot.windowNote': { ja: 'ご予約は3日後から30日先まで承っています。', en: 'Bookings are open from 3 to 30 days from today.' },
   'booking.contact.summary': { ja: '{name}さん ・ {plan}（{duration}分）<br>{date}（{day}） {start}〜{end}<br>撮影エリア：{area}', en: '{name} ・ {plan} ({duration} min)<br>{date} ({day}) {start}–{end}<br>Shoot area: {area}' },
   'booking.contact.passwordTooShort': { ja: 'パスワードは6文字以上でご記入ください', en: 'Password must be at least 6 characters' },
