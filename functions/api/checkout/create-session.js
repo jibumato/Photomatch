@@ -5,7 +5,7 @@
 // redirect to.
 import {
   AREAS, SLOT_TIMES, MONITOR_PLAN_NAMES, monitorPriceFor, monitorBookingCounts, areasFor, HIDDEN_AREAS,
-  EXTRA_OPTIONS, optionsForPlan, CHECKOUT_EXPIRES_MIN, isValidCustomerGender, needsGenderForOptions,
+  EXTRA_OPTIONS, CHECKOUT_EXPIRES_MIN, isValidCustomerGender, needsGenderForOptions,
   splitCustomerContact, isValidPhone,
 } from '../../../js/data.js';
 import { verifyUser, restSelect, restInsert, restUpdate } from '../../_lib/supabaseAdmin.js';
@@ -117,10 +117,7 @@ export async function onRequestPost({ request, env }) {
 
   // Keep only known option keys, once each: the charge, the stored options and
   // the photographer payout (¥1,500 per option) must all count the same list.
-  // Only options the plan allows: スキンレタッチ is for the camera (一眼) shots,
-  // so a smartphone-only plan can't take it.
-  const requestedKeys = Array.isArray(optionKeys) ? optionKeys : [];
-  const validOptionKeys = optionsForPlan(plan).map((o) => o.key).filter((k) => requestedKeys.includes(k));
+  const validOptionKeys = EXTRA_OPTIONS.map((o) => o.key).filter((k) => (Array.isArray(optionKeys) ? optionKeys : []).includes(k));
   const optionsTotal = optionsTotalFor(validOptionKeys);
   const totalPrice = planPrice + optionsTotal;
 

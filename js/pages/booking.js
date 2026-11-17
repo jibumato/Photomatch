@@ -341,9 +341,6 @@ function goContactStep() {
   document.getElementById('f-password').value = '';
   document.getElementById('err-password').style.display = 'none';
   showAuthNotice('');
-  // プランを選び直したときなど、そのプランで選べないオプション（スマホプランのスキンレタッチ）は外す。
-  const allowed = optionsForPlan(s.plan).map((o) => o.key);
-  state.options = state.options.filter((k) => allowed.includes(k));
   renderOptionTiles();
   updateContactStickyTotal();
   syncAuthFields();
