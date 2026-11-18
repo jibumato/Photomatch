@@ -659,11 +659,11 @@ export function isSmartphoneOnlyPlan(plan) {
 // 一眼とスマホの両方で撮るプラン（スタンダードプラス「一眼20枚納品＋スマホ用5枚」）か。
 const hasSmartphoneExtras = (plan) => /スマホ用/.test(String((plan && (plan.description || plan.desc || plan.plan_description)) || ''));
 // スキンレタッチの対象：一眼のプランは一眼で撮影した写真、単体のスマホプランはスマホで撮影した写真。
-// スタンダードプラスのスマホ用5枚は対象外。予約画面の説明と、予約メールの明細で使う。
+// スタンダードプラスのスマホ用5枚は対象外。予約画面と、予約メール・完了画面のオプションの説明で使う。
 export function retouchScopeFor(plan) {
-  if (isSmartphoneOnlyPlan(plan)) return { ja: 'スマホで撮影した写真の肌を自然に補正（20枚まで）', en: 'Natural-looking skin smoothing for your smartphone shots (up to 20 photos)', short: 'スマホで撮影した写真が対象（20枚まで）' };
-  if (hasSmartphoneExtras(plan)) return { ja: '一眼で撮影した写真の肌を自然に補正（20枚まで・スマホ用の写真は対象外）', en: 'Natural-looking skin smoothing for the camera shots (up to 20; the smartphone shots are not included)', short: '一眼で撮影した写真が対象（20枚まで）。スマホ用の写真は対象外' };
-  return { ja: '一眼で撮影した写真の肌を自然に補正（20枚まで）', en: 'Natural-looking skin smoothing for your camera shots (up to 20 photos)', short: '一眼で撮影した写真が対象（20枚まで）' };
+  if (isSmartphoneOnlyPlan(plan)) return { ja: 'スマホで撮影した写真の肌を自然に補正（20枚まで）', en: 'Natural-looking skin smoothing for your smartphone shots (up to 20 photos)' };
+  if (hasSmartphoneExtras(plan)) return { ja: '一眼で撮影した写真の肌を自然に補正（20枚まで・スマホ用の写真は対象外）', en: 'Natural-looking skin smoothing for the camera shots (up to 20; the smartphone shots are not included)' };
+  return { ja: '一眼で撮影した写真の肌を自然に補正（20枚まで）', en: 'Natural-looking skin smoothing for your camera shots (up to 20 photos)' };
 }
 // 予約画面に出すオプション。スキンレタッチだけ、プランに合わせて対象の説明を変える。
 export function optionsForPlan(plan) {
@@ -677,12 +677,17 @@ export function optionsForPlan(plan) {
 // 予約のオプション（bookings.options）を、名前と金額つきで返す。金額は予約時に保存した
 // ものを優先する（あとで料金を変えても、過去の予約の明細は変わらない）。古い予約は
 // key だけなので、いまの EXTRA_OPTIONS の金額で補う。
+// 予約したプランの説明。予約時に保存した説明を使い、古い予約は標準プランの説明で補う。
+const bookedPlanDesc = (b) => String((b && b.plan_description) || (PRICING_PLANS.find((p) => p.name === (b && b.plan_name)) || {}).desc || '');
 export function bookingOptionItems(b) {
   return ((b && b.options) || [])
     .map((o) => {
       const def = EXTRA_OPTIONS.find((x) => x.key === o.key);
       if (!def) return null;
-      return { ...def, price: Number.isFinite(o.price) ? o.price : def.price };
+      // スキンレタッチは、予約したプランに合わせた対象の説明にする（予約メール・完了画面で、
+      // プラン内容の欄とは別に対象を書かなくて済むようにする）。
+      const scope = o.key === 'retouch' ? retouchScopeFor({ description: bookedPlanDesc(b), name: b.plan_name }) : null;
+      return { ...def, ...(scope ? { desc: scope.ja, descEn: scope.en } : {}), price: Number.isFinite(o.price) ? o.price : def.price };
     })
     .filter(Boolean);
 }
@@ -912,7 +917,7 @@ export function deliveryDueDate(booking) {
 // 保存したものを使い、古い予約は標準プラン（PRICING_PLANS）の説明で補う。
 // 返り値は [{ k: '撮影時間', v: '45分' }, …]。
 export function planDetailItems(b) {
-  const desc = String((b && b.plan_description) || (PRICING_PLANS.find((p) => p.name === (b && b.plan_name)) || {}).desc || '');
+  const desc = bookedPlanDesc(b);
   const optionKeys = ((b && b.options) || []).map((o) => o.key);
   const items = [];
   const minutes = (b && b.duration_min) || (desc.match(/(\d+)分/) || [])[1];
@@ -923,8 +928,6 @@ export function planDetailItems(b) {
   const smartphoneOnly = isSmartphoneOnlyPlan({ description: desc, name: b && b.plan_name });
   if (smartphoneOnly) items.push({ k: '撮影機材', v: 'スマートフォン' });
   else if (desc.includes('一眼')) items.push({ k: '撮影機材', v: '一眼カメラ' });
-  // スキンレタッチの対象（スタンダードプラスのスマホ用5枚は対象外）。
-  if (optionKeys.includes('retouch')) items.push({ k: 'スキンレタッチ', v: retouchScopeFor({ description: desc, name: b && b.plan_name }).short });
   if (b && b.booking_date) {
     const due = deliveryDueDate(b);
     const [, m, d] = due.date.split('-').map(Number);
