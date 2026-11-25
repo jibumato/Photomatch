@@ -14,6 +14,7 @@ import {
   SLOT_TIMES, WEEKDAY_JP, meetingPointForArea,
 } from '../data.js';
 import { mountRescheduleModal } from '../rescheduleModal.js';
+import { mountChatModal } from '../chat.js';
 import { safePhotoUrl } from '../util.js';
 
 mountLayout();
@@ -563,6 +564,7 @@ async function handleNoShow(b, btn, after) {
 
 // ---- 予約の管理 ----
 const reschedModal = mountRescheduleModal(document.getElementById('pm-ops-resched-mount'));
+const chatModal = mountChatModal(document.getElementById('pm-chat-mount'));
 const OPS_STATUS = { pending_payment: '決済待ち', paid: '確定', confirmed: '確定', requested: '依頼中', completed: '完了', canceled: 'キャンセル済' };
 const CANCEL_REASON_LABEL = { customer: 'お客様がキャンセル', no_show: '遅刻キャンセル', system: '決済の取り消し（自動）', ops: '運営がキャンセル' };
 const REFUND_LABEL = { none: '返金なし', pending: '返金処理中', succeeded: '返金済み', failed: '自動返金に失敗' };
@@ -578,6 +580,7 @@ function opsBookingCardHtml(b) {
   const active = RESCHEDULABLE_STATUSES.includes(b.status) || b.status === 'pending_payment';
   const canAct = b.payout_status !== 'released';
   const actions = [];
+  actions.push(`<button data-id="${b.id}" class="btn-ops-chat pm-btn-outline">チャット</button>`);
   if (canAct && RESCHEDULABLE_STATUSES.includes(b.status)) actions.push(`<button data-id="${b.id}" class="btn-ops-resched pm-btn-outline">日程変更</button>`);
   if (canAct && active) actions.push(`<button data-id="${b.id}" class="btn-ops-cancel pm-btn-danger-outline">キャンセル（返金）</button>`);
   if (noShowQuote(b).allowed) actions.push(`<button data-id="${b.id}" class="btn-ops-noshow pm-btn-danger-outline">遅刻キャンセル</button>`);
@@ -795,6 +798,7 @@ async function loadBookings() {
     .forEach((btn) => btn.addEventListener('click', () => fn(byId[btn.dataset.id], btn)));
 
   each('btn-ops-resched', (b) => reschedModal.open(b, refresh, { asOps: true }));
+  each('btn-ops-chat', (b) => chatModal.open(b.id, 'ops', `${b.customer_name || '依頼者'} ⇄ ${b.photographer_name || 'カメラマン'}`, `${b.booking_date} ${String(b.start_time).slice(0, 5)}〜`));
   each('btn-ops-noshow', (b, btn) => handleNoShow(b, btn, refresh));
   each('btn-ops-cancel', (b, btn) => {
     const form = btn.closest('[data-booking-row]').querySelector('.ops-cancel-form');

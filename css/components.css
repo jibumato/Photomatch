@@ -197,6 +197,9 @@
 .pm-chat-row.mine .pm-chat-bubble { border-radius: 16px 16px 4px 16px; background: var(--pm-brand-grad-soft); color: #fff; border: none; }
 .pm-chat-meta { font: 10px var(--pm-font-num); color: var(--pm-text-muted); margin-top: 3px; }
 .pm-chat-row.mine .pm-chat-meta { text-align: right; }
+.pm-chat-bubble.retracted { background: transparent; color: var(--pm-text-muted); border: 1px dashed var(--pm-border); font-style: italic; }
+.pm-chat-row.mine .pm-chat-bubble.retracted { background: transparent; color: var(--pm-text-muted); border: 1px dashed var(--pm-border); }
+.pm-chat-retract { background: none; border: none; padding: 0; font: inherit; color: var(--pm-text-muted); text-decoration: underline; cursor: pointer; }
 .pm-chat-input-row { padding: 12px 14px; background: #fff; border-top: 1px solid var(--pm-border-soft); display: flex; gap: 10px; align-items: flex-end; }
 .pm-chat-input { flex: 1; resize: none; border: 1px solid var(--pm-border-soft); border-radius: 14px; padding: 11px 14px; font: 13px/1.5 var(--pm-font-body); background: var(--pm-bg); max-height: 100px; }
 .pm-chat-send { flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; border: none; background: var(--pm-brand-grad-soft); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }

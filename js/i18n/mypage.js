@@ -117,6 +117,11 @@ const ENTRIES = {
   'chat.withClient': { ja: '依頼者とのチャット', en: 'Chat with your client' },
   'chat.sendFailed': { ja: '送信に失敗しました。', en: 'Could not send your message.' },
   'chat.loadFailed': { ja: 'メッセージの取得に失敗しました。', en: 'Could not load messages.' },
+  'chat.retract': { ja: '取り消す', en: 'Unsend' },
+  'chat.retracted': { ja: '送信を取り消しました', en: 'This message was unsent' },
+  'chat.retractConfirm': { ja: 'このメッセージの送信を取り消しますか？\n相手の画面からも本文が消えます（メール・LINEで届いた通知は取り消せません）。', en: 'Unsend this message?' },
+  'chat.retractFailed': { ja: '取り消せませんでした。', en: 'Could not unsend the message.' },
+  'chat.opsView': { ja: 'チャットの確認（運営）', en: 'Chat (ops view)' },
 
   // ---------- counseling sheet modal (js/sheet.js) ----------
   'mypage.sheet.title': { ja: '事前カウンセリングシート', en: 'Pre-Shoot Counseling Sheet' },

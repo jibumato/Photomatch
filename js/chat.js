@@ -1,6 +1,6 @@
 import { t, getLang } from './i18n.js';
 import { jaText } from './i18n/mypage.js';
-import { getMessages, sendMessage, subscribeToMessages, markRead, notifyNewMessage } from './repo.js';
+import { getMessages, sendMessage, subscribeToMessages, markRead, notifyNewMessage, retractMessage } from './repo.js';
 
 // onClose: called after the modal closes (pages refresh their unread badges).
 // The chat is shared with the photographer/ops screens, which stay Japanese:
@@ -33,6 +33,7 @@ export function mountChatModal(container, { onClose } = {}) {
   const bodyEl = container.querySelector('#chat-body');
   const draftEl = container.querySelector('#chat-draft');
   const sendBtn = container.querySelector('#chat-send');
+  const inputRow = container.querySelector('.pm-chat-input-row');
   const partnerEl = container.querySelector('#chat-partner');
   const metaEl = container.querySelector('#chat-meta');
 
@@ -63,10 +64,13 @@ export function mountChatModal(container, { onClose } = {}) {
     }
     bodyEl.innerHTML = messages.map((m) => {
       const mine = m.sender_role === role;
+      const who = mine ? tr('chat.you') : (m.sender_role === 'pro' ? tr('chat.photographer') : tr('chat.client'));
+      // 取り消せるのは、カメラマン本人（自分のメッセージ）と運営（すべて）。お客様は取り消せない。
+      const canRetract = !m.deleted_at && (role === 'ops' || (role === 'pro' && m.sender_role === 'pro'));
       return `<div class="pm-chat-row ${mine ? 'mine' : ''}">
         <div style="max-width:80%">
-          <div class="pm-chat-bubble">${escapeHtml(m.text)}</div>
-          <div class="pm-chat-meta">${mine ? tr('chat.you') : (role === 'client' ? tr('chat.photographer') : tr('chat.client'))} ${dot()} ${timeLabel(m.created_at)}</div>
+          <div class="pm-chat-bubble${m.deleted_at ? ' retracted' : ''}">${m.deleted_at ? tr('chat.retracted') : escapeHtml(m.text)}</div>
+          <div class="pm-chat-meta">${who} ${dot()} ${timeLabel(m.created_at)}${canRetract ? ` ${dot()} <button type="button" class="pm-chat-retract" data-id="${m.id}">${tr('chat.retract')}</button>` : ''}</div>
         </div>
       </div>`;
     }).join('');
@@ -93,6 +97,21 @@ export function mountChatModal(container, { onClose } = {}) {
     }
   }
   sendBtn.addEventListener('click', send);
+  bodyEl.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.pm-chat-retract');
+    if (!btn) return;
+    if (!confirm(tr('chat.retractConfirm'))) return;
+    btn.disabled = true;
+    try {
+      await retractMessage(btn.dataset.id);
+      messages = messages.map((m) => (m.id === btn.dataset.id ? { ...m, text: '', deleted_at: new Date().toISOString() } : m));
+      renderMessages(messages);
+    } catch (err) {
+      btn.disabled = false;
+      alert(tr('chat.retractFailed'));
+      console.error(err);
+    }
+  });
   draftEl.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
   });
@@ -103,7 +122,8 @@ export function mountChatModal(container, { onClose } = {}) {
       role = chatRole;
       partnerEl.textContent = partnerLabel;
       const sep = ` ${dot()} `;
-      metaEl.textContent = (chatRole === 'client' ? tr('chat.withPhotographer') : tr('chat.withClient')) + sep + bookingLabel;
+      metaEl.textContent = (chatRole === 'ops' ? tr('chat.opsView') : chatRole === 'client' ? tr('chat.withPhotographer') : tr('chat.withClient')) + sep + bookingLabel;
+      inputRow.style.display = chatRole === 'ops' ? 'none' : '';
       draftEl.placeholder = tr('chat.placeholder');
       sendBtn.setAttribute('aria-label', tr('chat.send'));
       closeBtn.setAttribute('aria-label', tr('chat.close'));
@@ -112,7 +132,7 @@ export function mountChatModal(container, { onClose } = {}) {
       try {
         messages = await getMessages(id);
         renderMessages(messages);
-        await markRead(id, role);
+        if (role !== 'ops') await markRead(id, role);
       } catch (err) {
         bodyEl.innerHTML = `<div class="pm-empty">${tr('chat.loadFailed')}</div>`;
         console.error(err);
@@ -121,7 +141,10 @@ export function mountChatModal(container, { onClose } = {}) {
       unsubscribe = subscribeToMessages(id, (msg) => {
         messages = [...messages, msg];
         renderMessages(messages);
-        if (overlay.classList.contains('is-open')) markRead(id, role);
+        if (overlay.classList.contains('is-open') && role !== 'ops') markRead(id, role);
+      }, (msg) => {
+        messages = messages.map((m) => (m.id === msg.id ? msg : m));
+        renderMessages(messages);
       });
     },
     close,

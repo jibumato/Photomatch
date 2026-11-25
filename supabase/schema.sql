@@ -1224,3 +1224,42 @@ update plans set description = '45分・一眼10枚納品'
 -- 書き換えるので、カメラマンが独自に変えた説明には触れず、何度実行しても安全。
 update plans set description = '45分・スマホ20枚納品'
   where name = 'スマホプラン' and description = '45分・20枚納品・スマホ撮影';
+
+-- ============================================================
+-- チャットの送信取り消し（2026年11月）
+-- 取り消せるのは、カメラマン本人（自分が送ったメッセージ）と運営（すべて）だけ。
+-- お客様は取り消せない。メッセージの行は残し、本文を空にして deleted_at を入れる
+-- （お客様・カメラマンの画面には「送信を取り消しました」と出る）。
+-- 何度実行しても安全。
+-- ============================================================
+alter table messages add column if not exists deleted_at timestamptz;
+
+-- 運営がチャットを閲覧できるようにする（運営画面から取り消すため）。
+drop policy if exists "messages: ops read" on messages;
+create policy "messages: ops read" on messages
+  for select using (is_ops());
+
+-- 本文だけを消す専用の関数。messages に update ポリシーは作らない
+-- （作ると、本文の書き換えもできてしまうため）。
+create or replace function retract_message(p_message_id uuid)
+returns void
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  m messages%rowtype;
+begin
+  select * into m from messages where id = p_message_id;
+  if not found then
+    raise exception 'message not found';
+  end if;
+  if not (is_ops() or (m.sender_role = 'pro' and m.sender_id = auth.uid())) then
+    raise exception 'not allowed';
+  end if;
+  update messages set text = '', deleted_at = now()
+    where id = p_message_id and deleted_at is null;
+end;
+$$;
+
+revoke all on function retract_message(uuid) from public, anon;
+grant execute on function retract_message(uuid) to authenticated;

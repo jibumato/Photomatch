@@ -410,10 +410,16 @@ export async function sendMessage(bookingId, role, text) {
   if (error) throw error;
 }
 
-export function subscribeToMessages(bookingId, onInsert) {
+export async function retractMessage(messageId) {
+  const { error } = await supabase.rpc('retract_message', { p_message_id: messageId });
+  if (error) throw error;
+}
+
+export function subscribeToMessages(bookingId, onInsert, onUpdate) {
   const channel = supabase
     .channel('messages-' + bookingId)
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `booking_id=eq.${bookingId}` }, (payload) => onInsert(payload.new))
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `booking_id=eq.${bookingId}` }, (payload) => { if (onUpdate) onUpdate(payload.new); })
     .subscribe();
   return () => supabase.removeChannel(channel);
 }
