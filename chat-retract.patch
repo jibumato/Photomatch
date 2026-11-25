@@ -1,0 +1,236 @@
+diff --git a/css/components.css b/css/components.css
+index 40fa080..9723e09 100644
+--- a/css/components.css
++++ b/css/components.css
+@@ -197,6 +197,9 @@
+ .pm-chat-row.mine .pm-chat-bubble { border-radius: 16px 16px 4px 16px; background: var(--pm-brand-grad-soft); color: #fff; border: none; }
+ .pm-chat-meta { font: 10px var(--pm-font-num); color: var(--pm-text-muted); margin-top: 3px; }
+ .pm-chat-row.mine .pm-chat-meta { text-align: right; }
++.pm-chat-bubble.retracted { background: transparent; color: var(--pm-text-muted); border: 1px dashed var(--pm-border); font-style: italic; }
++.pm-chat-row.mine .pm-chat-bubble.retracted { background: transparent; color: var(--pm-text-muted); border: 1px dashed var(--pm-border); }
++.pm-chat-retract { background: none; border: none; padding: 0; font: inherit; color: var(--pm-text-muted); text-decoration: underline; cursor: pointer; }
+ .pm-chat-input-row { padding: 12px 14px; background: #fff; border-top: 1px solid var(--pm-border-soft); display: flex; gap: 10px; align-items: flex-end; }
+ .pm-chat-input { flex: 1; resize: none; border: 1px solid var(--pm-border-soft); border-radius: 14px; padding: 11px 14px; font: 13px/1.5 var(--pm-font-body); background: var(--pm-bg); max-height: 100px; }
+ .pm-chat-send { flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; border: none; background: var(--pm-brand-grad-soft); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+diff --git a/js/chat.js b/js/chat.js
+index 324f603..45ef30a 100644
+--- a/js/chat.js
++++ b/js/chat.js
+@@ -1,6 +1,6 @@
+ import { t, getLang } from './i18n.js';
+ import { jaText } from './i18n/mypage.js';
+-import { getMessages, sendMessage, subscribeToMessages, markRead, notifyNewMessage } from './repo.js';
++import { getMessages, sendMessage, subscribeToMessages, markRead, notifyNewMessage, retractMessage } from './repo.js';
+ 
+ // onClose: called after the modal closes (pages refresh their unread badges).
+ // The chat is shared with the photographer/ops screens, which stay Japanese:
+@@ -33,6 +33,7 @@ export function mountChatModal(container, { onClose } = {}) {
+   const bodyEl = container.querySelector('#chat-body');
+   const draftEl = container.querySelector('#chat-draft');
+   const sendBtn = container.querySelector('#chat-send');
++  const inputRow = container.querySelector('.pm-chat-input-row');
+   const partnerEl = container.querySelector('#chat-partner');
+   const metaEl = container.querySelector('#chat-meta');
+ 
+@@ -63,10 +64,13 @@ export function mountChatModal(container, { onClose } = {}) {
+     }
+     bodyEl.innerHTML = messages.map((m) => {
+       const mine = m.sender_role === role;
++      const who = mine ? tr('chat.you') : (m.sender_role === 'pro' ? tr('chat.photographer') : tr('chat.client'));
++      // 取り消せるのは、カメラマン本人（自分のメッセージ）と運営（すべて）。お客様は取り消せない。
++      const canRetract = !m.deleted_at && (role === 'ops' || (role === 'pro' && m.sender_role === 'pro'));
+       return `<div class="pm-chat-row ${mine ? 'mine' : ''}">
+         <div style="max-width:80%">
+-          <div class="pm-chat-bubble">${escapeHtml(m.text)}</div>
+-          <div class="pm-chat-meta">${mine ? tr('chat.you') : (role === 'client' ? tr('chat.photographer') : tr('chat.client'))} ${dot()} ${timeLabel(m.created_at)}</div>
++          <div class="pm-chat-bubble${m.deleted_at ? ' retracted' : ''}">${m.deleted_at ? tr('chat.retracted') : escapeHtml(m.text)}</div>
++          <div class="pm-chat-meta">${who} ${dot()} ${timeLabel(m.created_at)}${canRetract ? ` ${dot()} <button type="button" class="pm-chat-retract" data-id="${m.id}">${tr('chat.retract')}</button>` : ''}</div>
+         </div>
+       </div>`;
+     }).join('');
+@@ -93,6 +97,21 @@ export function mountChatModal(container, { onClose } = {}) {
+     }
+   }
+   sendBtn.addEventListener('click', send);
++  bodyEl.addEventListener('click', async (e) => {
++    const btn = e.target.closest('.pm-chat-retract');
++    if (!btn) return;
++    if (!confirm(tr('chat.retractConfirm'))) return;
++    btn.disabled = true;
++    try {
++      await retractMessage(btn.dataset.id);
++      messages = messages.map((m) => (m.id === btn.dataset.id ? { ...m, text: '', deleted_at: new Date().toISOString() } : m));
++      renderMessages(messages);
++    } catch (err) {
++      btn.disabled = false;
++      alert(tr('chat.retractFailed'));
++      console.error(err);
++    }
++  });
+   draftEl.addEventListener('keydown', (e) => {
+     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+   });
+@@ -103,7 +122,8 @@ export function mountChatModal(container, { onClose } = {}) {
+       role = chatRole;
+       partnerEl.textContent = partnerLabel;
+       const sep = ` ${dot()} `;
+-      metaEl.textContent = (chatRole === 'client' ? tr('chat.withPhotographer') : tr('chat.withClient')) + sep + bookingLabel;
++      metaEl.textContent = (chatRole === 'ops' ? tr('chat.opsView') : chatRole === 'client' ? tr('chat.withPhotographer') : tr('chat.withClient')) + sep + bookingLabel;
++      inputRow.style.display = chatRole === 'ops' ? 'none' : '';
+       draftEl.placeholder = tr('chat.placeholder');
+       sendBtn.setAttribute('aria-label', tr('chat.send'));
+       closeBtn.setAttribute('aria-label', tr('chat.close'));
+@@ -112,7 +132,7 @@ export function mountChatModal(container, { onClose } = {}) {
+       try {
+         messages = await getMessages(id);
+         renderMessages(messages);
+-        await markRead(id, role);
++        if (role !== 'ops') await markRead(id, role);
+       } catch (err) {
+         bodyEl.innerHTML = `<div class="pm-empty">${tr('chat.loadFailed')}</div>`;
+         console.error(err);
+@@ -121,7 +141,10 @@ export function mountChatModal(container, { onClose } = {}) {
+       unsubscribe = subscribeToMessages(id, (msg) => {
+         messages = [...messages, msg];
+         renderMessages(messages);
+-        if (overlay.classList.contains('is-open')) markRead(id, role);
++        if (overlay.classList.contains('is-open') && role !== 'ops') markRead(id, role);
++      }, (msg) => {
++        messages = messages.map((m) => (m.id === msg.id ? msg : m));
++        renderMessages(messages);
+       });
+     },
+     close,
+diff --git a/js/i18n/mypage.js b/js/i18n/mypage.js
+index 6095abd..0106292 100644
+--- a/js/i18n/mypage.js
++++ b/js/i18n/mypage.js
+@@ -117,6 +117,11 @@ const ENTRIES = {
+   'chat.withClient': { ja: '依頼者とのチャット', en: 'Chat with your client' },
+   'chat.sendFailed': { ja: '送信に失敗しました。', en: 'Could not send your message.' },
+   'chat.loadFailed': { ja: 'メッセージの取得に失敗しました。', en: 'Could not load messages.' },
++  'chat.retract': { ja: '取り消す', en: 'Unsend' },
++  'chat.retracted': { ja: '送信を取り消しました', en: 'This message was unsent' },
++  'chat.retractConfirm': { ja: 'このメッセージの送信を取り消しますか？\n相手の画面からも本文が消えます（メール・LINEで届いた通知は取り消せません）。', en: 'Unsend this message?' },
++  'chat.retractFailed': { ja: '取り消せませんでした。', en: 'Could not unsend the message.' },
++  'chat.opsView': { ja: 'チャットの確認（運営）', en: 'Chat (ops view)' },
+ 
+   // ---------- counseling sheet modal (js/sheet.js) ----------
+   'mypage.sheet.title': { ja: '事前カウンセリングシート', en: 'Pre-Shoot Counseling Sheet' },
+diff --git a/js/pages/ops.js b/js/pages/ops.js
+index 800c178..121e6bf 100644
+--- a/js/pages/ops.js
++++ b/js/pages/ops.js
+@@ -14,6 +14,7 @@ import {
+   SLOT_TIMES, WEEKDAY_JP, meetingPointForArea,
+ } from '../data.js';
+ import { mountRescheduleModal } from '../rescheduleModal.js';
++import { mountChatModal } from '../chat.js';
+ import { safePhotoUrl } from '../util.js';
+ 
+ mountLayout();
+@@ -563,6 +564,7 @@ async function handleNoShow(b, btn, after) {
+ 
+ // ---- 予約の管理 ----
+ const reschedModal = mountRescheduleModal(document.getElementById('pm-ops-resched-mount'));
++const chatModal = mountChatModal(document.getElementById('pm-chat-mount'));
+ const OPS_STATUS = { pending_payment: '決済待ち', paid: '確定', confirmed: '確定', requested: '依頼中', completed: '完了', canceled: 'キャンセル済' };
+ const CANCEL_REASON_LABEL = { customer: 'お客様がキャンセル', no_show: '遅刻キャンセル', system: '決済の取り消し（自動）', ops: '運営がキャンセル' };
+ const REFUND_LABEL = { none: '返金なし', pending: '返金処理中', succeeded: '返金済み', failed: '自動返金に失敗' };
+@@ -578,6 +580,7 @@ function opsBookingCardHtml(b) {
+   const active = RESCHEDULABLE_STATUSES.includes(b.status) || b.status === 'pending_payment';
+   const canAct = b.payout_status !== 'released';
+   const actions = [];
++  actions.push(`<button data-id="${b.id}" class="btn-ops-chat pm-btn-outline">チャット</button>`);
+   if (canAct && RESCHEDULABLE_STATUSES.includes(b.status)) actions.push(`<button data-id="${b.id}" class="btn-ops-resched pm-btn-outline">日程変更</button>`);
+   if (canAct && active) actions.push(`<button data-id="${b.id}" class="btn-ops-cancel pm-btn-danger-outline">キャンセル（返金）</button>`);
+   if (noShowQuote(b).allowed) actions.push(`<button data-id="${b.id}" class="btn-ops-noshow pm-btn-danger-outline">遅刻キャンセル</button>`);
+@@ -795,6 +798,7 @@ async function loadBookings() {
+     .forEach((btn) => btn.addEventListener('click', () => fn(byId[btn.dataset.id], btn)));
+ 
+   each('btn-ops-resched', (b) => reschedModal.open(b, refresh, { asOps: true }));
++  each('btn-ops-chat', (b) => chatModal.open(b.id, 'ops', `${b.customer_name || '依頼者'} ⇄ ${b.photographer_name || 'カメラマン'}`, `${b.booking_date} ${String(b.start_time).slice(0, 5)}〜`));
+   each('btn-ops-noshow', (b, btn) => handleNoShow(b, btn, refresh));
+   each('btn-ops-cancel', (b, btn) => {
+     const form = btn.closest('[data-booking-row]').querySelector('.ops-cancel-form');
+diff --git a/js/repo.js b/js/repo.js
+index 7805117..6153959 100644
+--- a/js/repo.js
++++ b/js/repo.js
+@@ -410,10 +410,16 @@ export async function sendMessage(bookingId, role, text) {
+   if (error) throw error;
+ }
+ 
+-export function subscribeToMessages(bookingId, onInsert) {
++export async function retractMessage(messageId) {
++  const { error } = await supabase.rpc('retract_message', { p_message_id: messageId });
++  if (error) throw error;
++}
++
++export function subscribeToMessages(bookingId, onInsert, onUpdate) {
+   const channel = supabase
+     .channel('messages-' + bookingId)
+     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `booking_id=eq.${bookingId}` }, (payload) => onInsert(payload.new))
++    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `booking_id=eq.${bookingId}` }, (payload) => { if (onUpdate) onUpdate(payload.new); })
+     .subscribe();
+   return () => supabase.removeChannel(channel);
+ }
+diff --git a/ops.html b/ops.html
+index d8ae2f3..9b63468 100644
+--- a/ops.html
++++ b/ops.html
+@@ -219,6 +219,7 @@
+ </main>
+ 
+ <div id="pm-ops-resched-mount"></div>
++<div id="pm-chat-mount"></div>
+ <footer class="pm-footer" id="pm-footer"></footer>
+ 
+ <script type="module" src="js/pages/ops.js?v=7d3ce22e06"></script>
+diff --git a/supabase/schema.sql b/supabase/schema.sql
+index 1bc367a..57353c6 100644
+--- a/supabase/schema.sql
++++ b/supabase/schema.sql
+@@ -1224,3 +1224,42 @@ update plans set description = '45分・一眼10枚納品'
+ -- 書き換えるので、カメラマンが独自に変えた説明には触れず、何度実行しても安全。
+ update plans set description = '45分・スマホ20枚納品'
+   where name = 'スマホプラン' and description = '45分・20枚納品・スマホ撮影';
++
++-- ============================================================
++-- チャットの送信取り消し（2026年11月）
++-- 取り消せるのは、カメラマン本人（自分が送ったメッセージ）と運営（すべて）だけ。
++-- お客様は取り消せない。メッセージの行は残し、本文を空にして deleted_at を入れる
++-- （お客様・カメラマンの画面には「送信を取り消しました」と出る）。
++-- 何度実行しても安全。
++-- ============================================================
++alter table messages add column if not exists deleted_at timestamptz;
++
++-- 運営がチャットを閲覧できるようにする（運営画面から取り消すため）。
++drop policy if exists "messages: ops read" on messages;
++create policy "messages: ops read" on messages
++  for select using (is_ops());
++
++-- 本文だけを消す専用の関数。messages に update ポリシーは作らない
++-- （作ると、本文の書き換えもできてしまうため）。
++create or replace function retract_message(p_message_id uuid)
++returns void
++language plpgsql
++security definer set search_path = public
++as $$
++declare
++  m messages%rowtype;
++begin
++  select * into m from messages where id = p_message_id;
++  if not found then
++    raise exception 'message not found';
++  end if;
++  if not (is_ops() or (m.sender_role = 'pro' and m.sender_id = auth.uid())) then
++    raise exception 'not allowed';
++  end if;
++  update messages set text = '', deleted_at = now()
++    where id = p_message_id and deleted_at is null;
++end;
++$$;
++
++revoke all on function retract_message(uuid) from public, anon;
++grant execute on function retract_message(uuid) to authenticated;
