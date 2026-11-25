@@ -1,0 +1,990 @@
+diff --git a/admin.html b/admin.html
+index 87300de..cf24fc9 100644
+--- a/admin.html
++++ b/admin.html
+@@ -8,7 +8,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
+ <script type="importmap">
+ {
+@@ -16,12 +16,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/article.html b/article.html
+index 9060886..9b64bef 100644
+--- a/article.html
++++ b/article.html
+@@ -10,7 +10,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script>
+   // ?id= が付いていればその記事へ、なければ一覧へ。
+   // replace() を使い、戻るボタンでこのページに戻らないようにする。
+diff --git a/booking.html b/booking.html
+index b7a735e..1032638 100644
+--- a/booking.html
++++ b/booking.html
+@@ -8,7 +8,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
+ <script type="importmap">
+ {
+@@ -16,12 +16,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/column-camera-shy.html b/column-camera-shy.html
+index c808dfe..ef85ace 100644
+--- a/column-camera-shy.html
++++ b/column-camera-shy.html
+@@ -20,7 +20,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script type="application/ld+json">
+ {
+   "@context": "https://schema.org",
+@@ -81,12 +81,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/column-gifu.html b/column-gifu.html
+index 6163463..13d9aa1 100644
+--- a/column-gifu.html
++++ b/column-gifu.html
+@@ -20,7 +20,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script type="application/ld+json">
+ {
+   "@context": "https://schema.org",
+@@ -81,12 +81,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/column-howto-men.html b/column-howto-men.html
+index bf71cd4..9c94d5d 100644
+--- a/column-howto-men.html
++++ b/column-howto-men.html
+@@ -20,7 +20,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script type="application/ld+json">
+ {
+   "@context": "https://schema.org",
+@@ -81,12 +81,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/column-main-sub.html b/column-main-sub.html
+index a9a2cb9..3a5b9fe 100644
+--- a/column-main-sub.html
++++ b/column-main-sub.html
+@@ -20,7 +20,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script type="application/ld+json">
+ {
+   "@context": "https://schema.org",
+@@ -81,12 +81,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/column-nagoya-spots.html b/column-nagoya-spots.html
+index 5f1dc75..661ffdf 100644
+--- a/column-nagoya-spots.html
++++ b/column-nagoya-spots.html
+@@ -20,7 +20,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script type="application/ld+json">
+ {
+   "@context": "https://schema.org",
+@@ -81,12 +81,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/column-nagoya.html b/column-nagoya.html
+index ec0b585..c766fb5 100644
+--- a/column-nagoya.html
++++ b/column-nagoya.html
+@@ -20,7 +20,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script type="application/ld+json">
+ {
+   "@context": "https://schema.org",
+@@ -81,12 +81,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/column-no-match.html b/column-no-match.html
+index f7b861c..3fafb31 100644
+--- a/column-no-match.html
++++ b/column-no-match.html
+@@ -20,7 +20,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script type="application/ld+json">
+ {
+   "@context": "https://schema.org",
+@@ -81,12 +81,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/column-omiai-with.html b/column-omiai-with.html
+index 95888bf..0855553 100644
+--- a/column-omiai-with.html
++++ b/column-omiai-with.html
+@@ -20,7 +20,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script type="application/ld+json">
+ {
+   "@context": "https://schema.org",
+@@ -81,12 +81,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/column-outfit.html b/column-outfit.html
+index 241e0ad..4f19d11 100644
+--- a/column-outfit.html
++++ b/column-outfit.html
+@@ -20,7 +20,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script type="application/ld+json">
+ {
+   "@context": "https://schema.org",
+@@ -81,12 +81,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/column-pairs.html b/column-pairs.html
+index edf6ab1..2086812 100644
+--- a/column-pairs.html
++++ b/column-pairs.html
+@@ -20,7 +20,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script type="application/ld+json">
+ {
+   "@context": "https://schema.org",
+@@ -81,12 +81,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/column-price.html b/column-price.html
+index ddedae6..a2bfe1e 100644
+--- a/column-price.html
++++ b/column-price.html
+@@ -20,7 +20,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script type="application/ld+json">
+ {
+   "@context": "https://schema.org",
+@@ -81,12 +81,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/column-selfie.html b/column-selfie.html
+index a9d054c..082f1b2 100644
+--- a/column-selfie.html
++++ b/column-selfie.html
+@@ -20,7 +20,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script type="application/ld+json">
+ {
+   "@context": "https://schema.org",
+@@ -81,12 +81,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/column.html b/column.html
+index 08c116f..539072d 100644
+--- a/column.html
++++ b/column.html
+@@ -19,7 +19,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <style>.pm-column-card { transition: border-color .15s; } .pm-column-card:hover { border-color: oklch(0.7 0.12 210); }</style>
+ <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
+ <script type="importmap">
+@@ -28,12 +28,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/css/components.css b/css/components.css
+index 9723e09..9b1a66f 100644
+--- a/css/components.css
++++ b/css/components.css
+@@ -197,8 +197,6 @@
+ .pm-chat-row.mine .pm-chat-bubble { border-radius: 16px 16px 4px 16px; background: var(--pm-brand-grad-soft); color: #fff; border: none; }
+ .pm-chat-meta { font: 10px var(--pm-font-num); color: var(--pm-text-muted); margin-top: 3px; }
+ .pm-chat-row.mine .pm-chat-meta { text-align: right; }
+-.pm-chat-bubble.retracted { background: transparent; color: var(--pm-text-muted); border: 1px dashed var(--pm-border); font-style: italic; }
+-.pm-chat-row.mine .pm-chat-bubble.retracted { background: transparent; color: var(--pm-text-muted); border: 1px dashed var(--pm-border); }
+ .pm-chat-retract { background: none; border: none; padding: 0; font: inherit; color: var(--pm-text-muted); text-decoration: underline; cursor: pointer; }
+ .pm-chat-input-row { padding: 12px 14px; background: #fff; border-top: 1px solid var(--pm-border-soft); display: flex; gap: 10px; align-items: flex-end; }
+ .pm-chat-input { flex: 1; resize: none; border: 1px solid var(--pm-border-soft); border-radius: 14px; padding: 11px 14px; font: 13px/1.5 var(--pm-font-body); background: var(--pm-bg); max-height: 100px; }
+diff --git a/email-confirmed.html b/email-confirmed.html
+index 16f6b09..16893c7 100644
+--- a/email-confirmed.html
++++ b/email-confirmed.html
+@@ -8,7 +8,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script>
+   // Captured before the Supabase client loads: it consumes the tokens (or
+   // the error) from the URL fragment and clears it.
+@@ -21,12 +21,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/gifu.html b/gifu.html
+index f2f009b..0716234 100644
+--- a/gifu.html
++++ b/gifu.html
+@@ -20,7 +20,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script type="application/ld+json">
+ {
+   "@context": "https://schema.org",
+@@ -96,12 +96,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/index.html b/index.html
+index d9062b2..68fd628 100644
+--- a/index.html
++++ b/index.html
+@@ -19,7 +19,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ 
+ <!-- 店舗を持たない出張型なので areaServed で提供地域を示す。
+      Googleビジネスプロフィール（サービス提供地域型）の登録内容と揃えること。 -->
+@@ -202,12 +202,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/js/chat.js b/js/chat.js
+index 45ef30a..9fa1e5c 100644
+--- a/js/chat.js
++++ b/js/chat.js
+@@ -57,7 +57,9 @@ export function mountChatModal(container, { onClose } = {}) {
+     return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+   }
+ 
+-  function renderMessages(messages) {
++  function renderMessages(allMessages) {
++    // 取り消されたメッセージは、跡を残さず表示しない。
++    const messages = allMessages.filter((m) => !m.deleted_at);
+     if (!messages.length) {
+       bodyEl.innerHTML = `<div class="pm-empty">${tr('chat.empty')}</div>`;
+       return;
+@@ -66,10 +68,10 @@ export function mountChatModal(container, { onClose } = {}) {
+       const mine = m.sender_role === role;
+       const who = mine ? tr('chat.you') : (m.sender_role === 'pro' ? tr('chat.photographer') : tr('chat.client'));
+       // 取り消せるのは、カメラマン本人（自分のメッセージ）と運営（すべて）。お客様は取り消せない。
+-      const canRetract = !m.deleted_at && (role === 'ops' || (role === 'pro' && m.sender_role === 'pro'));
++      const canRetract = role === 'ops' || (role === 'pro' && m.sender_role === 'pro');
+       return `<div class="pm-chat-row ${mine ? 'mine' : ''}">
+         <div style="max-width:80%">
+-          <div class="pm-chat-bubble${m.deleted_at ? ' retracted' : ''}">${m.deleted_at ? tr('chat.retracted') : escapeHtml(m.text)}</div>
++          <div class="pm-chat-bubble">${escapeHtml(m.text)}</div>
+           <div class="pm-chat-meta">${who} ${dot()} ${timeLabel(m.created_at)}${canRetract ? ` ${dot()} <button type="button" class="pm-chat-retract" data-id="${m.id}">${tr('chat.retract')}</button>` : ''}</div>
+         </div>
+       </div>`;
+diff --git a/js/i18n/mypage.js b/js/i18n/mypage.js
+index 0106292..e0e9467 100644
+--- a/js/i18n/mypage.js
++++ b/js/i18n/mypage.js
+@@ -118,7 +118,6 @@ const ENTRIES = {
+   'chat.sendFailed': { ja: '送信に失敗しました。', en: 'Could not send your message.' },
+   'chat.loadFailed': { ja: 'メッセージの取得に失敗しました。', en: 'Could not load messages.' },
+   'chat.retract': { ja: '取り消す', en: 'Unsend' },
+-  'chat.retracted': { ja: '送信を取り消しました', en: 'This message was unsent' },
+   'chat.retractConfirm': { ja: 'このメッセージの送信を取り消しますか？\n相手の画面からも本文が消えます（メール・LINEで届いた通知は取り消せません）。', en: 'Unsend this message?' },
+   'chat.retractFailed': { ja: '取り消せませんでした。', en: 'Could not unsend the message.' },
+   'chat.opsView': { ja: 'チャットの確認（運営）', en: 'Chat (ops view)' },
+diff --git a/login.html b/login.html
+index 665b4ef..053e64e 100644
+--- a/login.html
++++ b/login.html
+@@ -8,7 +8,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
+ <script type="importmap">
+ {
+@@ -16,12 +16,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/meeting-points.html b/meeting-points.html
+index 608d7a6..505395b 100644
+--- a/meeting-points.html
++++ b/meeting-points.html
+@@ -19,7 +19,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
+ <script type="importmap">
+ {
+@@ -27,12 +27,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/monitor.html b/monitor.html
+index 76a3b35..a126a75 100644
+--- a/monitor.html
++++ b/monitor.html
+@@ -19,7 +19,7 @@
+ <link rel="canonical" href="https://photo-match.jp/monitor">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
+ <script type="importmap">
+ {
+@@ -27,12 +27,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/mypage.html b/mypage.html
+index ea9e692..86c64d4 100644
+--- a/mypage.html
++++ b/mypage.html
+@@ -8,7 +8,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
+ <script type="importmap">
+ {
+@@ -16,12 +16,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/nagoya.html b/nagoya.html
+index 95f7de2..d691c64 100644
+--- a/nagoya.html
++++ b/nagoya.html
+@@ -20,7 +20,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script type="application/ld+json">
+ {
+   "@context": "https://schema.org",
+@@ -96,12 +96,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/ops-login.html b/ops-login.html
+index 27ed281..e505ad4 100644
+--- a/ops-login.html
++++ b/ops-login.html
+@@ -8,7 +8,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
+ <script type="importmap">
+ {
+@@ -16,12 +16,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/ops-sales.html b/ops-sales.html
+index aae2470..bfa048c 100644
+--- a/ops-sales.html
++++ b/ops-sales.html
+@@ -8,7 +8,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
+ <script type="importmap">
+ {
+@@ -16,12 +16,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/ops.html b/ops.html
+index 21737ee..0595971 100644
+--- a/ops.html
++++ b/ops.html
+@@ -8,7 +8,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
+ <script type="importmap">
+ {
+@@ -16,12 +16,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/payslip.html b/payslip.html
+index 71400a4..dfd4789 100644
+--- a/payslip.html
++++ b/payslip.html
+@@ -8,7 +8,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <style>
+   .ps-table { width: 100%; border-collapse: collapse; font: 12px var(--pm-font-body); }
+   .ps-table th { text-align: left; padding: 8px; font-weight: 700; color: var(--pm-text-3); border-bottom: 1.5px solid var(--pm-border); white-space: nowrap; }
+@@ -30,12 +30,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/pro-login.html b/pro-login.html
+index 7e05983..45c1aa1 100644
+--- a/pro-login.html
++++ b/pro-login.html
+@@ -8,7 +8,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
+ <script type="importmap">
+ {
+@@ -16,12 +16,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/profile.html b/profile.html
+index 6fbf6f5..3d113cb 100644
+--- a/profile.html
++++ b/profile.html
+@@ -17,7 +17,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
+ <script type="importmap">
+ {
+@@ -25,12 +25,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/reset-password.html b/reset-password.html
+index c721965..535c26c 100644
+--- a/reset-password.html
++++ b/reset-password.html
+@@ -8,7 +8,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <script>
+   // Captured before the Supabase client loads: it consumes the recovery
+   // tokens from the URL fragment and clears it, so the page script couldn't
+@@ -22,12 +22,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/search.html b/search.html
+index c3adf3c..de63d6b 100644
+--- a/search.html
++++ b/search.html
+@@ -19,7 +19,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
+ <script type="importmap">
+ {
+@@ -27,12 +27,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/stylist.html b/stylist.html
+index 758c400..b64fb4b 100644
+--- a/stylist.html
++++ b/stylist.html
+@@ -10,7 +10,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <style>
+   .st-hero { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: center; }
+   .st-photo { width: 100%; max-width: 360px; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 20px; box-shadow: 0 16px 36px oklch(0.45 0.08 230 / 0.18); justify-self: center; }
+@@ -47,12 +47,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
+diff --git a/terms.html b/terms.html
+index 2c11f2e..f1ccf12 100644
+--- a/terms.html
++++ b/terms.html
+@@ -18,7 +18,7 @@
+ <link rel="icon" href="assets/photomatch-icon-transparent.png">
+ <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
+ <link rel="stylesheet" href="css/base.css?v=4a95132642">
+-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
++<link rel="stylesheet" href="css/components.css?v=f496cd85fd">
+ <!-- asset-versions:start (scripts/stamp-assets.mjs) -->
+ <script type="importmap">
+ {
+@@ -26,12 +26,12 @@
+     "/js/analytics.js": "/js/analytics.js?v=f5360ffbda",
+     "/js/auth.js": "/js/auth.js?v=ef1a5ba293",
+     "/js/availability.js": "/js/availability.js?v=6c98651534",
+-    "/js/chat.js": "/js/chat.js?v=171f682217",
++    "/js/chat.js": "/js/chat.js?v=e0ac95e16c",
+     "/js/config.js": "/js/config.js?v=e841133368",
+     "/js/data.js": "/js/data.js?v=58540bf807",
+     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
+     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
+-    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
++    "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=cbfd6b804b",
+     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
+     "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
