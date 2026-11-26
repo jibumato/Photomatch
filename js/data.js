@@ -56,6 +56,14 @@ export const TESTIMONIALS = [
     note: '※個人の感想です。結果には個人差があります。',
     noteEn: '* Individual experience. Results vary.',
   },
+  {
+    before: { src: 'assets/voice-03-before.jpg', alt: '撮影前：自宅で撮った自撮り写真', altEn: 'Before: a selfie taken at home' },
+    after: { src: 'assets/voice-03-after.jpg', alt: '撮影後：木々のある公園で撮影したスーツ姿の写真', altEn: 'After: a portrait in a suit, shot in a leafy park' },
+    comment: '自撮りでは真顔ばかりでしたが、話しながら撮ってもらううちに自然と笑えていました。スーツ姿の写真で、誠実な印象のプロフィールになりました。',
+    commentEn: 'My selfies were all straight-faced, but chatting during the shoot had me smiling naturally. The suit photos gave my profile a sincere, trustworthy look.',
+    badge: '笑顔が自然に！😊',
+    badgeEn: 'A natural smile! 😊',
+  },
 ];
 
 export const TARGET_PAINS = [
