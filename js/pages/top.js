@@ -24,6 +24,72 @@ document.getElementById('pm-hero-proof').innerHTML = STATS.map((s) => `
   <span style="white-space:nowrap">${L(s, 'label')} <b data-count data-count-delay="900" style="font:800 15px var(--pm-font-num);color:oklch(0.45 0.14 210)">${s.value}</b></span>`).join('<span style="color:var(--pm-text-muted);margin:0 10px">／</span>')
   + `<a href="#results-section" style="display:block;margin-top:4px;font:11px var(--pm-font-body);color:var(--pm-text-muted);text-decoration:underline">${getLang() === 'en' ? '※ track record of our photographers (see below)' : '※カメラマンの実績の合計です（詳細は下記）'}</a>`;
 
+// ファーストビュー：ビフォーアフターを最初に見せる（お客様の声と同じ写真。heroRank の小さい順）。
+// スマホは横にスワイプ、PCもドットで切り替え。ユーザーが触れるまでだけ、数秒おきに自動で進める。
+{
+  const box = document.getElementById('pm-hero-ba');
+  const pairs = TESTIMONIALS.filter((x) => x.before && x.after).sort((a, b) => (a.heroRank ?? 99) - (b.heroRank ?? 99));
+  if (!pairs.length) {
+    box.remove();
+  } else {
+    const track = document.getElementById('pm-hero-ba-track');
+    const dotsBox = document.getElementById('pm-hero-ba-dots');
+    track.innerHTML = pairs.map((item, i) => `
+      <figure class="pm-hero2-ba-slide" role="group" aria-roledescription="slide" aria-label="${i + 1} / ${pairs.length}">
+        <div class="pm-ba-before">
+          <span class="pm-ba-label">BEFORE</span>
+          <img src="${item.before.src}" alt="${escapeHtml(L(item.before, 'alt'))}" width="720" height="960" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy" decoding="async"'}>
+        </div>
+        <div class="pm-ba-after">
+          <img src="${item.after.src}" alt="${escapeHtml(L(item.after, 'alt'))}" width="720" height="960" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy" decoding="async"'}>
+          <span class="pm-ba-tag">AFTER</span>
+          <span class="pm-ba-arrow" aria-hidden="true">→</span>
+          ${L(item, 'badge') ? `<span class="pm-like-badge">${escapeHtml(L(item, 'badge'))}</span>` : ''}
+        </div>
+      </figure>`).join('');
+    if (pairs.length < 2) {
+      dotsBox.remove();
+    } else {
+      dotsBox.innerHTML = pairs.map((_, i) => `<button type="button" class="pm-hero2-ba-dot" aria-label="${i + 1} / ${pairs.length}"></button>`).join('');
+      const slides = [...track.children];
+      const dots = [...dotsBox.children];
+      const padLeft = () => parseFloat(getComputedStyle(track).paddingLeft) || 0;
+      const setActive = (i) => dots.forEach((d, k) => d.setAttribute('aria-current', k === i ? 'true' : 'false'));
+      const goTo = (i) => track.scrollTo({ left: slides[i].offsetLeft - padLeft(), behavior: 'smooth' });
+      let current = 0;
+      setActive(0);
+      let ticking = false;
+      track.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          ticking = false;
+          const left = track.scrollLeft + padLeft();
+          let best = 0;
+          slides.forEach((sl, k) => { if (Math.abs(sl.offsetLeft - left) < Math.abs(slides[best].offsetLeft - left)) best = k; });
+          current = best;
+          setActive(best);
+        });
+      }, { passive: true });
+      dots.forEach((d, i) => d.addEventListener('click', () => { stopAuto(); goTo(i); }));
+
+      let timer = null;
+      let hovering = false;
+      let visible = true;
+      function stopAuto() { if (timer) { clearInterval(timer); timer = null; } }
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduce) {
+        timer = setInterval(() => { if (!hovering && visible && !document.hidden) goTo((current + 1) % slides.length); }, 5500);
+        // 触れたら（スワイプ・タップ・キー操作）以後は自動で動かさない。マウスを載せている間は止める。
+        ['pointerdown', 'touchstart', 'wheel', 'focusin', 'keydown'].forEach((ev) => box.addEventListener(ev, stopAuto, { passive: true }));
+        box.addEventListener('mouseenter', () => { hovering = true; });
+        box.addEventListener('mouseleave', () => { hovering = false; });
+        if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(box);
+      }
+    }
+  }
+}
+
 // FOR YOU：お悩み（上・グレー）→ こう変わる（下・水色の帯）の組。
 const painsList = getLang() === 'en' ? TARGET_PAINS_EN : TARGET_PAINS;
 const fixesList = getLang() === 'en' ? TARGET_PAIN_FIXES_EN : TARGET_PAIN_FIXES;
