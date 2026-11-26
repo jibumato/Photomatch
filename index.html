@@ -17,9 +17,11 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="assets/photomatch-icon-transparent.png">
+<!-- ヒーローの1枚目（TESTIMONIALS の heroRank が最小のもの）を先に読み込む -->
+<link rel="preload" as="image" href="assets/voice-03-after.jpg" fetchpriority="high">
 <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
 <link rel="stylesheet" href="css/base.css?v=4a95132642">
-<link rel="stylesheet" href="css/components.css?v=aff3bc3d2e">
+<link rel="stylesheet" href="css/components.css?v=8973942e57">
 
 <!-- 店舗を持たない出張型なので areaServed で提供地域を示す。
      Googleビジネスプロフィール（サービス提供地域型）の登録内容と揃えること。 -->
@@ -205,14 +207,14 @@
     "/js/availability.js": "/js/availability.js?v=6c98651534",
     "/js/chat.js": "/js/chat.js?v=171f682217",
     "/js/config.js": "/js/config.js?v=e841133368",
-    "/js/data.js": "/js/data.js?v=0123393b4b",
+    "/js/data.js": "/js/data.js?v=ff7f4e8aba",
     "/js/i18n/columns-en.js": "/js/i18n/columns-en.js?v=d28c30ecf6",
     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
     "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
-    "/js/i18n.js": "/js/i18n.js?v=aa5e2a3b01",
+    "/js/i18n.js": "/js/i18n.js?v=ac69868627",
     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
-    "/js/motion.js": "/js/motion.js?v=8be1993f71",
+    "/js/motion.js": "/js/motion.js?v=f0bd547016",
     "/js/pages/admin.js": "/js/pages/admin.js?v=9fe9411ff6",
     "/js/pages/area.js": "/js/pages/area.js?v=624ce26b18",
     "/js/pages/booking.js": "/js/pages/booking.js?v=e8d9506db3",
@@ -233,7 +235,7 @@
     "/js/pages/search.js": "/js/pages/search.js?v=c86faef3ec",
     "/js/pages/stylist.js": "/js/pages/stylist.js?v=70685679a5",
     "/js/pages/terms.js": "/js/pages/terms.js?v=88ad4c0312",
-    "/js/pages/top.js": "/js/pages/top.js?v=a885225ead",
+    "/js/pages/top.js": "/js/pages/top.js?v=f883193335",
     "/js/payslip.js": "/js/payslip.js?v=df21fecd8d",
     "/js/profileEditor.js": "/js/profileEditor.js?v=56cd2d2c43",
     "/js/repo.js": "/js/repo.js?v=8b02b6f31c",
@@ -254,7 +256,8 @@
 <header class="pm-header" id="pm-header"></header>
 
 <main>
-  <!-- Hero：写真で「こう撮れる」を見せ、判断材料（時間・料金・納品・保証）と次の一歩を1画面に収める -->
+  <!-- Hero：最初にビフォーアフターを見せ、すぐ下に次の一歩（空き枠ボタン）と判断材料（時間・料金・納品・保証）を置く。
+       写真は js/pages/top.js が TESTIMONIALS から描画する。 -->
   <section class="pm-hero2">
     <div class="pm-hero2-glow pm-hero2-glow--a"></div>
     <div class="pm-hero2-glow pm-hero2-glow--b"></div>
@@ -265,14 +268,17 @@
         <p class="pm-hero2-lead" data-i18n-html="top.hero.lead">プロカメラマンが、街なかで45分撮影。<br>名古屋・岐阜で ¥6,800〜（税込）</p>
       </div>
 
-      <div class="pm-hero2-photos" aria-label="撮影例" data-i18n-aria-label="top.hero.photosLabel">
-        <figure><img src="assets/shot-hero-natural.jpg" alt="撮影例：公園の木道で撮った、自然体の全身写真" data-i18n-alt="top.hero.alt1" fetchpriority="high"><figcaption data-i18n="top.hero.shot1">自然体スナップ</figcaption></figure>
-        <figure><img src="assets/shot-natural-snap.jpg" alt="撮影例：一眼で撮ったフォーマルな写真" data-i18n-alt="top.hero.alt2"><figcaption data-i18n="top.hero.shot2">フォーマル</figcaption></figure>
-        <figure><img src="assets/shot-casual-fullbody.jpg" alt="撮影例：私服で撮った、川沿いの半身写真" data-i18n-alt="top.hero.alt3" loading="lazy"><figcaption data-i18n="top.hero.shot3">半身×私服</figcaption></figure>
-        <figure><img src="assets/shot-hero-night.jpg" alt="撮影例：夜の街で撮った、横顔のスナップ" data-i18n-alt="top.hero.alt4" loading="lazy"><figcaption data-i18n="top.hero.shot4">夜の街スナップ</figcaption></figure>
+      <div class="pm-hero2-ba" id="pm-hero-ba" role="region" aria-roledescription="carousel" aria-label="ビフォーアフター（お客様の声より）" data-i18n-aria-label="top.hero.baLabel">
+        <div class="pm-hero2-ba-track" id="pm-hero-ba-track"></div>
+        <div class="pm-hero2-ba-dots" id="pm-hero-ba-dots"></div>
+        <p class="pm-hero2-ba-note" data-i18n="top.hero.baNote">※お客様の声より。個人の感想です。結果には個人差があります。</p>
       </div>
 
       <div class="pm-hero2-act">
+        <div class="pm-hero2-ctas">
+          <div class="pm-cta-stack"><span class="pm-cta-bubble" data-i18n="top.ctaNote.hero">45分で撮影完了・3営業日以内に納品</span><a class="pm-btn pm-btn-primary pm-btn-lg" href="search.html" id="hero-cta"><span data-i18n="top.hero.cta">空き枠を見る</span><small data-i18n="top.hero.ctaNote">登録不要</small></a></div>
+          <a class="pm-hero2-sublink" href="#pricing-section" data-i18n="top.hero.priceLink">料金を見る →</a>
+        </div>
         <div class="pm-place-strip"><span data-i18n="top.strip.area">名古屋・岐阜</span><span data-i18n="top.strip.meet">季節のスポットに集合</span><span data-i18n="top.strip.handsfree">手ぶらでOK</span></div>
         <ul class="pm-hero2-chips">
           <li><b data-i18n="top.hero.chip1.v">45分</b><span data-i18n="top.hero.chip1.l">で撮影完了</span></li>
@@ -281,10 +287,6 @@
           <li><b data-i18n="top.hero.chip4.v">保証付き</b><span data-i18n="top.hero.chip4.l">マッチング数保証</span></li>
         </ul>
         <div id="pm-campaign-hero"></div>
-        <div class="pm-hero2-ctas">
-          <div class="pm-cta-stack"><span class="pm-cta-bubble" data-i18n="top.ctaNote.hero">45分で撮影完了・3営業日以内に納品</span><a class="pm-btn pm-btn-primary pm-btn-lg" href="search.html" id="hero-cta"><span data-i18n="top.hero.cta">空き枠を見る</span><small data-i18n="top.hero.ctaNote">登録不要</small></a></div>
-          <a class="pm-hero2-sublink" href="#pricing-section" data-i18n="top.hero.priceLink">料金を見る →</a>
-        </div>
         <div id="pm-hero-proof" class="pm-hero2-proof"></div>
       </div>
     </div>
@@ -475,6 +477,6 @@
 
 <footer class="pm-footer" id="pm-footer"></footer>
 
-<script type="module" src="js/pages/top.js?v=a885225ead"></script>
+<script type="module" src="js/pages/top.js?v=f883193335"></script>
 </body>
 </html>

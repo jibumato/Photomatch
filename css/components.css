@@ -233,22 +233,36 @@
 .pm-hero2-glow--b { bottom: -130px; left: -50px; width: 380px; height: 380px; background: radial-gradient(circle, oklch(0.8 0.1 240 / 0.3), transparent 70%); animation: pm-drift2 19s ease-in-out infinite; }
 .pm-hero2-grid {
   position: relative; max-width: 1120px; margin: 0 auto; padding: 18px 20px 28px;
-  display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "photos" "act"; gap: 14px;
+  display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "photos" "act"; gap: 12px;
 }
 .pm-hero2-head { grid-area: head; }
-.pm-hero2-photos { grid-area: photos; }
+.pm-hero2-ba { grid-area: photos; }
 .pm-hero2-act { grid-area: act; }
 .pm-hero2-badge { display: inline-flex; align-items: center; gap: 7px; background: oklch(1 0 0 / 0.75); border: 1px solid oklch(0.85 0.05 205); color: oklch(0.44 0.1 220); font: 700 12px var(--pm-font-body); padding: 6px 13px; border-radius: 100px; margin-bottom: 12px; }
 .pm-hero2-badge > span:first-child { width: 6px; height: 6px; border-radius: 50%; background: oklch(0.72 0.14 200); }
 .pm-hero2-title { font: 900 clamp(27px, 7.4vw, 50px)/1.35 var(--pm-font-hand); margin: 0 0 10px; letter-spacing: 0.01em; color: oklch(0.24 0.03 245); }
 .pm-hero2-hl { background: linear-gradient(120deg, oklch(0.64 0.15 200), oklch(0.56 0.16 245)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 .pm-hero2-lead { font: clamp(14px, 3.6vw, 17px)/1.8 var(--pm-font-body); color: var(--pm-text-2); margin: 0; }
-/* スマホ：写真は横にスクロールする帯。2枚と少しが見え、続きがあると分かる */
-.pm-hero2-photos { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; margin: 0 -20px; padding: 2px 20px 6px; scrollbar-width: none; }
-.pm-hero2-photos::-webkit-scrollbar { display: none; }
-.pm-hero2-photos figure { position: relative; flex: 0 0 min(36vw, 200px); margin: 0; scroll-snap-align: start; border-radius: 16px; overflow: hidden; aspect-ratio: 3 / 4; box-shadow: 0 10px 24px oklch(0.45 0.08 230 / 0.18); background: var(--pm-bg-mint); }
-.pm-hero2-photos img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.pm-hero2-photos figcaption { position: absolute; left: 8px; bottom: 8px; background: oklch(0.2 0.02 245 / 0.62); color: #fff; font: 700 11px var(--pm-font-body); padding: 4px 9px; border-radius: 100px; backdrop-filter: blur(4px); }
+/* ビフォーアフター（最初に見せる）。スマホは横にスワイプ（次のカードが少し見える）、PCは1枚ずつ＋ドット */
+.pm-hero2-ba { position: relative; min-width: 0; margin: 0 -20px; }
+.pm-hero2-ba-track { position: relative; display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; padding: 6px 20px 36px; scrollbar-width: none; overscroll-behavior-x: contain; }
+.pm-hero2-ba-track::-webkit-scrollbar { display: none; }
+.pm-hero2-ba-slide { flex: 0 0 92%; max-width: 460px; margin: 0; scroll-snap-align: start; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 0.55fr) minmax(0, 1fr); align-items: end; gap: 12px; padding: 14px 16px 16px 14px; border-radius: 22px; background: #fff; border: 1px solid var(--pm-border-soft, oklch(0.92 0.01 220)); box-shadow: 0 8px 20px oklch(0.45 0.08 230 / 0.15); }
+.pm-ba-before { margin: 0 0 8px; }
+.pm-ba-label { display: block; font: 800 10px/1 var(--pm-font-num); letter-spacing: 0.14em; color: var(--pm-text-muted); margin-bottom: 7px; }
+.pm-ba-before img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 10px; transform: rotate(-3deg); border: 3px solid #fff; box-shadow: 0 4px 12px oklch(0.3 0.02 235 / 0.2); background: var(--pm-bg-mint); }
+.pm-ba-after { position: relative; margin: 0; }
+.pm-ba-after img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 16px; box-shadow: 0 0 0 3px #fff, 0 0 0 5px oklch(0.7 0.13 205), 0 12px 26px oklch(0.55 0.15 220 / 0.3); background: var(--pm-bg-mint); }
+.pm-ba-tag { position: absolute; left: 10px; top: 10px; padding: 5px 12px; border-radius: 100px; background: var(--pm-brand-grad); color: #fff; font: 800 11px/1.3 var(--pm-font-num); letter-spacing: 0.12em; box-shadow: 0 4px 12px oklch(0.5 0.15 220 / 0.35); }
+.pm-ba-arrow { position: absolute; left: 0; top: 50%; transform: translate(-62%, -50%); display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: var(--pm-brand-grad); color: #fff; font: 800 16px/1 var(--pm-font-num); box-shadow: 0 0 0 3px #fff, 0 6px 14px oklch(0.5 0.15 220 / 0.35); }
+.pm-hero2-ba .pm-like-badge { right: -8px; bottom: 14px; padding: 8px 13px; font-size: 14px; }
+.pm-hero2-ba-dots { display: flex; justify-content: center; gap: 2px; margin-top: -26px; position: relative; }
+.pm-hero2-ba-dot { all: unset; box-sizing: border-box; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+.pm-hero2-ba-dot::before { content: ""; width: 8px; height: 8px; border-radius: 100px; background: oklch(0.82 0.03 220); transition: width 0.25s ease, background 0.25s ease; }
+.pm-hero2-ba-dot[aria-current="true"]::before { width: 22px; background: oklch(0.62 0.14 215); }
+.pm-hero2-ba-dot:focus-visible { outline: 2px solid oklch(0.55 0.15 220); outline-offset: 1px; }
+.pm-hero2-ba-note { margin: 2px 20px 0; text-align: center; font: 11px/1.6 var(--pm-font-body); color: var(--pm-text-muted); }
+.pm-hero2-ctas { margin-bottom: 14px; }
 .pm-hero2-chips { list-style: none; margin: 0 0 14px; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .pm-hero2-chips li { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 5px; background: #fff; border: 1px solid var(--pm-border); border-radius: 12px; padding: 7px 10px; }
 .pm-hero2-chips b { font: 800 15px var(--pm-font-num); color: oklch(0.42 0.14 215); }
@@ -265,9 +279,13 @@
   .pm-hero2-act { align-self: start; }
   .pm-hero2-badge { margin-bottom: 18px; }
   .pm-hero2-title { margin-bottom: 16px; }
-  .pm-hero2-photos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; overflow: visible; margin: 0; padding: 0; }
-  .pm-hero2-photos figure { flex: none; max-width: none; }
-  .pm-hero2-photos figure:nth-child(even) { transform: translateY(28px); }
+  .pm-hero2-ba { margin: 0; align-self: center; max-width: 520px; justify-self: center; width: 100%; }
+  .pm-hero2-ba-track { margin-inline: -56px; padding-inline: 56px; scroll-padding-inline: 56px; gap: 60px; }
+  .pm-hero2-ba-slide { flex-basis: 100%; max-width: none; padding: 20px 24px 22px 20px; gap: 18px; }
+  .pm-ba-label { font-size: 11px; }
+  .pm-ba-tag { font-size: 12px; padding: 6px 14px; }
+  .pm-ba-arrow { width: 44px; height: 44px; font-size: 20px; }
+  .pm-hero2-ba .pm-like-badge { font-size: 17px; padding: 10px 16px; right: -12px; }
   .pm-hero2-chips { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .pm-hero2-chips li { flex-direction: column; align-items: flex-start; padding: 9px 12px; }
   .pm-hero2-chips b { font-size: 17px; }
@@ -363,16 +381,13 @@
   .pm-hero2-title { animation-delay: 0.08s; }
   .pm-hero2-lead { animation-delay: 0.18s; }
   .pm-hero2-chips li { animation-name: pm-pop; animation-duration: 0.6s; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
-  .pm-hero2-chips li:nth-child(1) { animation-delay: 0.35s; }
-  .pm-hero2-chips li:nth-child(2) { animation-delay: 0.45s; }
-  .pm-hero2-chips li:nth-child(3) { animation-delay: 0.55s; }
-  .pm-hero2-chips li:nth-child(4) { animation-delay: 0.65s; }
-  .pm-hero2-ctas { animation-delay: 0.75s; }
+  .pm-hero2-chips li:nth-child(1) { animation-delay: 0.5s; }
+  .pm-hero2-chips li:nth-child(2) { animation-delay: 0.6s; }
+  .pm-hero2-chips li:nth-child(3) { animation-delay: 0.7s; }
+  .pm-hero2-chips li:nth-child(4) { animation-delay: 0.8s; }
+  .pm-hero2-ctas { animation-delay: 0.4s; }
   .pm-hero2-proof { animation-delay: 0.85s; }
-  .pm-hero2-photos figure { animation: pm-photo-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-  .pm-hero2-photos figure:nth-child(2) { animation-delay: 0.1s; }
-  .pm-hero2-photos figure:nth-child(3) { animation-delay: 0.2s; }
-  .pm-hero2-photos figure:nth-child(4) { animation-delay: 0.3s; }
+  .pm-hero2-ba { animation: pm-photo-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
   /* 見出しの「“選ばれる一枚”を。」に、光が一度だけ流れる */
   .pm-hero2-hl {
     background-image: linear-gradient(110deg, oklch(0.64 0.15 200) 0%, oklch(0.56 0.16 245) 40%, oklch(0.85 0.1 200) 50%, oklch(0.56 0.16 245) 60%, oklch(0.64 0.15 200) 100%);
@@ -509,9 +524,6 @@ img.pm-img-fade.is-loaded { opacity: 1; }
   .pm-mobile-panel:not([hidden]) > :nth-child(4) { animation-delay: 0.12s; }
   .pm-mobile-panel:not([hidden]) > :nth-child(5) { animation-delay: 0.16s; }
   .pm-mobile-panel:not([hidden]) > :nth-child(6) { animation-delay: 0.2s; }
-  /* ヒーローの写真：マウスの位置に合わせて立体的に傾く（js が --rx / --ry を入れる） */
-  .pm-hero2-photos img { transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--hs, 1)); transition: transform 0.4s ease; }
-  .pm-hero2-photos figure:hover img { --hs: 1.04; transition-duration: 0.15s; }
   .pm-like-badge:hover { animation-play-state: paused; }
 }
 @keyframes pm-panel-in { from { opacity: 0; translate: 0 -10px; } to { opacity: 1; translate: 0 0; } }

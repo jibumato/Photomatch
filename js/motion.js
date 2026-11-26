@@ -173,20 +173,6 @@ export function initInteractions() {
     });
   }
 
-  // ヒーロー写真：マウスの位置に合わせて傾ける（マウス操作の端末だけ）
-  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-    document.querySelectorAll('.pm-hero2-photos figure').forEach((fig) => {
-      fig.addEventListener('pointermove', (e) => {
-        const r = fig.getBoundingClientRect();
-        const x = (e.clientX - r.left) / r.width - 0.5;
-        const y = (e.clientY - r.top) / r.height - 0.5;
-        fig.style.setProperty('--ry', `${(x * 10).toFixed(2)}deg`);
-        fig.style.setProperty('--rx', `${(-y * 10).toFixed(2)}deg`);
-      });
-      fig.addEventListener('pointerleave', () => { fig.style.removeProperty('--rx'); fig.style.removeProperty('--ry'); });
-    });
-  }
-
   // 「いいねUP！」をタップするとハートが飛ぶ
   document.addEventListener('click', (e) => {
     const badge = e.target.closest('.pm-like-badge');
