@@ -247,7 +247,7 @@
 .pm-hero2-ba { position: relative; min-width: 0; margin: 0 -20px; }
 .pm-hero2-ba-track { position: relative; display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; padding: 6px 20px 36px; scrollbar-width: none; overscroll-behavior-x: contain; }
 .pm-hero2-ba-track::-webkit-scrollbar { display: none; }
-.pm-hero2-ba-slide { flex: 0 0 92%; max-width: 460px; margin: 0; scroll-snap-align: start; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 0.55fr) minmax(0, 1fr); align-items: end; gap: 12px; padding: 14px 16px 16px 14px; border-radius: 22px; background: #fff; border: 1px solid var(--pm-border-soft, oklch(0.92 0.01 220)); box-shadow: 0 12px 28px oklch(0.45 0.08 230 / 0.16); }
+.pm-hero2-ba-slide { flex: 0 0 92%; max-width: 460px; margin: 0; scroll-snap-align: start; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 0.55fr) minmax(0, 1fr); align-items: end; gap: 12px; padding: 14px 16px 16px 14px; border-radius: 22px; background: #fff; border: 1px solid var(--pm-border-soft, oklch(0.92 0.01 220)); box-shadow: 0 8px 20px oklch(0.45 0.08 230 / 0.15); }
 .pm-ba-before { margin: 0 0 8px; }
 .pm-ba-label { display: block; font: 800 10px/1 var(--pm-font-num); letter-spacing: 0.14em; color: var(--pm-text-muted); margin-bottom: 7px; }
 .pm-ba-before img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 10px; transform: rotate(-3deg); border: 3px solid #fff; box-shadow: 0 4px 12px oklch(0.3 0.02 235 / 0.2); background: var(--pm-bg-mint); }
@@ -280,7 +280,7 @@
   .pm-hero2-badge { margin-bottom: 18px; }
   .pm-hero2-title { margin-bottom: 16px; }
   .pm-hero2-ba { margin: 0; align-self: center; max-width: 520px; justify-self: center; width: 100%; }
-  .pm-hero2-ba-track { margin-inline: -24px; padding-inline: 24px; scroll-padding-inline: 24px; }
+  .pm-hero2-ba-track { margin-inline: -56px; padding-inline: 56px; scroll-padding-inline: 56px; gap: 60px; }
   .pm-hero2-ba-slide { flex-basis: 100%; max-width: none; padding: 20px 24px 22px 20px; gap: 18px; }
   .pm-ba-label { font-size: 11px; }
   .pm-ba-tag { font-size: 12px; padding: 6px 14px; }

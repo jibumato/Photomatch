@@ -52,8 +52,8 @@ export const TESTIMONIALS = [
     commentEn: "Before the shoot I couldn't get a single date and was about to give up. Afterwards my matches went up 20x, and I found a girlfriend!",
     badge: 'マッチ数20倍！👍',
     badgeEn: '20x more matches! 👍',
-    // トップのファーストビューで先に見せる順（小さいほど先）。
-    heroRank: 1,
+    // トップのファーストビューで見せる順（小さいほど先。書いていないものは最後）。
+    heroRank: 2,
     // 結果（マッチ数）に触れる声なので、個人の感想である旨を添える。
     note: '※個人の感想です。結果には個人差があります。',
     noteEn: '* Individual experience. Results vary.',
@@ -65,6 +65,7 @@ export const TESTIMONIALS = [
     commentEn: 'My selfies were all straight-faced, but chatting during the shoot had me smiling naturally. The suit photos gave my profile a sincere, trustworthy look.',
     badge: '笑顔が自然に！😊',
     badgeEn: 'A natural smile! 😊',
+    heroRank: 1,
   },
 ];
 
