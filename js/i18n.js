@@ -314,8 +314,6 @@ const DICT = {
   'top.hero.baLabel': { ja: 'ビフォーアフター（お客様の声より）', en: 'Before & after (from customer reviews)' },
   'top.hero.baNote': { ja: '※お客様の声より。個人の感想です。結果には個人差があります。', en: '* From customer reviews. Individual experiences; results vary.' },
   'common.required': { ja: '必須', en: 'Required' },
-  'top.hero.chip1.v': { ja: '45分', en: '45 min' },
-  'top.hero.chip1.l': { ja: 'で撮影完了', en: 'start to finish' },
   'top.hero.chip2.v': { ja: '¥6,800〜', en: 'From ¥6,800' },
   'top.hero.chip2.l': { ja: '20枚納品・税込', en: '20 photos · tax incl.' },
   'top.hero.perPhoto': { ja: '1枚 ¥{price}〜', en: '¥{price}/photo+' },
@@ -331,8 +329,6 @@ const DICT = {
   'top.pricing.recommend': { ja: 'こんな方におすすめ', en: 'Great if' },
   'top.sticky.off': { ja: '1,000円OFF中', en: '¥1,000 off now' },
   'top.sticky.sub': { ja: '税込・1枚¥{price}〜', en: 'tax incl. · ¥{price}/photo+' },
-  'top.hero.chip3.v': { ja: '3営業日以内', en: '3 business days' },
-  'top.hero.chip3.l': { ja: 'データ納品', en: 'Photo delivery' },
   'top.hero.chip4.v': { ja: '保証付き', en: 'Guarantee' },
   'top.hero.chip4.l': { ja: 'マッチング数保証', en: 'on your match count' },
   'top.hero.cta': { ja: '空き枠を見る', en: 'See open times' },
@@ -360,7 +356,9 @@ const DICT = {
   // text lives alongside its Japanese source as additive *En fields on the
   // arrays in js/data.js (see L() below) rather than here, so a translation
   // never drifts out of sync with the content it belongs to.
-  'top.results.title': { ja: '名古屋エリアでの実績', en: 'Our Track Record in the Nagoya Area' },
+  'top.locations.more': { ja: 'ほかの季節のスポット（{seasons}）', en: 'Spots for other seasons ({seasons})' },
+  'top.faq.more': { ja: 'ほかの質問を見る（{n}件）', en: 'See {n} more questions' },
+  'top.faq.less': { ja: 'ほかの質問を閉じる', en: 'Show fewer questions' },
   'top.gallery.title': { ja: 'スタイル別の撮影例', en: 'Shots by Style' },
   'top.gallery.lead': { ja: '自然体からフォーマルまで。使うアプリや、なりたい印象に合わせて撮影します。', en: 'From relaxed to formal — we shoot for the app you use and the impression you want to give.' },
   'top.gallery.alt1': { ja: '撮影例：公園の木道で撮った、自然体の全身写真', en: 'Sample: relaxed full-body shot on a park boardwalk' },
@@ -396,7 +394,6 @@ const DICT = {
   'top.monitor.banner': { ja: 'モニター価格プラン募集中：スタンダードが半額¥4,400、スマホが半額¥3,400（税込）', en: 'Now recruiting monitors: Standard plan at half price ¥4,400, Smartphone plan at half price ¥3,400 (tax incl.)' },
   'top.monitor.link': { ja: '詳細を見る →', en: 'See details →' },
   'top.safety.title': { ja: '安心・安全への取り組み', en: 'Built for Peace of Mind' },
-  'top.safety.desc': { ja: '初めての方も安心してご利用いただけるよう、運営が体制を整えています。', en: "We've put safeguards in place so first-time users can book with confidence." },
   'top.howItWorks.title': { ja: '初めてでも、迷いません', en: 'Simple, Even the First Time' },
   'top.howItWorks.desc': { ja: '予約から納品まで3ステップ。当日は手ぶらでお越しいただけます。', en: 'Three steps from booking to delivery — just show up on the day.' },
   'top.howItWorks.link': { ja: '集合場所・持ち物・服装のくわしい案内を見る', en: 'See details on meeting points, what to bring, and what to wear' },

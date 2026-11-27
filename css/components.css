@@ -243,6 +243,43 @@
 .pm-hero2-title { font: 900 clamp(27px, 7.4vw, 50px)/1.35 var(--pm-font-hand); margin: 0 0 10px; letter-spacing: 0.01em; color: oklch(0.24 0.03 245); }
 .pm-hero2-hl { background: linear-gradient(120deg, oklch(0.64 0.15 200), oklch(0.56 0.16 245)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 .pm-hero2-lead { font: clamp(14px, 3.6vw, 17px)/1.8 var(--pm-font-body); color: var(--pm-text-2); margin: 0; }
+/* 撮影実績：撮影例の見出しの下に小さく */
+.pm-stats-inline { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 0 0 26px; }
+.pm-stats-pill { display: inline-flex; align-items: baseline; gap: 8px; padding: 7px 16px; border-radius: 100px; background: #fff; border: 1px solid oklch(0.88 0.04 210); font: 700 13px var(--pm-font-body); color: var(--pm-text-2); }
+.pm-stats-pill b { font: 800 20px var(--pm-font-num); color: oklch(0.45 0.14 210); }
+/* 選ばれる理由：スマホは「小さな絵＋文」の横並び、PCは3列 */
+.pm-reasons { display: grid; gap: 14px; margin-bottom: 28px; }
+.pm-reason { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 14px; align-items: center; }
+.pm-reason img { width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 14px; display: block; }
+.pm-reason-title { font: 700 16px/1.5 var(--pm-font-body); margin-bottom: 4px; }
+.pm-reason-desc { font: 13px/1.8 var(--pm-font-body); color: var(--pm-text-3); }
+@media (min-width: 861px) {
+  .pm-reasons { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; margin-bottom: 36px; }
+  .pm-reason { grid-template-columns: minmax(0, 1fr); align-items: start; }
+  .pm-reason img { max-width: 220px; margin: 0 auto 6px; }
+  .pm-reason-desc { font-size: 14px; }
+}
+/* 安心・安全：理由の下に、白い枠1つの中の短い一覧 */
+.pm-safety-box { background: #fff; border: 1px solid var(--pm-border-soft, oklch(0.92 0.01 220)); border-radius: 18px; padding: 22px 20px 8px; }
+.pm-safety-head { font: 700 15px var(--pm-font-body); color: oklch(0.4 0.12 215); margin-bottom: 6px; }
+.pm-safety-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.pm-safety-list li { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid oklch(0.94 0.01 220); }
+.pm-safety-list li:first-child { border-top: 0; }
+.pm-safety-check { flex-shrink: 0; width: 22px; height: 22px; margin-top: 1px; border-radius: 50%; background: var(--pm-brand-grad); display: flex; align-items: center; justify-content: center; }
+.pm-safety-title { font: 700 14px/1.5 var(--pm-font-body); }
+.pm-safety-desc { font: 12.5px/1.75 var(--pm-font-body); color: var(--pm-text-3); }
+@media (min-width: 861px) {
+  .pm-safety-box { padding: 26px 30px 14px; }
+  .pm-safety-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 36px; }
+  .pm-safety-list li:nth-child(2) { border-top: 0; }
+}
+/* 季節のロケーション（スマホ）：今の季節以外は折りたたむ */
+.pm-loc-more { grid-column: 1 / -1; }
+.pm-loc-more > summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 16px; border-radius: 14px; background: #fff; border: 1px solid oklch(0.88 0.03 215); font: 700 14px var(--pm-font-body); color: oklch(0.4 0.12 215); }
+.pm-loc-more > summary::-webkit-details-marker { display: none; }
+.pm-loc-more > summary::after { content: "＋"; font: 700 15px var(--pm-font-num); }
+.pm-loc-more[open] > summary::after { content: "－"; }
+.pm-loc-more[open] > summary { margin-bottom: 16px; }
 /* スタイル別の撮影例：スマホは2列、PCは4列。写真は縦長にそろえて、左下にスタイル名 */
 .pm-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .pm-gallery figure { position: relative; margin: 0; border-radius: 16px; overflow: hidden; aspect-ratio: 3 / 4; background: var(--pm-bg-mint); box-shadow: 0 10px 24px oklch(0.45 0.08 230 / 0.16); }
@@ -292,7 +329,7 @@
   .pm-ba-tag { font-size: 12px; padding: 6px 14px; }
   .pm-ba-arrow { width: 44px; height: 44px; font-size: 20px; }
   .pm-hero2-ba .pm-like-badge { font-size: 17px; padding: 10px 16px; right: -12px; }
-  .pm-hero2-chips { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .pm-hero2-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pm-hero2-chips li { flex-direction: column; align-items: flex-start; padding: 9px 12px; }
   .pm-hero2-chips b { font-size: 17px; }
   .pm-hero2-ctas .pm-btn-lg { flex: 0 0 auto; }
@@ -618,6 +655,10 @@ img.pm-img-fade.is-loaded { opacity: 1; }
 .pm-campaign-title { font: 900 18px/1.4 var(--pm-font-body); color: var(--pm-text); }
 .pm-campaign-title b { font: 800 22px/1 var(--pm-font-num); color: var(--pm-warn-text); }
 .pm-campaign-reason { font: 12px/1.7 var(--pm-font-body); color: var(--pm-text-2); }
+/* ヒーロー用：ラベルと「全プラン1,000円OFF」だけの1行 */
+.pm-campaign.is-compact { flex-direction: row; justify-content: center; flex-wrap: wrap; gap: 6px 10px; padding: 9px 14px; }
+.pm-campaign.is-compact .pm-campaign-title { font-size: 16px; }
+.pm-campaign.is-compact .pm-campaign-title b { font-size: 19px; }
 .pm-campaign-until { font: 700 12px/1.4 var(--pm-font-body); color: var(--pm-text-2); }
 
 /* 料金カード：1枚あたり・こんな方におすすめ */

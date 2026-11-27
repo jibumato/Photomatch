@@ -11,15 +11,11 @@ import { observeReveal, slideTabIndicator } from '../motion.js';
 
 mountLayout({ ctaKey: 'top.cta.see' });
 
+// 撮影実績は、撮影例の見出しの下に小さく添える（※注記はセクションの下）。
 document.getElementById('pm-stats').innerHTML = STATS.map((s) => `
-  <div class="pm-card pm-stat" data-reveal="zoom" style="text-align:center;padding:28px 16px">
-    <div data-count style="font:800 clamp(36px,9vw,44px) var(--pm-font-num);background:linear-gradient(120deg, oklch(0.6 0.15 200), oklch(0.55 0.15 245));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">${s.value}</div>
-    <span class="pm-stat-bar" aria-hidden="true"></span>
-    <div style="font:13px var(--pm-font-body);color:var(--pm-text-3)">${L(s, 'label')}</div>
-  </div>`).join('');
+  <span class="pm-stats-pill">${L(s, 'label')}<b data-count>${s.value}</b></span>`).join('');
 
-// Hero keeps a one-line version of the stats so the trust signal is still
-// seen by people who leave before the full 実績 section further down.
+// ヒーローにも撮影実績を1行で（下の撮影例のところに注記がある）。
 document.getElementById('pm-hero-proof').innerHTML = STATS.map((s) => `
   <span style="white-space:nowrap">${L(s, 'label')} <b data-count data-count-delay="900" style="font:800 15px var(--pm-font-num);color:oklch(0.45 0.14 210)">${s.value}</b></span>`).join('<span style="color:var(--pm-text-muted);margin:0 10px">／</span>')
   + `<a href="#results-section" style="display:block;margin-top:4px;font:11px var(--pm-font-body);color:var(--pm-text-muted);text-decoration:underline">${getLang() === 'en' ? '※ track record of our photographers (see below)' : '※カメラマンの実績の合計です（詳細は下記）'}</a>`;
@@ -136,7 +132,11 @@ document.getElementById('pm-steps').innerHTML = HOW_IT_WORKS.map((s) => `
     <div class="pm-campaign-reason">${escapeHtml(L(c, 'reason'))}</div>
     ${L(c, 'until') ? `<div class="pm-campaign-until">${escapeHtml(L(c, 'until'))}</div>` : ''}
   </div>`;
-  document.getElementById('pm-campaign-hero').innerHTML = html;
+  // ヒーローは1行の帯だけ（理由はプランのところで読める）。
+  document.getElementById('pm-campaign-hero').innerHTML = `<div class="pm-campaign is-compact">
+    ${L(c, 'label') ? `<span class="pm-campaign-label">${escapeHtml(L(c, 'label'))}</span>` : ''}
+    <div class="pm-campaign-title">${title}</div>
+  </div>`;
   document.getElementById('pm-campaign-pricing').innerHTML = html;
 }
 
@@ -159,14 +159,12 @@ document.getElementById('pm-pricing').innerHTML = PRICING_PLANS.map((pl) => `
     <div style="display:flex;align-items:center;justify-content:center;gap:6px;background:var(--pm-brand-grad);color:#fff;border-radius:10px;padding:12px;font:700 13px var(--pm-font-body)">${t('profile.bookThisPlan')}</div>
   </a>`).join('');
 
+// 安心・安全：選ばれる理由の下に、見出し＋ひとことの短い一覧で。
 document.getElementById('pm-safety').innerHTML = SAFETY_POINTS.map((s) => `
-  <div class="pm-card" style="padding:24px">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <span style="width:28px;height:28px;flex-shrink:0;border-radius:8px;background:oklch(0.94 0.05 200);color:oklch(0.4 0.14 200);display:flex;align-items:center;justify-content:center;font:700 14px var(--pm-font-num)">✓</span>
-      <span style="font:700 15px var(--pm-font-body)">${L(s, 'title')}</span>
-    </div>
-    <div style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3)">${L(s, 'desc')}</div>
-  </div>`).join('');
+  <li>
+    <span class="pm-safety-check" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg></span>
+    <div><div class="pm-safety-title">${L(s, 'title')}</div><div class="pm-safety-desc">${L(s, 'desc')}</div></div>
+  </li>`).join('');
 
 // 季節のおすすめロケーション：エリアのタブ（名古屋／岐阜）＋季節ごとのカード。今の季節のカードを強調する。
 {
@@ -239,7 +237,15 @@ document.getElementById('pm-safety').innerHTML = SAFETY_POINTS.map((s) => `
     });
     slideTabIndicator(tabsEl);
     gridEl.setAttribute('aria-labelledby', `pm-loc-tab-${area.key}`);
-    gridEl.innerHTML = area.spots.map(spotHtml).join('');
+    // スマホは今の季節のスポットだけ開いて見せ、ほかの季節は折りたたむ。PCは横に4枚並べたまま。
+    const nowSpots = area.spots.filter((sp) => sp.season === nowSeason);
+    const otherSpots = area.spots.filter((sp) => sp.season !== nowSeason);
+    const wide = window.matchMedia('(min-width: 861px)').matches;
+    gridEl.innerHTML = wide || !nowSpots.length ? area.spots.map(spotHtml).join('') : `${nowSpots.map(spotHtml).join('')}${otherSpots.length ? `
+      <details class="pm-loc-more">
+        <summary>${tf('top.locations.more', { seasons: otherSpots.map((sp) => L(SEASONS.find((x) => x.key === sp.season), 'label')).join(getLang() === 'en' ? ', ' : '・') })}</summary>
+        <div class="pm-loc-grid">${otherSpots.map(spotHtml).join('')}</div>
+      </details>` : ''}`;
     timeEl.innerHTML = timeHtml(area);
     observeReveal(gridEl.parentElement);
   };
@@ -274,15 +280,34 @@ document.getElementById('pm-safety').innerHTML = SAFETY_POINTS.map((s) => `
 
 // <details>/<summary> gives keyboard (Enter/Space, Tab) and screen-reader
 // support for free — the previous clickable <div> had neither.
-const faqEl = document.getElementById('pm-faqs');
-faqEl.innerHTML = FAQS.map((f) => `
+const faqHtml = (f) => `
   <details class="pm-card pm-faq-item" style="border-radius:14px;overflow:hidden">
     <summary class="pm-faq-q">
       <span style="font:700 15px var(--pm-font-body);color:oklch(0.28 0.02 240)">${L(f, 'q')}</span>
       <span class="pm-faq-icon" style="font:600 18px var(--pm-font-num);color:oklch(0.6 0.12 210);flex-shrink:0"></span>
     </summary>
     <div style="font:13px/1.9 var(--pm-font-body);color:var(--pm-text-3);padding:0 20px 18px">${L(f, 'a')}</div>
-  </details>`).join('');
+  </details>`;
+// 代表的な質問（top: true）だけ先に出し、残りは「ほかの質問を見る」で開く。
+{
+  const topFaqs = FAQS.filter((f) => f.top);
+  const restFaqs = FAQS.filter((f) => !f.top);
+  document.getElementById('pm-faqs').innerHTML = topFaqs.map(faqHtml).join('');
+  const moreEl = document.getElementById('pm-faqs-more');
+  const toggle = document.getElementById('pm-faqs-toggle');
+  if (restFaqs.length) {
+    document.getElementById('pm-faqs-more-list').innerHTML = restFaqs.map(faqHtml).join('');
+    const label = () => { toggle.textContent = moreEl.hidden ? tf('top.faq.more', { n: restFaqs.length }) : t('top.faq.less'); };
+    toggle.hidden = false;
+    label();
+    toggle.addEventListener('click', () => {
+      moreEl.hidden = !moreEl.hidden;
+      toggle.setAttribute('aria-expanded', String(!moreEl.hidden));
+      label();
+      if (!moreEl.hidden) moreEl.querySelector('summary').focus({ preventScroll: true });
+    });
+  }
+}
 
 // Mobile sticky "撮影を予約する" bar: visible while scrolling through the page,
 // hidden while the hero's own button or the final CTA section is on screen so
