@@ -21,7 +21,7 @@
 <link rel="preload" as="image" href="assets/voice-03-after.jpg" fetchpriority="high">
 <link rel="stylesheet" href="css/tokens.css?v=fc11352fae">
 <link rel="stylesheet" href="css/base.css?v=4a95132642">
-<link rel="stylesheet" href="css/components.css?v=8973942e57">
+<link rel="stylesheet" href="css/components.css?v=2ac3ea8192">
 
 <!-- 店舗を持たない出張型なので areaServed で提供地域を示す。
      Googleビジネスプロフィール（サービス提供地域型）の登録内容と揃えること。 -->
@@ -212,7 +212,7 @@
     "/js/i18n/columns.js": "/js/i18n/columns.js?v=107c983d5b",
     "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
-    "/js/i18n.js": "/js/i18n.js?v=ac69868627",
+    "/js/i18n.js": "/js/i18n.js?v=23a35d2842",
     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
     "/js/motion.js": "/js/motion.js?v=f0bd547016",
     "/js/pages/admin.js": "/js/pages/admin.js?v=9fe9411ff6",
@@ -235,7 +235,7 @@
     "/js/pages/search.js": "/js/pages/search.js?v=c86faef3ec",
     "/js/pages/stylist.js": "/js/pages/stylist.js?v=70685679a5",
     "/js/pages/terms.js": "/js/pages/terms.js?v=88ad4c0312",
-    "/js/pages/top.js": "/js/pages/top.js?v=f883193335",
+    "/js/pages/top.js": "/js/pages/top.js?v=3727666e20",
     "/js/payslip.js": "/js/payslip.js?v=df21fecd8d",
     "/js/profileEditor.js": "/js/profileEditor.js?v=56cd2d2c43",
     "/js/repo.js": "/js/repo.js?v=8b02b6f31c",
@@ -362,11 +362,17 @@
     <!-- カード数が少ない（現状2枚）ため、1frではなく最大幅を決めて中央寄せに
          することで、デスクトップの広い横幅にカードが間延びして伸びるのを防ぐ -->
     <div id="pm-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,260px));gap:24px;justify-content:center;margin-bottom:48px"></div>
-    <div id="pm-voice">
-      <div class="pm-eyebrow">VOICE</div>
-      <h2 class="pm-section-title" style="margin-bottom:40px" data-i18n="top.voice.title">お客様の声</h2>
-      <!-- 件数が少ない間は、カードが横幅いっぱいに伸びないよう最大幅を決めて中央寄せにする -->
-      <div id="pm-testimonials" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),600px));gap:20px;justify-content:center"></div>
+    <!-- スタイル別の撮影例（ビフォーアフターはファーストビューで見せるので、ここでは仕上がりの幅を見せる） -->
+    <div id="pm-gallery">
+      <div class="pm-eyebrow">GALLERY</div>
+      <h2 class="pm-section-title" style="margin-bottom:12px" data-i18n="top.gallery.title">スタイル別の撮影例</h2>
+      <p style="text-align:center;margin:0 auto 32px;max-width:560px;font:14px/1.8 var(--pm-font-body);color:var(--pm-text-3)" data-i18n="top.gallery.lead">自然体からフォーマルまで。使うアプリや、なりたい印象に合わせて撮影します。</p>
+      <div class="pm-gallery" data-stagger="up">
+        <figure><img src="assets/shot-hero-natural.jpg" alt="撮影例：公園の木道で撮った、自然体の全身写真" data-i18n-alt="top.gallery.alt1" width="720" height="960" loading="lazy" decoding="async"><figcaption data-i18n="top.gallery.shot1">自然体スナップ</figcaption></figure>
+        <figure><img src="assets/shot-natural-snap.jpg" alt="撮影例：一眼で撮ったフォーマルな写真" data-i18n-alt="top.gallery.alt2" width="900" height="1352" loading="lazy" decoding="async"><figcaption data-i18n="top.gallery.shot2">フォーマル</figcaption></figure>
+        <figure><img src="assets/shot-casual-fullbody.jpg" alt="撮影例：私服で撮った、水辺の半身写真" data-i18n-alt="top.gallery.alt3" width="900" height="599" loading="lazy" decoding="async"><figcaption data-i18n="top.gallery.shot3">半身×私服</figcaption></figure>
+        <figure><img src="assets/shot-hero-night.jpg" alt="撮影例：夜の街で撮った、横顔のスナップ" data-i18n-alt="top.gallery.alt4" width="720" height="960" loading="lazy" decoding="async"><figcaption data-i18n="top.gallery.shot4">夜の街スナップ</figcaption></figure>
+      </div>
     </div>
     <p style="font:11px/1.8 var(--pm-font-body);color:var(--pm-text-muted);margin:20px 0 0" data-i18n="top.results.sourceNote">※撮影実績は、代表カメラマンTAKUMIとカメラマンなつめのこれまでの撮影活動（PhotoMatch開始前を含む）の合計です。</p>
     <div style="text-align:center;margin-top:32px">
@@ -477,6 +483,6 @@
 
 <footer class="pm-footer" id="pm-footer"></footer>
 
-<script type="module" src="js/pages/top.js?v=f883193335"></script>
+<script type="module" src="js/pages/top.js?v=3727666e20"></script>
 </body>
 </html>

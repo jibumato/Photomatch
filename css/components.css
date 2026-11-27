@@ -243,6 +243,12 @@
 .pm-hero2-title { font: 900 clamp(27px, 7.4vw, 50px)/1.35 var(--pm-font-hand); margin: 0 0 10px; letter-spacing: 0.01em; color: oklch(0.24 0.03 245); }
 .pm-hero2-hl { background: linear-gradient(120deg, oklch(0.64 0.15 200), oklch(0.56 0.16 245)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 .pm-hero2-lead { font: clamp(14px, 3.6vw, 17px)/1.8 var(--pm-font-body); color: var(--pm-text-2); margin: 0; }
+/* スタイル別の撮影例：スマホは2列、PCは4列。写真は縦長にそろえて、左下にスタイル名 */
+.pm-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.pm-gallery figure { position: relative; margin: 0; border-radius: 16px; overflow: hidden; aspect-ratio: 3 / 4; background: var(--pm-bg-mint); box-shadow: 0 10px 24px oklch(0.45 0.08 230 / 0.16); }
+.pm-gallery img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pm-gallery figcaption { position: absolute; left: 10px; bottom: 10px; background: oklch(0.2 0.02 245 / 0.62); color: #fff; font: 700 12px var(--pm-font-body); padding: 5px 11px; border-radius: 100px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+@media (min-width: 861px) { .pm-gallery { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; } .pm-gallery figcaption { font-size: 13px; } }
 /* ビフォーアフター（最初に見せる）。スマホは横にスワイプ（次のカードが少し見える）、PCは1枚ずつ＋ドット */
 .pm-hero2-ba { position: relative; min-width: 0; margin: 0 -20px; }
 .pm-hero2-ba-track { position: relative; display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; padding: 6px 20px 36px; scrollbar-width: none; overscroll-behavior-x: contain; }
@@ -400,8 +406,6 @@
     background: linear-gradient(100deg, transparent 30%, oklch(0.85 0.1 200 / 0.55) 50%, transparent 70%);
     animation: pm-btn-shine 3.6s ease-in-out infinite;
   }
-  /* 「お客様の声」の矢印は、表示後にゆっくり脈打つ */
-  .pm-voice-arrow.is-in { animation: pm-pulse 2s 1.2s ease-in-out infinite; }
 }
 @keyframes pm-rise { from { opacity: 0; translate: 0 22px; } to { opacity: 1; translate: 0 0; } }
 @keyframes pm-pop { from { opacity: 0; scale: 0.6; } to { opacity: 1; scale: 1; } }
