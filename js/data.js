@@ -26,7 +26,8 @@ export function areasFor(photographerArea) {
 // （不実証広告規制）。実証後に「※モニター◯名の実績」等の注記付きで戻す。
 // 平均評価は、実際のレビューが集まるまで掲出しない（以前の「4.8」はダミーだった）。
 export const STATS = [
-  { value: '350+', label: '名古屋エリア撮影実績', labelEn: 'Nagoya-area shoots completed' },
+  // 名古屋（約250件）と岐阜（約100件）の合計。
+  { value: '350+', label: '名古屋・岐阜エリア撮影実績', labelEn: 'Shoots completed in Nagoya & Gifu' },
 ];
 
 // 実在のお客様の声だけを入れる。空の間は、トップの「お客様の声」欄ごと
