@@ -361,7 +361,16 @@ const DICT = {
   // arrays in js/data.js (see L() below) rather than here, so a translation
   // never drifts out of sync with the content it belongs to.
   'top.results.title': { ja: '名古屋エリアでの実績', en: 'Our Track Record in the Nagoya Area' },
-  'top.voice.title': { ja: 'お客様の声', en: 'Customer Voices' },
+  'top.gallery.title': { ja: 'スタイル別の撮影例', en: 'Shots by Style' },
+  'top.gallery.lead': { ja: '自然体からフォーマルまで。使うアプリや、なりたい印象に合わせて撮影します。', en: 'From relaxed to formal — we shoot for the app you use and the impression you want to give.' },
+  'top.gallery.alt1': { ja: '撮影例：公園の木道で撮った、自然体の全身写真', en: 'Sample: relaxed full-body shot on a park boardwalk' },
+  'top.gallery.alt2': { ja: '撮影例：一眼で撮ったフォーマルな写真', en: 'Sample: formal portrait, shot on a pro camera' },
+  'top.gallery.alt3': { ja: '撮影例：私服で撮った、水辺の半身写真', en: 'Sample: half-body shot in everyday clothes, by the water' },
+  'top.gallery.alt4': { ja: '撮影例：夜の街で撮った、横顔のスナップ', en: 'Sample: side-profile snapshot in the city at night' },
+  'top.gallery.shot1': { ja: '自然体スナップ', en: 'Natural snap' },
+  'top.gallery.shot2': { ja: 'フォーマル', en: 'Formal' },
+  'top.gallery.shot3': { ja: '半身×私服', en: 'Half-body, casual' },
+  'top.gallery.shot4': { ja: '夜の街スナップ', en: 'City at night' },
   'top.results.sourceNote': { ja: '※撮影実績は、代表カメラマンTAKUMIとカメラマンなつめのこれまでの撮影活動（PhotoMatch開始前を含む）の合計です。', en: "※ The shoot count combines the shooting careers of lead photographer TAKUMI and photographer Natsume, including work before PhotoMatch launched." },
   'top.pricing.title': { ja: 'シンプルな料金プラン', en: 'Simple, Transparent Pricing' },
   'top.pricing.chart.studio': { ja: 'スタジオの婚活・プロフィール写真（相場）', en: 'Studio matchmaking / profile photos (typical)' },

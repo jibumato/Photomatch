@@ -102,34 +102,6 @@ document.getElementById('pm-pains').innerHTML = painsList.map((p, i) => `
 document.getElementById('pm-apps').innerHTML = SUPPORTED_APPS.map((a) => `
   <span style="padding:9px 18px;border-radius:100px;background:oklch(0.97 0.012 215);border:1px solid var(--pm-border);font:700 14px var(--pm-font-num);color:oklch(0.38 0.03 235)">${getLang() === 'en' ? (SUPPORTED_APPS_EN[a] || a) : a}</span>`).join('');
 
-// No testimonials yet -> drop the whole お客様の声 block instead of showing an empty heading.
-// Before is shown small and After large, so the change reads at a glance.
-const voiceBeforeAfter = (before, after, badge) => `
-  <div style="display:grid;grid-template-columns:minmax(0,0.5fr) minmax(0,1fr);align-items:end;gap:clamp(14px,4vw,28px);margin-bottom:22px">
-    <figure data-reveal="left" style="margin:0 0 clamp(8px,3vw,20px)">
-      <div style="font:800 10px/1 var(--pm-font-num);letter-spacing:0.14em;color:var(--pm-text-muted);margin-bottom:8px">BEFORE</div>
-      <img src="${before.src}" alt="${L(before, 'alt')}" width="720" height="960" loading="lazy" style="display:block;width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;border-radius:10px;transform:rotate(-3deg);box-shadow:0 4px 12px oklch(0.3 0.02 235 / 0.15);border:4px solid #fff">
-    </figure>
-    <figure data-reveal="zoom" style="--i:3;margin:0;position:relative">
-      <img src="${after.src}" alt="${L(after, 'alt')}" width="720" height="960" loading="lazy" style="display:block;width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;border-radius:16px;box-shadow:0 0 0 3px #fff,0 0 0 6px oklch(0.7 0.13 205),0 18px 40px oklch(0.55 0.15 220 / 0.35)">
-      <figcaption style="position:absolute;left:12px;top:12px;padding:6px 14px;border-radius:100px;background:var(--pm-brand-grad);color:#fff;font:800 13px/1.3 var(--pm-font-num);letter-spacing:0.12em;box-shadow:0 4px 12px oklch(0.5 0.15 220 / 0.35)">AFTER</figcaption>
-      ${badge ? `<span class="pm-like-badge" data-reveal="pop" style="--i:9">${badge}</span>` : ''}
-      <span aria-hidden="true" class="pm-voice-arrow" data-reveal="pop" style="--i:6;position:absolute;left:0;top:50%;transform:translate(-62%,-50%);display:flex;align-items:center;justify-content:center;width:clamp(34px,9vw,46px);height:clamp(34px,9vw,46px);border-radius:50%;background:var(--pm-brand-grad);color:#fff;font:800 clamp(16px,4vw,20px)/1 var(--pm-font-num);box-shadow:0 0 0 4px #fff,0 6px 16px oklch(0.5 0.15 220 / 0.35)">→</span>
-    </figure>
-  </div>`;
-if (TESTIMONIALS.length) {
-  document.getElementById('pm-testimonials').innerHTML = TESTIMONIALS.map((item) => `
-  <div class="pm-card" style="padding:clamp(18px,4vw,28px)">
-    ${item.before && item.after ? voiceBeforeAfter(item.before, item.after, L(item, 'badge')) : ''}
-    ${item.starsLabel ? `<div style="font:13px var(--pm-font-body);color:var(--pm-star);margin-bottom:10px">${item.starsLabel}</div>` : ''}
-    ${item.comment ? `<blockquote style="margin:0;font:14px/1.9 var(--pm-font-body);color:oklch(0.35 0.02 235)">“${L(item, 'comment')}”</blockquote>` : ''}
-    ${item.name ? `<div style="font:600 13px var(--pm-font-body);color:var(--pm-text-3);margin-top:16px">${L(item, 'name')}</div>` : ''}
-    ${item.note ? `<div style="font:11px/1.6 var(--pm-font-body);color:var(--pm-text-muted);margin-top:10px">${L(item, 'note')}</div>` : ''}
-  </div>`).join('');
-} else {
-  document.getElementById('pm-voice').remove();
-}
-
 // 3ステップのタイムライン（線が伸びて番号が順番に出る）。下のカードと同じ内容なので読み上げからは外している。
 document.getElementById('pm-flow').innerHTML = HOW_IT_WORKS.map((s) => `
   <li><span class="pm-flow-num">${s.step}</span><span class="pm-flow-label">${L(s, 'flow')}<small>${L(s, 'flowSub')}</small></span></li>`).join('');
