@@ -7,6 +7,7 @@ import {
   createPhotographerAccount, resetPhotographerPassword, markNoShow, getPhotographersForReview, setPhotographerVisibility, setPhotographerShootCount, setPhotographerInvoice, setPhotographerWithholding,
   getReviewsForModeration, setReviewHidden,
   getBookingsForOps, searchBookingsForOps, getBookingsNeedingAttention, opsCancelBooking, markRefunded, setPayoutHold, sendStaffPick,
+  getMessageCounts,
 } from '../repo.js';
 import {
   AREAS, EXTRA_OPTIONS, OPS_CANCEL_REASONS, RESCHEDULABLE_STATUSES, awaitingPhotographerAck, photographerPayoutFor, noShowQuote, jstDateIso, addDaysToIso,
@@ -565,6 +566,7 @@ async function handleNoShow(b, btn, after) {
 // ---- 予約の管理 ----
 const reschedModal = mountRescheduleModal(document.getElementById('pm-ops-resched-mount'));
 const chatModal = mountChatModal(document.getElementById('pm-chat-mount'));
+const openOpsChat = (b) => chatModal.open(b.id, 'ops', `${b.customer_name || '依頼者'} ⇄ ${b.photographer_name || 'カメラマン'}`, `${b.booking_date} ${String(b.start_time).slice(0, 5)}〜`);
 const OPS_STATUS = { pending_payment: '決済待ち', paid: '確定', confirmed: '確定', requested: '依頼中', completed: '完了', canceled: 'キャンセル済' };
 const CANCEL_REASON_LABEL = { customer: 'お客様がキャンセル', no_show: '遅刻キャンセル', system: '決済の取り消し（自動）', ops: '運営がキャンセル' };
 const REFUND_LABEL = { none: '返金なし', pending: '返金処理中', succeeded: '返金済み', failed: '自動返金に失敗' };
@@ -575,12 +577,32 @@ const hasStaffPickOption = (b) => (b.options || []).some((o) => o.key === OPPOSI
 // Delivered, has the 異性スタッフ写真セレクト option, and the pick hasn't been sent yet.
 const needsStaffPick = (b) => b.status !== 'canceled' && !!b.delivered_at && hasStaffPickOption(b) && !b.staff_pick_at;
 
+// チャットの件数と最後のやり取り（loadBookings() が予約ごとに入れる）。
+// 運営がメッセージを読めない設定（"messages: ops read" ポリシーが未適用）のときは空のまま。
+let chatStats = {};
+const CHAT_ROLE_LABEL = { client: 'お客様', pro: 'カメラマン' };
+const shortDateTime = (iso) => new Date(iso).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+function chatStatFor(id) {
+  const rows = chatStats[id] || [];
+  if (!rows.length) return { count: 0, label: 'チャット（0件）', last: '' };
+  const last = rows.reduce((a, r) => (r.created_at > a.created_at ? r : a));
+  return {
+    count: rows.length,
+    label: `チャット（${rows.length}件）`,
+    last: `最終 ${shortDateTime(last.created_at)}・${CHAT_ROLE_LABEL[last.sender_role] || ''}`,
+  };
+}
+const chatButtonHtml = (b, cls) => {
+  const st = chatStatFor(b.id);
+  return `<button type="button" data-id="${b.id}" class="${cls}${st.count ? ' has-chat' : ''}" title="${escapeHtml(st.last || 'まだやり取りはありません')}">${st.label}${st.last ? `<small>${escapeHtml(st.last)}</small>` : ''}</button>`;
+};
+
 function opsBookingCardHtml(b) {
   const optionLabels = (b.options || []).map((o) => (EXTRA_OPTIONS.find((x) => x.key === o.key) || {}).label).filter(Boolean);
   const active = RESCHEDULABLE_STATUSES.includes(b.status) || b.status === 'pending_payment';
   const canAct = b.payout_status !== 'released';
   const actions = [];
-  actions.push(`<button data-id="${b.id}" class="btn-ops-chat pm-btn-outline">チャット</button>`);
+  actions.push(chatButtonHtml(b, 'btn-ops-chat pm-btn-outline pm-ops-chat-btn'));
   if (canAct && RESCHEDULABLE_STATUSES.includes(b.status)) actions.push(`<button data-id="${b.id}" class="btn-ops-resched pm-btn-outline">日程変更</button>`);
   if (canAct && active) actions.push(`<button data-id="${b.id}" class="btn-ops-cancel pm-btn-danger-outline">キャンセル（返金）</button>`);
   if (noShowQuote(b).allowed) actions.push(`<button data-id="${b.id}" class="btn-ops-noshow pm-btn-danger-outline">遅刻キャンセル</button>`);
@@ -654,7 +676,10 @@ function schedItemHtml(b) {
       <div class="pm-sched-meta">${escapeHtml(b.area || '')}${meeting ? ` ・ 集合：${escapeHtml(shortPlace(meeting.detail))}` : ''}</div>
       <div class="pm-sched-meta">連絡先：${escapeHtml(b.customer_contact || '-')}${b.order_number ? ` ・ ${escapeHtml(b.order_number)}` : ''}</div>
     </div>
-    <a href="#" class="pm-sched-jump" data-id="${b.id}">詳細・操作</a>
+    <div class="pm-sched-actions">
+      ${chatButtonHtml(b, 'pm-sched-chat')}
+      <a href="#" class="pm-sched-jump" data-id="${b.id}">詳細・操作</a>
+    </div>
   </li>`;
 }
 
@@ -726,6 +751,10 @@ function renderSchedule() {
       <ol class="pm-sched-list">${lane.rows.map(schedItemHtml).join('')}</ol>
     </div>`).join('');
 
+  el.querySelectorAll('.pm-sched-chat').forEach((btn) => btn.addEventListener('click', () => {
+    const b = schedRows.find((x) => x.id === btn.dataset.id);
+    if (b) openOpsChat(b);
+  }));
   el.querySelectorAll('.pm-sched-jump').forEach((a) => a.addEventListener('click', (e) => {
     e.preventDefault();
     const card = document.querySelector(`#pm-bookings-upcoming [data-booking-row="${a.dataset.id}"], #pm-bookings-recent [data-booking-row="${a.dataset.id}"]`);
@@ -777,6 +806,8 @@ async function loadBookings() {
   const recent = visible.filter((b) => b.booking_date < today || b.status === 'canceled').reverse();
   const all = [...attention, ...visible, ...(found || [])];
   const byId = Object.fromEntries(all.map((b) => [b.id, b]));
+  // チャットの件数（読めなくても一覧は出す）。
+  chatStats = await getMessageCounts(Object.keys(byId)).catch((err) => { console.warn('chat counts unavailable', err); return {}; });
   const fill = (id, rows, empty) => {
     document.getElementById(id).innerHTML = rows.length ? rows.map(opsBookingCardHtml).join('') : `<div class="pm-empty">${empty}</div>`;
   };
@@ -798,7 +829,7 @@ async function loadBookings() {
     .forEach((btn) => btn.addEventListener('click', () => fn(byId[btn.dataset.id], btn)));
 
   each('btn-ops-resched', (b) => reschedModal.open(b, refresh, { asOps: true }));
-  each('btn-ops-chat', (b) => chatModal.open(b.id, 'ops', `${b.customer_name || '依頼者'} ⇄ ${b.photographer_name || 'カメラマン'}`, `${b.booking_date} ${String(b.start_time).slice(0, 5)}〜`));
+  each('btn-ops-chat', (b) => openOpsChat(b));
   each('btn-ops-noshow', (b, btn) => handleNoShow(b, btn, refresh));
   each('btn-ops-cancel', (b, btn) => {
     const form = btn.closest('[data-booking-row]').querySelector('.ops-cancel-form');

@@ -744,9 +744,16 @@ img.pm-img-fade.is-loaded { opacity: 1; }
 .pm-sched-flag.is-warn { background: oklch(0.95 0.06 70); color: oklch(0.45 0.13 55); }
 .pm-sched-flag.is-muted { background: oklch(0.94 0.005 240); color: var(--pm-text-3); }
 .pm-sched-jump { font: 700 12px var(--pm-font-body); color: oklch(0.45 0.14 210); white-space: nowrap; padding-top: 2px; }
+/* スケジュールの各行：チャット（件数つき）と「詳細・操作」 */
+.pm-sched-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.pm-sched-chat { font: 700 12px var(--pm-font-body); color: var(--pm-text-3); background: #fff; border: 1px solid var(--pm-border); border-radius: 100px; padding: 5px 11px; cursor: pointer; white-space: nowrap; display: inline-flex; flex-direction: column; align-items: center; line-height: 1.3; }
+.pm-sched-chat.has-chat { color: oklch(0.4 0.13 215); border-color: oklch(0.82 0.08 210); background: oklch(0.97 0.025 210); }
+.pm-sched-chat small, .pm-ops-chat-btn small { font: 500 10.5px var(--pm-font-body); color: var(--pm-text-3); }
+.pm-ops-chat-btn { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.35; }
+.pm-ops-chat-btn.has-chat { border-color: oklch(0.75 0.1 210); background: oklch(0.97 0.025 210); }
 @media (max-width: 560px) {
   .pm-sched-item { grid-template-columns: 56px minmax(0, 1fr); }
-  .pm-sched-jump { grid-column: 2; }
+  .pm-sched-actions { grid-column: 2; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: wrap; }
 }
 .pm-ops-day-head { display: flex; align-items: baseline; gap: 8px; margin: 10px 0 0; padding: 0 2px; font: 700 15px var(--pm-font-body); color: var(--pm-text); }
 .pm-ops-day-head:first-child { margin-top: 0; }

@@ -89,7 +89,7 @@ function instagramLinkHtml(raw) {
           </div>` : ''}
           <div style="font:700 18px var(--pm-font-body);margin-bottom:2px">¥${plan.price.toLocaleString()}<span style="font:11px var(--pm-font-body);color:var(--pm-text-3)">${taxIncludedSuffix()}</span></div>
           <div style="font:12px/1.6 var(--pm-font-body);color:var(--pm-text-3);margin-bottom:12px">${planDescText(plan.description) || ''}</div>
-          <div style="text-align:center;background:var(--pm-bg-mint);color:oklch(0.42 0.13 210);border-radius:8px;padding:9px;font:700 12px var(--pm-font-body)">${t('profile.bookThisPlan')}</div>
+          <div style="text-align:center;background:var(--pm-bg-mint);color:oklch(0.42 0.13 210);border-radius:8px;padding:9px 6px;font:700 12px/1.5 var(--pm-font-body);text-wrap:balance;word-break:auto-phrase">${t('profile.bookThisPlan')}</div>
         </a>`).join('') || `<div class="pm-empty">${t('profile.plansEmpty')}</div>`;
     }
 

@@ -156,7 +156,7 @@ document.getElementById('pm-pricing').innerHTML = PRICING_PLANS.map((pl) => `
     </div>
     <div style="font:13px/1.8 var(--pm-font-body);color:var(--pm-text-3);margin:8px 0 12px">${L(pl, 'desc')}</div>
     ${pl.recommend ? `<div class="pm-plan-rec"><div class="pm-plan-rec-title">${t('top.pricing.recommend')}</div><ul>${L(pl, 'recommend').map((r) => `<li>${escapeHtml(r)}</li>`).join('')}</ul></div>` : ''}
-    <div style="display:flex;align-items:center;justify-content:center;gap:6px;background:var(--pm-brand-grad);color:#fff;border-radius:10px;padding:12px;font:700 13px var(--pm-font-body)">${t('profile.bookThisPlan')}</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;background:var(--pm-brand-grad);color:#fff;border-radius:10px;padding:12px 8px;font:700 13px/1.5 var(--pm-font-body);text-align:center;text-wrap:balance;word-break:auto-phrase">${t('profile.bookThisPlan')}</div>
   </a>`).join('');
 
 // 安心・安全：選ばれる理由の下に、見出し＋ひとことの短い一覧で。
@@ -309,7 +309,7 @@ const faqHtml = (f) => `
   }
 }
 
-// Mobile sticky "撮影を予約する" bar: visible while scrolling through the page,
+// Mobile sticky "空き枠を見てみる" bar: visible while scrolling through the page,
 // hidden while the hero's own button or the final CTA section is on screen so
 // it never sits redundantly next to another copy of the same button.
 {

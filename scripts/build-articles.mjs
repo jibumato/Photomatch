@@ -146,7 +146,7 @@ ${article.sections.map((s, i) => `    <div style="margin-bottom:36px">
       <div style="font:700 13px var(--pm-font-body);color:oklch(0.78 0.1 200);letter-spacing:0.06em;margin-bottom:10px">READY?</div>
       <h2 data-i18n="column.cta.title" style="font:700 clamp(20px,4.5vw,26px)/1.6 var(--pm-font-body);margin:0 0 14px">その一枚、プロと45分で。</h2>
       <p data-i18n="column.cta.body" style="font:14px/1.9 var(--pm-font-body);color:oklch(0.85 0.01 220);margin:0 0 28px">名古屋・岐阜エリアの審査済みカメラマンが、アプリ映えする自然な1枚を撮影します。</p>
-      <a class="pm-btn pm-btn-primary pm-btn-lg" data-i18n="column.cta.button" style="background:#fff;color:oklch(0.24 0.05 245)" href="search.html">撮影を予約する</a>
+      <a class="pm-btn pm-btn-primary pm-btn-lg" data-i18n="column.cta.button" style="background:#fff;color:oklch(0.24 0.05 245)" href="search.html">空き枠を見てみる</a>
     </div>
   </section>
 ${relatedHtml(article)}
