@@ -34,7 +34,7 @@ registerDict({
     ja: '名古屋・岐阜エリアの審査済みカメラマンが、アプリ映えする自然な1枚を撮影します。',
     en: 'A vetted photographer in the Nagoya and Gifu area will shoot a natural photo that looks great on dating apps.',
   },
-  'column.cta.button': { ja: '撮影を予約する', en: 'Book a Session' },
+  'column.cta.button': { ja: '空き枠を見てみる', en: 'See open times' },
 });
 
 // Japanese tag (as stored in COLUMN_ARTICLES.tag) -> dictionary key.

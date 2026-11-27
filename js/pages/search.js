@@ -6,7 +6,7 @@ import { escapeHtml, safePhotoUrl, hasRating } from '../util.js';
 
 mountLayout();
 
-// A plan picked on the top page (「このプランで予約」) is carried through to the
+// A plan picked on the top page (「このプランの空き枠を見る」) is carried through to the
 // photographer's page and the booking screen.
 const planParam = PRICING_PLANS.some((pl) => pl.name === new URLSearchParams(location.search).get('plan'))
   ? new URLSearchParams(location.search).get('plan') : null;
