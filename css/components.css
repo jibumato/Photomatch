@@ -759,3 +759,114 @@ img.pm-img-fade.is-loaded { opacity: 1; }
 .pm-ops-day-head:first-child { margin-top: 0; }
 .pm-ops-day-head small { font: 600 12px var(--pm-font-body); color: var(--pm-text-3); }
 .pm-flash { outline: 3px solid oklch(0.7 0.13 210); outline-offset: 2px; transition: outline-color 0.4s; }
+
+/* ====================================================================
+   VISUAL POLISH（見た目だけ：背景・ボックス・ボタンの質感）
+   中身や並びは変えず、色・ふち・影・背景だけを上書きする。
+   ==================================================================== */
+
+/* 日本語の見出しは、文節の途中で折り返さない */
+body { word-break: auto-phrase; }
+h1, h2, h3, .pm-section-title { text-wrap: balance; }
+
+/* ヘッダー・フッター */
+.pm-header { box-shadow: inset 0 -1px 0 oklch(1 0 0 / 0.7), 0 8px 24px -18px oklch(0.5 0.08 225 / 0.3); }
+.pm-footer { position: relative; border-top: 0; background: linear-gradient(180deg, oklch(0.97 0.015 215), var(--pm-bg) 70%); }
+.pm-footer::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, transparent, oklch(0.8 0.08 205), transparent); }
+
+/* 見出し：英字の小見出しの両脇に細い線、タイトルは太く */
+.pm-eyebrow { display: flex; align-items: center; justify-content: center; gap: 10px; font-family: var(--pm-font-num); font-weight: 800; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; }
+.pm-eyebrow::before, .pm-eyebrow::after { content: ""; width: 22px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, oklch(0.7 0.12 205)); }
+.pm-eyebrow::after { background: linear-gradient(90deg, oklch(0.7 0.12 205), transparent); }
+.pm-eyebrow[style*="text-align:left"] { display: block; }
+.pm-eyebrow[style*="text-align:left"]::before, .pm-eyebrow[style*="text-align:left"]::after { content: none; }
+.pm-section-title { font-weight: 900; font-size: clamp(23px, 5.2vw, 30px); line-height: 1.45; }
+
+/* ボックス（.pm-card）：すりガラス風の白＋グラデーションの細いふち＋色つきの影 */
+.pm-card {
+  background: linear-gradient(var(--pm-glass), var(--pm-glass)) padding-box, var(--pm-edge) border-box;
+  border: 1px solid transparent;
+  box-shadow: inset 0 1px 0 #fff, var(--pm-shadow-soft);
+}
+a.pm-card:hover, #pm-pricing .pm-card:hover, .pm-loc-card:hover { box-shadow: inset 0 1px 0 #fff, var(--pm-shadow-lift); }
+
+/* ボタン：上に光の反射、下にふちの影、色つきの光 */
+.pm-btn-primary { box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.5), inset 0 -2px 0 oklch(0.5 0.12 235 / 0.3), 0 12px 24px -6px oklch(0.62 0.14 215 / 0.55); }
+.pm-btn-outline { box-shadow: inset 0 1px 0 #fff, 0 6px 14px -8px oklch(0.55 0.1 225 / 0.3); }
+
+/* トップのファーストビュー：背景に細かいドットと、波の区切り */
+.pm-hero2 { background:
+  radial-gradient(120% 70% at 100% 0%, oklch(0.9 0.09 200 / 0.55), transparent 60%),
+  radial-gradient(90% 55% at 0% 40%, oklch(0.95 0.05 60 / 0.55), transparent 60%),
+  linear-gradient(180deg, oklch(0.95 0.035 205) 0%, oklch(0.975 0.02 215) 55%, oklch(0.99 0.006 220) 100%); }
+.pm-hero2::before { content: ""; position: absolute; inset: 0; background-image: var(--pm-dots); background-size: 14px 14px; -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 60%); mask-image: linear-gradient(180deg, #000 0%, transparent 60%); pointer-events: none; }
+.pm-hero2::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 26px; background: var(--pm-bg); pointer-events: none;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 26' preserveAspectRatio='none'%3E%3Cpath d='M0 26V14C70 0 130 22 200 12C270 2 330 20 390 8V26Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 26' preserveAspectRatio='none'%3E%3Cpath d='M0 26V14C70 0 130 22 200 12C270 2 330 20 390 8V26Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; }
+.pm-hero2-badge { background: linear-gradient(oklch(1 0 0 / 0.8), oklch(1 0 0 / 0.8)) padding-box, linear-gradient(120deg, oklch(0.82 0.1 200), oklch(0.92 0.03 220), oklch(0.85 0.08 250)) border-box; border: 1px solid transparent; box-shadow: 0 4px 14px oklch(0.6 0.1 215 / 0.14); }
+.pm-hero2-badge > span:first-child { background: var(--pm-brand-grad); box-shadow: 0 0 0 3px oklch(0.85 0.09 200 / 0.45); width: 8px; height: 8px; }
+.pm-hero2-hl { background-image: linear-gradient(120deg, oklch(0.64 0.15 200), oklch(0.56 0.16 245)); }
+.pm-hero2-chips li { background: linear-gradient(oklch(1 0 0 / 0.78), oklch(1 0 0 / 0.78)) padding-box, var(--pm-edge) border-box; border: 1px solid transparent; box-shadow: inset 0 1px 0 #fff, 0 8px 16px -12px oklch(0.55 0.1 225 / 0.3); }
+.pm-place-strip { box-shadow: 0 8px 18px -12px oklch(0.55 0.1 225 / 0.35); }
+.pm-campaign { background: linear-gradient(oklch(1 0 0 / 0.9), oklch(1 0 0 / 0.9)) padding-box, linear-gradient(120deg, oklch(0.84 0.09 200), oklch(0.95 0.04 60), oklch(0.86 0.07 250)) border-box; border: 1.5px solid transparent; box-shadow: inset 0 1px 0 #fff, 0 10px 20px -14px oklch(0.55 0.1 225 / 0.35); }
+
+/* ファーストビューのビフォーアフター */
+.pm-hero2-ba-slide { background: linear-gradient(oklch(1 0 0 / 0.8), oklch(1 0 0 / 0.8)) padding-box, var(--pm-edge) border-box; border: 1px solid transparent; box-shadow: inset 0 1px 0 #fff, 0 1px 2px oklch(0.5 0.05 230 / 0.08), 0 18px 30px -14px oklch(0.55 0.12 225 / 0.4); }
+.pm-ba-after img { box-shadow: 0 0 0 3px #fff, 0 0 0 5px oklch(0.74 0.12 205), 0 14px 26px -8px oklch(0.5 0.14 222 / 0.45); }
+.pm-ba-tag { box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.45), 0 4px 12px oklch(0.5 0.15 220 / 0.35); }
+.pm-ba-arrow { box-shadow: 0 0 0 3px #fff, 0 0 0 7px oklch(0.85 0.09 200 / 0.5), 0 6px 14px oklch(0.5 0.15 220 / 0.35); }
+
+/* 「選ばれる理由」「料金」のセクション背景：色の光と細かいドット */
+.pm-sec-glow { position: relative; isolation: isolate;
+  background:
+    radial-gradient(80% 36% at 100% 12%, oklch(0.93 0.05 200 / 0.55), transparent 70%),
+    radial-gradient(70% 32% at 0% 80%, oklch(0.96 0.04 70 / 0.5), transparent 70%),
+    linear-gradient(180deg, var(--pm-bg) 0, transparent 64px),
+    linear-gradient(180deg, var(--pm-bg-soft), var(--pm-bg)); }
+.pm-sec-glow::before { content: ""; position: absolute; inset: 0; z-index: -1; background-image: var(--pm-dots); background-size: 14px 14px; opacity: 0.8; -webkit-mask-image: radial-gradient(70% 38% at 50% 8%, #000, transparent); mask-image: radial-gradient(70% 38% at 50% 8%, #000, transparent); pointer-events: none; }
+#pricing-section { background:
+    radial-gradient(70% 30% at 0% 6%, oklch(0.93 0.05 200 / 0.6), transparent 70%),
+    radial-gradient(70% 30% at 100% 92%, oklch(0.95 0.04 250 / 0.55), transparent 70%),
+    linear-gradient(180deg, var(--pm-bg) 0, transparent 64px),
+    linear-gradient(180deg, oklch(0.955 0.03 205), var(--pm-bg)); }
+
+/* 選ばれる理由の絵・撮影例の写真：白いふちと影 */
+.pm-reason img { box-shadow: 0 0 0 3px #fff, 0 0 0 4px oklch(0.88 0.05 205), 0 12px 22px -10px oklch(0.5 0.1 225 / 0.45); }
+.pm-gallery figure { padding: 5px; background: #fff; border-radius: 20px; box-shadow: 0 0 0 1px oklch(0.9 0.03 210), 0 16px 30px -14px oklch(0.45 0.1 225 / 0.4); }
+.pm-gallery img { border-radius: 15px; }
+.pm-gallery figcaption { background: oklch(1 0 0 / 0.88); color: oklch(0.3 0.04 230); box-shadow: 0 4px 10px oklch(0.3 0.05 230 / 0.18); backdrop-filter: none; -webkit-backdrop-filter: none; left: 13px; bottom: 13px; }
+.pm-stats-pill { background: linear-gradient(#fff, #fff) padding-box, var(--pm-edge) border-box; border: 1px solid transparent; box-shadow: inset 0 1px 0 #fff, 0 8px 16px -12px oklch(0.55 0.1 225 / 0.35); }
+
+/* 安心・安全の枠 */
+.pm-safety-box { background: linear-gradient(160deg, oklch(0.95 0.04 205 / 0.9), oklch(0.985 0.012 220 / 0.9)); border: 1px solid oklch(0.88 0.05 205); box-shadow: inset 0 1px 0 #fff, 0 10px 26px -14px oklch(0.55 0.1 220 / 0.35); }
+.pm-safety-list li { border-top: 1px dashed oklch(0.84 0.04 210); }
+.pm-safety-list li:first-child { border-top: 0; }
+.pm-safety-check { box-shadow: 0 0 0 3px oklch(0.9 0.06 205 / 0.7); }
+
+/* 料金カード：おすすめは二重のふちとやわらかい光 */
+.pm-plan-card.is-featured { background: linear-gradient(#fff, #fff) padding-box, var(--pm-brand-grad) border-box; border: 2px solid transparent; box-shadow: 0 0 0 6px oklch(0.9 0.06 205 / 0.5), 0 20px 40px -14px oklch(0.5 0.14 222 / 0.45); }
+.pm-plan-per { background: linear-gradient(160deg, var(--pm-navy-2), var(--pm-navy-1)); box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.18); }
+
+/* よくある質問：Q の印と、丸い開閉ボタン */
+.pm-faq-q::before { content: "Q"; flex-shrink: 0; width: 26px; height: 26px; border-radius: 9px; background: oklch(0.95 0.04 205); color: oklch(0.42 0.14 212); font: 800 13px/26px var(--pm-font-num); text-align: center; margin-right: -4px; }
+.pm-faq-q > span:first-child { flex: 1 1 auto; min-width: 0; }
+.pm-faq-icon { width: 26px; height: 26px; border-radius: 50%; background: oklch(0.97 0.015 215); display: inline-flex !important; align-items: center; justify-content: center; font-size: 15px !important; }
+
+/* 季節のロケーションのカード */
+.pm-loc-card { box-shadow: inset 0 1px 0 #fff, var(--pm-shadow-soft); }
+.pm-loc-more > summary { background: linear-gradient(#fff, #fff) padding-box, var(--pm-edge) border-box; border: 1px solid transparent; box-shadow: inset 0 1px 0 #fff, 0 8px 16px -12px oklch(0.55 0.1 225 / 0.35); }
+
+/* 最後の呼びかけ：濃紺に、光のにじみと星のような点 */
+#final-cta-section { position: relative; overflow: hidden; isolation: isolate;
+  background:
+    radial-gradient(70% 60% at 100% 0%, oklch(0.6 0.13 205 / 0.5), transparent 70%),
+    radial-gradient(60% 50% at 0% 100%, oklch(0.55 0.12 260 / 0.45), transparent 70%),
+    linear-gradient(135deg, oklch(0.3 0.06 225), oklch(0.22 0.05 250)); }
+#final-cta-section::before { content: ""; position: absolute; inset: 0; z-index: -1; background-image: radial-gradient(oklch(1 0 0 / 0.2) 1px, transparent 1.4px); background-size: 18px 18px; -webkit-mask-image: linear-gradient(180deg, #000, transparent 75%); mask-image: linear-gradient(180deg, #000, transparent 75%); pointer-events: none; }
+#final-cta-section .pm-btn { box-shadow: 0 0 0 6px oklch(1 0 0 / 0.14), 0 12px 24px -8px oklch(0 0 0 / 0.45); }
+
+/* 画面下の固定バー（スマホ） */
+.pm-sticky-cta { box-shadow: 0 -10px 30px -14px oklch(0.4 0.08 230 / 0.3); }
+
+/* 動きを減らす設定：ボタンの光の帯は止まって見えて不自然なので出さない */
+@media (prefers-reduced-motion: reduce) { .pm-btn-primary::after { display: none; } .pm-hero2::before, .pm-sec-glow::before { opacity: 0.6; } }
