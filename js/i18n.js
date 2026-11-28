@@ -322,6 +322,7 @@ const DICT = {
   'top.strip.area': { ja: '名古屋・岐阜', en: 'Nagoya & Gifu' },
   'top.strip.meet': { ja: '季節のスポットに集合', en: 'Meet at a seasonal spot' },
   'top.strip.handsfree': { ja: '手ぶらでOK', en: 'Nothing to bring' },
+  'top.hero.feat.handsfreeSub': { ja: '特別な持ち物は不要', en: 'Just come as you are' },
   'top.ctaNote.hero': { ja: '45分で撮影完了・3営業日以内に納品', en: 'Done in 45 min · photos within 3 business days' },
   'top.ctaNote.solution': { ja: '当日は手ぶらでOK・集合場所で待ち合わせ', en: 'Nothing to bring · meet at the spot' },
   'top.ctaNote.results': { ja: 'マッチング数保証つき', en: 'Backed by our match guarantee' },

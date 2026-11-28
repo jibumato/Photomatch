@@ -16,9 +16,10 @@ document.getElementById('pm-stats').innerHTML = STATS.map((s) => `
   <span class="pm-stats-pill">${L(s, 'label')}<b data-count>${s.value}</b></span>`).join('');
 
 // ヒーローにも撮影実績を1行で（下の撮影例のところに注記がある）。
-document.getElementById('pm-hero-proof').innerHTML = STATS.map((s) => `
-  <span style="white-space:nowrap">${L(s, 'label')} <b data-count data-count-delay="900" style="font:800 15px var(--pm-font-num);color:oklch(0.45 0.14 210)">${s.value}</b></span>`).join('<span style="color:var(--pm-text-muted);margin:0 10px">／</span>')
-  + `<a href="#results-section" style="display:block;margin-top:4px;font:11px var(--pm-font-body);color:var(--pm-text-muted);text-decoration:underline">${getLang() === 'en' ? '※ track record of our photographers (see below)' : '※カメラマンの実績の合計です（詳細は下記）'}</a>`;
+// 枠なしの1行：星の印＋実績＋小さな注記（注記は下の撮影例のところへのリンク）。
+document.getElementById('pm-hero-proof').innerHTML = `<svg class="pm-hero2-proof-star" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>`
+  + STATS.map((s) => `<span class="pm-hero2-proof-stat">${L(s, 'label')} <b data-count data-count-delay="900">${s.value}</b></span>`).join('<span class="pm-hero2-proof-sep">／</span>')
+  + `<a class="pm-hero2-proof-note" href="#results-section">${getLang() === 'en' ? '※ track record of our photographers (see below)' : '※カメラマンの実績の合計です（詳細は下記）'}</a>`;
 
 // ファーストビュー：ビフォーアフターを最初に見せる（お客様の声と同じ写真。heroRank の小さい順）。
 // スマホは横にスワイプ、PCもドットで切り替え。ユーザーが触れるまでだけ、数秒おきに自動で進める。

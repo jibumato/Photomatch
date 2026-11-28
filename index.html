@@ -21,7 +21,7 @@
 <link rel="preload" as="image" href="assets/voice-03-after.jpg" fetchpriority="high">
 <link rel="stylesheet" href="css/tokens.css?v=8dafe677a7">
 <link rel="stylesheet" href="css/base.css?v=4a95132642">
-<link rel="stylesheet" href="css/components.css?v=28d42276a9">
+<link rel="stylesheet" href="css/components.css?v=c5301da354">
 
 <!-- 店舗を持たない出張型なので areaServed で提供地域を示す。
      Googleビジネスプロフィール（サービス提供地域型）の登録内容と揃えること。 -->
@@ -212,10 +212,10 @@
     "/js/i18n/columns.js": "/js/i18n/columns.js?v=1f5c287428",
     "/js/i18n/mypage.js": "/js/i18n/mypage.js?v=bb57ac988a",
     "/js/i18n/static-pages.js": "/js/i18n/static-pages.js?v=d939651089",
-    "/js/i18n.js": "/js/i18n.js?v=ec354e38ac",
+    "/js/i18n.js": "/js/i18n.js?v=22da8e7e83",
     "/js/layout.js": "/js/layout.js?v=9ac15a0659",
     "/js/motion.js": "/js/motion.js?v=f0bd547016",
-    "/js/pages/admin.js": "/js/pages/admin.js?v=9fe9411ff6",
+    "/js/pages/admin.js": "/js/pages/admin.js?v=5ea2365c36",
     "/js/pages/area.js": "/js/pages/area.js?v=624ce26b18",
     "/js/pages/booking.js": "/js/pages/booking.js?v=e8d9506db3",
     "/js/pages/column-article.js": "/js/pages/column-article.js?v=fe51a4373c",
@@ -235,10 +235,10 @@
     "/js/pages/search.js": "/js/pages/search.js?v=300b3b3d44",
     "/js/pages/stylist.js": "/js/pages/stylist.js?v=70685679a5",
     "/js/pages/terms.js": "/js/pages/terms.js?v=88ad4c0312",
-    "/js/pages/top.js": "/js/pages/top.js?v=6cd4f4d539",
+    "/js/pages/top.js": "/js/pages/top.js?v=682f258f11",
     "/js/payslip.js": "/js/payslip.js?v=df21fecd8d",
     "/js/profileEditor.js": "/js/profileEditor.js?v=56cd2d2c43",
-    "/js/repo.js": "/js/repo.js?v=8b02b6f31c",
+    "/js/repo.js": "/js/repo.js?v=5a5e20c695",
     "/js/rescheduleModal.js": "/js/rescheduleModal.js?v=e06e9e8e9d",
     "/js/reviewModal.js": "/js/reviewModal.js?v=f1b4e1d948",
     "/js/sales.js": "/js/sales.js?v=5cfac81a21",
@@ -279,10 +279,12 @@
           <div class="pm-cta-stack"><span class="pm-cta-bubble" data-i18n="top.ctaNote.hero">45分で撮影完了・3営業日以内に納品</span><a class="pm-btn pm-btn-primary pm-btn-lg" href="search.html" id="hero-cta"><span data-i18n="top.hero.cta">空き枠を見てみる</span><small data-i18n="top.hero.ctaNote">登録不要</small></a></div>
           <a class="pm-hero2-sublink" href="#pricing-section" data-i18n="top.hero.priceLink">料金を見る →</a>
         </div>
-        <div class="pm-place-strip"><span data-i18n="top.strip.area">名古屋・岐阜</span><span data-i18n="top.strip.meet">季節のスポットに集合</span><span data-i18n="top.strip.handsfree">手ぶらでOK</span></div>
-        <ul class="pm-hero2-chips">
-          <li><b id="pm-hero-per-photo">1枚 ¥340〜</b><span data-i18n="top.hero.chip2.l">20枚納品・税込</span></li>
-          <li><b data-i18n="top.hero.chip4.v">保証付き</b><span data-i18n="top.hero.chip4.l">マッチング数保証</span></li>
+        <!-- 4つの特長：白い枠1つに、アイコン＋太字＋補足の2行でそろえる（スマホ2×2、PC横1列） -->
+        <ul class="pm-hero2-feats">
+          <li><span class="pm-hero2-feat-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span><div><b data-i18n="top.strip.area">名古屋・岐阜</b><span data-i18n="top.strip.meet">季節のスポットに集合</span></div></li>
+          <li><span class="pm-hero2-feat-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg></span><div><b data-i18n="top.strip.handsfree">手ぶらでOK</b><span data-i18n="top.hero.feat.handsfreeSub">特別な持ち物は不要</span></div></li>
+          <li><span class="pm-hero2-feat-ic is-yen" aria-hidden="true">¥</span><div><b id="pm-hero-per-photo">1枚 ¥340〜</b><span data-i18n="top.hero.chip2.l">20枚納品・税込</span></div></li>
+          <li><span class="pm-hero2-feat-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><div><b data-i18n="top.hero.chip4.v">保証付き</b><span data-i18n="top.hero.chip4.l">マッチング数保証</span></div></li>
         </ul>
         <div id="pm-campaign-hero"></div>
         <div id="pm-hero-proof" class="pm-hero2-proof"></div>
@@ -473,6 +475,6 @@
 
 <footer class="pm-footer" id="pm-footer"></footer>
 
-<script type="module" src="js/pages/top.js?v=6cd4f4d539"></script>
+<script type="module" src="js/pages/top.js?v=682f258f11"></script>
 </body>
 </html>

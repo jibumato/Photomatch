@@ -199,9 +199,14 @@ export async function closeShifts(photographerId, rows) {
   // one delete per day (PostgREST can't filter on a list of (date, time) pairs)
   const byDay = {};
   rows.forEach((r) => { (byDay[r.shift_date] = byDay[r.shift_date] || []).push(r.start_time); });
-  for (const [day, times] of Object.entries(byDay)) {
-    const { error } = await supabase.from('shifts').delete().eq('photographer_id', photographerId).eq('shift_date', day).in('start_time', times);
-    if (error) throw error;
+  // 日ごとの削除を、10日分ずつ同時に送る（順番に1日ずつ待つと、30日分で30回ぶん遅くなるため）。
+  const days = Object.entries(byDay);
+  for (let i = 0; i < days.length; i += 10) {
+    const results = await Promise.all(days.slice(i, i + 10).map(([day, times]) => (
+      supabase.from('shifts').delete().eq('photographer_id', photographerId).eq('shift_date', day).in('start_time', times)
+    )));
+    const failed = results.find((r) => r.error);
+    if (failed) throw failed.error;
   }
 }
 
