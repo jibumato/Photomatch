@@ -69,6 +69,41 @@ function cellState(iso, time) {
   return slotState(state.takenIntervals, state.openSet, iso, time);
 }
 
+// 枠の見た目（予約済み／休み／受付中）。全体の描画と、1マスだけの更新の両方で使う。
+function cellLook(st) {
+  if (st === 'booked') return { mark: '予約', style: 'background:oklch(0.9 0.02 260);color:oklch(0.4 0.06 260);cursor:not-allowed;font-weight:600' };
+  if (st === 'closed') return { mark: '休', style: 'background:oklch(0.96 0.006 220);color:oklch(0.55 0.02 220);border:1px dashed oklch(0.85 0.02 220);cursor:pointer;font-weight:600' };
+  return { mark: '○', style: 'background:var(--pm-accent-grad);color:#fff;cursor:pointer;font-weight:700' };
+}
+const slotKey = (iso, time) => `${iso}|${time}`;
+const updateOpenCount = () => {
+  let n = 0;
+  state.days.forEach((d) => SLOT_TIMES.forEach((time) => { if (cellState(d.iso, time) === 'open') n++; }));
+  document.getElementById('open-count-line').textContent = `受付中の枠：${n}`;
+};
+// 1マスだけ、画面の見た目を今の状態に合わせる（全体を描き直さない）。
+function paintCell(el) {
+  const st = cellState(el.dataset.day, el.dataset.time);
+  const v = cellLook(st);
+  el.dataset.state = st;
+  el.setAttribute('style', v.style);
+  el.textContent = v.mark;
+}
+// 開く／休みにする：先に画面と手元の状態を変え（すぐ反応する）、保存は裏で行う。失敗したら元に戻す。
+function applyLocally(rows, open) {
+  const before = rows.map((r) => [slotKey(r.shift_date, r.start_time), state.openSet.has(slotKey(r.shift_date, r.start_time))]);
+  rows.forEach((r) => { const k = slotKey(r.shift_date, r.start_time); if (open) state.openSet.add(k); else state.openSet.delete(k); });
+  return () => before.forEach(([k, was]) => { if (was) state.openSet.add(k); else state.openSet.delete(k); });
+}
+
+// 保存は1つずつ順番に行う（開く→すぐ休みに、のように続けて押しても、順番が入れ替わらないように）。
+let writeChain = Promise.resolve();
+const enqueueWrite = (fn) => { const run = writeChain.then(fn); writeChain = run.catch(() => {}); return run; };
+// 保存に失敗したとき：サーバーの状態を読み直して、画面を合わせる。
+async function resyncShifts() {
+  try { await loadShifts(); renderGrid(); } catch (err) { console.error(err); }
+}
+
 function renderGrid() {
   const grid = document.getElementById('shift-grid');
   grid.style.gridTemplateColumns = `48px repeat(${state.days.length}, minmax(44px,1fr))`;
@@ -88,38 +123,32 @@ function renderGrid() {
     state.days.forEach((d) => {
       const st = cellState(d.iso, time);
       if (st === 'open') openCount++;
-      let bg, color, extraStyle, mark, cursor;
-      if (st === 'booked') {
-        bg = 'oklch(0.9 0.02 260)'; color = 'oklch(0.4 0.06 260)'; mark = '予約'; cursor = 'not-allowed'; extraStyle = '';
-      } else if (st === 'closed') {
-        bg = 'oklch(0.96 0.006 220)'; color = 'oklch(0.55 0.02 220)'; mark = '休'; cursor = 'pointer'; extraStyle = 'border:1px dashed oklch(0.85 0.02 220);';
-      } else {
-        bg = 'var(--pm-accent-grad)'; color = '#fff'; mark = '○'; cursor = 'pointer'; extraStyle = '';
-      }
-      html += `<div class="pm-cal-cell" data-day="${d.iso}" data-time="${time}" data-state="${st}" style="background:${bg};color:${color};${extraStyle}cursor:${cursor};font-weight:${st === 'open' ? 700 : 600}">${mark}</div>`;
+      const v = cellLook(st);
+      html += `<div class="pm-cal-cell" data-day="${d.iso}" data-time="${time}" data-state="${st}" style="${v.style}">${v.mark}</div>`;
     });
   });
   grid.innerHTML = html;
   document.getElementById('open-count-line').textContent = `受付中の枠：${openCount}`;
-
-  grid.querySelectorAll('.pm-cal-cell[data-state]').forEach((el) => {
-    if (el.dataset.state === 'booked') return;
-    el.addEventListener('click', async () => {
-      const iso = el.dataset.day;
-      const time = el.dataset.time;
-      const row = [{ shift_date: iso, start_time: time }];
-      try {
-        if (el.dataset.state === 'open') await closeShifts(state.photographerId, row);
-        else await openShifts(state.photographerId, row);
-        await loadShifts();
-        renderGrid();
-      } catch (err) {
-        alert('更新に失敗しました。');
-        console.error(err);
-      }
-    });
-  });
 }
+
+// マスのタップは、グリッドに1つだけ付ける（780個にそれぞれ付けない）。
+// 押した瞬間に見た目を切り替え、保存は裏で行う。通信を待たないので、軽く動く。
+document.getElementById('shift-grid').addEventListener('click', async (e) => {
+  const el = e.target.closest('.pm-cal-cell[data-state]');
+  if (!el || el.dataset.state === 'booked') return;
+  const row = [{ shift_date: el.dataset.day, start_time: el.dataset.time }];
+  const open = el.dataset.state !== 'open';
+  applyLocally(row, open);
+  paintCell(el);
+  updateOpenCount();
+  try {
+    await enqueueWrite(() => (open ? openShifts(state.photographerId, row) : closeShifts(state.photographerId, row)));
+  } catch (err) {
+    console.error(err);
+    alert('更新に失敗しました。通信を確認して、もう一度お試しください。');
+    await resyncShifts();
+  }
+});
 
 // ---- 「まとめて設定する」: time range × weekdays over the 30 displayed days ----
 const tplFrom = document.getElementById('tpl-from');
@@ -154,12 +183,14 @@ async function applyTemplate(btn, apply, emptyMessage) {
   if (!rows.length) { alert(emptyMessage); return; }
   btn.disabled = true;
   try {
-    await apply(state.photographerId, rows);
-    await loadShifts();
+    // 先に画面を切り替え、保存が終わったら完了（読み直しはしない）。失敗したときだけ読み直す。
+    applyLocally(rows, apply === openShifts);
     renderGrid();
+    await enqueueWrite(() => apply(state.photographerId, rows));
   } catch (err) {
     alert('更新に失敗しました。');
     console.error(err);
+    await resyncShifts();
   } finally {
     btn.disabled = false;
   }
@@ -179,12 +210,13 @@ document.getElementById('btn-all-closed').addEventListener('click', async () => 
         if (cellState(d.iso, time) === 'open') rows.push({ shift_date: d.iso, start_time: time });
       });
     });
-    await closeShifts(state.photographerId, rows);
-    await loadShifts();
+    applyLocally(rows, false);
     renderGrid();
+    await enqueueWrite(() => closeShifts(state.photographerId, rows));
   } catch (err) {
     alert('更新に失敗しました。');
     console.error(err);
+    await resyncShifts();
   } finally {
     btn.disabled = false;
   }
