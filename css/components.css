@@ -306,15 +306,44 @@
 .pm-hero2-ba-dot:focus-visible { outline: 2px solid oklch(0.55 0.15 220); outline-offset: 1px; }
 .pm-hero2-ba-note { margin: 2px 20px 0; text-align: center; font: 11px/1.6 var(--pm-font-body); color: var(--pm-text-muted); }
 .pm-hero2-ctas { margin-bottom: 14px; }
-.pm-hero2-chips { list-style: none; margin: 0 0 14px; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.pm-hero2-chips li { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 5px; background: #fff; border: 1px solid var(--pm-border); border-radius: 12px; padding: 7px 10px; }
-.pm-hero2-chips b { font: 800 15px var(--pm-font-num); color: oklch(0.42 0.14 215); }
-.pm-hero2-chips span { font: 11px/1.4 var(--pm-font-body); color: var(--pm-text-3); }
 .pm-hero2-ctas { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
 .pm-hero2-ctas .pm-btn-lg { display: inline-flex; align-items: center; gap: 8px; flex: 1 1 auto; justify-content: center; }
 .pm-hero2-ctas .pm-btn-lg small { font: 700 11px var(--pm-font-body); background: oklch(1 0 0 / 0.22); border-radius: 100px; padding: 2px 8px; }
 .pm-hero2-sublink { font: 700 13px var(--pm-font-body); color: oklch(0.45 0.14 210); text-decoration: underline; text-underline-offset: 3px; }
-.pm-hero2-proof { margin-top: 12px; font: 600 12px var(--pm-font-body); color: var(--pm-text-2); }
+/* 4つの特長：白い枠1つ。スマホは2×2、PCは横1列（点線で区切る） */
+.pm-hero2-feats { list-style: none; margin: 0 0 14px; padding: 14px 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 12px; border-radius: 18px;
+  background: linear-gradient(oklch(1 0 0 / 0.9), oklch(1 0 0 / 0.9)) padding-box, var(--pm-edge, linear-gradient(140deg, oklch(0.88 0.07 200), oklch(0.9 0.05 250))) border-box; border: 1px solid transparent;
+  box-shadow: inset 0 1px 0 #fff, 0 12px 26px -14px oklch(0.55 0.1 225 / 0.32); }
+.pm-hero2-feats li { display: flex; gap: 10px; align-items: flex-start; min-width: 0; }
+.pm-hero2-feats li > div { min-width: 0; display: flex; flex-direction: column; }
+.pm-hero2-feats b { font: 800 14px/1.35 var(--pm-font-body); color: var(--pm-text); }
+.pm-hero2-feats #pm-hero-per-photo { font-family: var(--pm-font-num), var(--pm-font-body); }
+.pm-hero2-feats span:not(.pm-hero2-feat-ic) { font: 12px/1.45 var(--pm-font-body); color: var(--pm-text-3); word-break: auto-phrase; text-wrap: balance; }
+.pm-hero2-feats b { word-break: auto-phrase; }
+.pm-hero2-feat-ic { flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px; background: oklch(0.95 0.04 205); color: oklch(0.48 0.13 212); display: flex; align-items: center; justify-content: center; }
+.pm-hero2-feat-ic.is-yen { font: 800 15px/1 var(--pm-font-num); }
+@media (min-width: 861px) {
+  .pm-hero2-feats { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding: 16px 18px; }
+  .pm-hero2-feats li { flex-direction: column; gap: 6px; padding-right: 10px; border-right: 1px dashed oklch(0.88 0.03 210); }
+  .pm-hero2-feats li:last-child { border-right: 0; padding-right: 0; }
+  .pm-hero2-feat-ic { width: 30px; height: 30px; }
+}
+@media (max-width: 360px) {
+  .pm-hero2-feats { padding: 12px; gap: 12px 8px; }
+  .pm-hero2-feats li { gap: 7px; }
+  .pm-hero2-feat-ic { width: 26px; height: 26px; border-radius: 8px; }
+  .pm-hero2-feat-ic svg { width: 14px; height: 14px; }
+  .pm-hero2-feats b { font-size: 13px; }
+  .pm-hero2-feats span:not(.pm-hero2-feat-ic) { font-size: 11.5px; }
+}
+/* 撮影実績：枠なしの1行（星の印＋実績＋小さな注記） */
+.pm-hero2-proof { margin-top: 12px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 6px; font: 600 12px/1.6 var(--pm-font-body); color: var(--pm-text-2); }
+.pm-hero2-proof-star { align-self: center; fill: oklch(0.72 0.14 75); flex-shrink: 0; }
+.pm-hero2-proof-stat { white-space: nowrap; }
+.pm-hero2-proof-stat b { font: 800 15px var(--pm-font-num); color: oklch(0.45 0.14 210); }
+.pm-hero2-proof-sep { color: var(--pm-text-muted); }
+.pm-hero2-proof-note { font: 11px var(--pm-font-body); color: var(--pm-text-muted); text-decoration: none; }
+.pm-hero2-proof-note:hover { text-decoration: underline; }
 /* PC：左にコピーと判断材料、右に写真を2×2で */
 @media (min-width: 861px) {
   .pm-hero2-grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); grid-template-areas: "head photos" "act photos"; column-gap: 56px; row-gap: 22px; align-items: end; padding: 64px 32px 72px; }
@@ -329,9 +358,6 @@
   .pm-ba-tag { font-size: 12px; padding: 6px 14px; }
   .pm-ba-arrow { width: 44px; height: 44px; font-size: 20px; }
   .pm-hero2-ba .pm-like-badge { font-size: 17px; padding: 10px 16px; right: -12px; }
-  .pm-hero2-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .pm-hero2-chips li { flex-direction: column; align-items: flex-start; padding: 9px 12px; }
-  .pm-hero2-chips b { font-size: 17px; }
   .pm-hero2-ctas .pm-btn-lg { flex: 0 0 auto; }
 }
 @media (prefers-reduced-motion: reduce) { .pm-hero2-glow { animation: none; } }
@@ -418,17 +444,13 @@
 @media (prefers-reduced-motion: no-preference) {
   /* ヒーロー：読み込み時に、上から順番にふわっと（JS を待たないよう CSS だけで動かす）。
      写真は LCP を遅らせないよう、透明にはせず位置と大きさだけ動かす。 */
-  .pm-hero2-badge, .pm-hero2-title, .pm-hero2-lead, .pm-hero2-chips li, .pm-hero2-ctas, .pm-hero2-proof {
+  .pm-hero2-badge, .pm-hero2-title, .pm-hero2-lead, .pm-hero2-feats, .pm-hero2-ctas, .pm-hero2-proof {
     animation: pm-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
   .pm-hero2-title { animation-delay: 0.08s; }
   .pm-hero2-lead { animation-delay: 0.18s; }
-  .pm-hero2-chips li { animation-name: pm-pop; animation-duration: 0.6s; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
-  .pm-hero2-chips li:nth-child(1) { animation-delay: 0.5s; }
-  .pm-hero2-chips li:nth-child(2) { animation-delay: 0.6s; }
-  .pm-hero2-chips li:nth-child(3) { animation-delay: 0.7s; }
-  .pm-hero2-chips li:nth-child(4) { animation-delay: 0.8s; }
   .pm-hero2-ctas { animation-delay: 0.4s; }
+  .pm-hero2-feats { animation-delay: 0.55s; }
   .pm-hero2-proof { animation-delay: 0.85s; }
   .pm-hero2-ba { animation: pm-photo-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
   /* 見出しの「“選ばれる一枚”を。」に、光が一度だけ流れる */
@@ -498,12 +520,11 @@
   .pm-btn-outline:hover, .pm-chip:hover, .pm-tile:hover { border-color: oklch(0.7 0.11 215); }
   /* リンクになっているカードは、触れると浮く */
   a.pm-card:hover, .pm-loc-card:hover { transform: translateY(-4px); box-shadow: var(--pm-shadow-card); }
-  .pm-hero2-chips li:hover { transform: translateY(-2px); box-shadow: 0 8px 18px oklch(0.6 0.08 220 / 0.14); }
   /* PC のメニュー：下線が左から伸びる */
   .pm-nav-desktop nav .pm-nav-link { background: linear-gradient(var(--pm-brand-2), var(--pm-brand-2)) left bottom / 0 2px no-repeat; padding-bottom: 4px; transition: background-size 0.3s ease, color 0.2s ease; }
   .pm-nav-desktop nav .pm-nav-link:hover { background-size: 100% 2px; color: oklch(0.42 0.14 215); }
 }
-a.pm-card, .pm-hero2-chips li { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+a.pm-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
 .pm-btn:not([disabled]):active, .pm-btn-outline:active, .pm-chip:active, .pm-tile:active, .pm-loc-tab:active { transform: scale(0.96); transition-duration: 0.08s; }
 a.pm-card:active { transform: scale(0.985); }
 .pm-ripple { position: absolute; border-radius: 50%; pointer-events: none; width: 16px; height: 16px; margin: -8px 0 0 -8px; background: oklch(1 0 0 / 0.5); animation: pm-ripple 0.65s ease-out forwards; }
@@ -577,7 +598,7 @@ img.pm-img-fade.is-loaded { opacity: 1; }
 @media (hover: hover) { .pm-faq-q:hover { background: var(--pm-bg-soft); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .pm-btn, .pm-btn-outline, .pm-chip, .pm-tile, a.pm-card, .pm-loc-card, .pm-hero2-chips li { transform: none !important; }
+  .pm-btn, .pm-btn-outline, .pm-chip, .pm-tile, a.pm-card, .pm-loc-card { transform: none !important; }
   .pm-ripple, .pm-heart { display: none; }
   #pm-mobile-cta, .pm-to-top, .pm-loc-tab-ind, img.pm-img-fade { transition: none; }
 }
@@ -766,8 +787,8 @@ img.pm-img-fade.is-loaded { opacity: 1; }
    ==================================================================== */
 
 /* 日本語の見出しは、文節の途中で折り返さない */
-body { word-break: auto-phrase; }
-h1, h2, h3, .pm-section-title { text-wrap: balance; }
+/* 文節で折り返すのは見出しだけ（本文に広げると、長い語句が狭い画面で折り返せず、はみ出すため） */
+h1, h2, h3, .pm-section-title { text-wrap: balance; word-break: auto-phrase; overflow-wrap: anywhere; }
 
 /* ヘッダー・フッター */
 .pm-header { box-shadow: inset 0 -1px 0 oklch(1 0 0 / 0.7), 0 8px 24px -18px oklch(0.5 0.08 225 / 0.3); }
@@ -806,7 +827,6 @@ a.pm-card:hover, #pm-pricing .pm-card:hover, .pm-loc-card:hover { box-shadow: in
 .pm-hero2-badge { background: linear-gradient(oklch(1 0 0 / 0.8), oklch(1 0 0 / 0.8)) padding-box, linear-gradient(120deg, oklch(0.82 0.1 200), oklch(0.92 0.03 220), oklch(0.85 0.08 250)) border-box; border: 1px solid transparent; box-shadow: 0 4px 14px oklch(0.6 0.1 215 / 0.14); }
 .pm-hero2-badge > span:first-child { background: var(--pm-brand-grad); box-shadow: 0 0 0 3px oklch(0.85 0.09 200 / 0.45); width: 8px; height: 8px; }
 .pm-hero2-hl { background-image: linear-gradient(120deg, oklch(0.64 0.15 200), oklch(0.56 0.16 245)); }
-.pm-hero2-chips li { background: linear-gradient(oklch(1 0 0 / 0.78), oklch(1 0 0 / 0.78)) padding-box, var(--pm-edge) border-box; border: 1px solid transparent; box-shadow: inset 0 1px 0 #fff, 0 8px 16px -12px oklch(0.55 0.1 225 / 0.3); }
 .pm-place-strip { box-shadow: 0 8px 18px -12px oklch(0.55 0.1 225 / 0.35); }
 .pm-campaign { background: linear-gradient(oklch(1 0 0 / 0.9), oklch(1 0 0 / 0.9)) padding-box, linear-gradient(120deg, oklch(0.84 0.09 200), oklch(0.95 0.04 60), oklch(0.86 0.07 250)) border-box; border: 1.5px solid transparent; box-shadow: inset 0 1px 0 #fff, 0 10px 20px -14px oklch(0.55 0.1 225 / 0.35); }
 
